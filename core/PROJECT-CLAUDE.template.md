@@ -21,6 +21,6 @@
 <Only what Claude cannot infer from the code: naming rules, folder roles, branch naming, review etiquette.>
 
 ## Delivery
-This project follows the Delivery Standard v4.0 (`~/.claude/delivery-standard.md`, source: github.com/<you>/delivery-standard).
+This project follows the Delivery Standard v4.0 (`~/.claude/delivery-standard.md`, source: github.com/sultan-repo/delivery-standard).
 Register: `docs/REQUIREMENTS.md` · Decisions: `docs/DECISIONS.md` · Status: `docs/STATUS.md`
 <If this repo tracks requirements elsewhere (GitHub issues, ADRs, a tasks file), say so here and Claude will use that instead.>

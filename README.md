@@ -1,62 +1,110 @@
-# Delivery Standard v4.0
+# Delivery Standard
 
-The v3.0 "Universal AI Software Engineering & Delivery Standard" master prompt, restructured for Claude Code. Same objective and lifecycle, split into layers so the always-on part stays short and the heavy procedures load only when needed.
+An outcome-driven software delivery standard for [Claude Code](https://code.claude.com). It makes Claude discover and challenge requirements before building, keep a traceable requirements register, verify with real evidence, and reassess the product against its objective. Ceremony scales with the size of the work: small fixes go straight to code, substantial features get a one-screen checkpoint first.
+
+Lifecycle: **DISCOVER → CHALLENGE → ENRICH → APPROVE → BUILD → VERIFY → REASSESS**
+
+## What you get
+
+- **Always-on core rules** (about 720 words): how to size work (small / substantial / high-risk), evidence-based verification, when to ask the user and when to decide, fixed continuity files, git discipline.
+- **`discover` skill**: requirements discovery, challenge, and enrichment. Produces a one-screen checkpoint with numbered decisions, then seeds `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`, `docs/STATUS.md` and the project CLAUDE.md.
+- **`reassess` skill**: product alignment review and definition of done at milestones. Ends with Done, Done with disclosed gaps, or Not done.
+- **`reviewer` subagent**: an independent reviewer with a fresh context for high-risk work. Reads and runs checks, never edits.
+- **A hook** that denies force-pushes.
+
+## Install
+
+Pick one option. Using both loads the core rules twice.
+
+### Option A: plugin (recommended)
+
+Inside Claude Code:
 
 ```
-delivery-standard/
-  core/CLAUDE.md                    always-on rules (~720 words)      → ~/.claude/CLAUDE.md
-  core/PROJECT-CLAUDE.template.md   per-project facts and objective  → <repo>/CLAUDE.md
-  skills/discover/                  DISCOVER→CHALLENGE→ENRICH→APPROVE → ~/.claude/skills/discover/
-  skills/reassess/                  alignment review + definition of done → ~/.claude/skills/reassess/
-  agents/reviewer.md                independent reviewer, fresh context  → ~/.claude/agents/reviewer.md
-  hooks/                            optional deterministic guard (force-push) → ~/.claude/hooks/ + settings.json
-  install.sh                        one-command global install (re-runnable)
-  CHANGES.md                        what changed from v3.0 and why
+/plugin marketplace add sultan-repo/delivery-standard
+/plugin install delivery-standard
 ```
 
-## Why this split
+Open a new session. The skills are `/delivery-standard:discover` and `/delivery-standard:reassess`.
+
+Update with `/plugin update delivery-standard`. Remove with `/plugin uninstall delivery-standard`.
+
+### Option B: install script
+
+For machines without the plugin system, or to reuse the files with other tools. Needs macOS or Linux with `python3`.
+
+```bash
+git clone https://github.com/sultan-repo/delivery-standard.git ~/Projects/delivery-standard && ~/Projects/delivery-standard/install.sh
+```
+
+Open a new session. The skills are `/discover` and `/reassess`.
+
+Update with `cd ~/Projects/delivery-standard && git pull && ./install.sh`. Remove with `~/Projects/delivery-standard/uninstall.sh`.
+
+### What it changes on your machine
+
+- **Option A**: only Claude Code's plugin list and cache. A SessionStart hook injects `core/CLAUDE.md` into each session; a PreToolUse hook denies force-pushes.
+- **Option B**: `~/.claude/delivery-standard.md` plus one import line appended to `~/.claude/CLAUDE.md`; `~/.claude/skills/discover` and `reassess`; `~/.claude/agents/reviewer.md`; `~/.claude/hooks/block-force-push.sh` plus one PreToolUse entry in `~/.claude/settings.json`. The uninstaller reverses exactly this and leaves your other content alone.
+
+## Use it on a project
+
+1. Create the folder, `git init`, open it in Claude Code.
+2. Send `/discover` (or `/delivery-standard:discover`) followed by your idea: the problem, the users, the outcome, hard constraints. You get a one-screen checkpoint. Answer the numbered decisions, or say "go with your recommendations". Claude creates the project CLAUDE.md, seeds the three `docs/` files, and starts the first increment on a branch.
+3. Day to day, just ask. Small work goes straight to implementation. Substantial work triggers discover on its own, because the core rules say so.
+4. Begin later sessions with "continue". Claude reads `docs/STATUS.md` and the git log first.
+5. At a milestone or before a release: `/reassess`.
+6. Auth, payments, personal data, migrations, and large diffs get the reviewer subagent automatically. You can also ask: "have the reviewer check this".
+
+## Layout
+
+```
+core/CLAUDE.md                    always-on rules
+core/PROJECT-CLAUDE.template.md   per-project CLAUDE.md template (discover uses it)
+skills/discover/                  DISCOVER → CHALLENGE → ENRICH → APPROVE, with reference checklists
+skills/reassess/                  alignment review and definition of done
+agents/reviewer.md                independent reviewer subagent
+hooks/                            hooks.json (plugin), session-start.sh, block-force-push.sh and its tests
+.claude-plugin/                   plugin.json and marketplace.json
+install.sh / uninstall.sh         Option B
+CHANGES.md                        how this grew out of a single 4,200-word master prompt, and why
+```
+
+## Why it is split this way
 
 | Layer | Loaded | Holds |
 |---|---|---|
-| `~/.claude/CLAUDE.md` | every turn, every project | rules that must apply to every single turn: sizing, verification, approval triggers, continuity files, git |
-| skills | only when triggered or `/invoked`; reference files load lazily | multi-step procedures and checklists used a few times per project |
-| subagent | spawned on demand with a clean context | the independent review, which cannot be independent inside the main context |
-| hooks | run by the harness, cannot be ignored | the few rules that must hold with zero exceptions |
-| project CLAUDE.md | every turn in that repo | the objective, commands, conventions (the old PROJECT ASSIGNMENT block) |
+| core rules | every turn | only rules that apply to every turn |
+| skills | when triggered or invoked; reference files load lazily | multi-step procedures used a few times per project |
+| subagent | spawned on demand with a clean context | the independent review |
+| hooks | run by Claude Code, cannot be ignored | the one rule that must never be broken |
+| project CLAUDE.md | every turn in that repo | objective, commands, conventions |
 
-The v3.0 prompt was ~4,200 words (~5,700 tokens) on every turn. Most of it applies to a few turns per project. Long always-on instructions dilute attention and get ignored; Anthropic's own guidance for CLAUDE.md is to keep only what would cause mistakes if removed.
+A single long prompt costs thousands of tokens on every turn and gets ignored in the middle. Keeping the always-on part short and loading the rest on demand is what keeps quality up.
 
-## Install (global, one time)
+## Tuning
 
-From this folder:
+- Too many checkpoints: tighten the **Substantial** definition in `core/CLAUDE.md`.
+- Too few questions: move items from "your call" into "Ask me only for".
+- Review too expensive: narrow the **High-risk** list.
+- Project-specific gates (lint, typecheck, tests after every edit) belong in the project's own `.claude/settings.json` as a `PostToolUse` hook on `Edit|Write`.
+
+## Developing the standard itself
 
 ```bash
-./install.sh
+claude plugin validate --strict .        # manifests, skills, agents
+python3 hooks/test-force-push-hook.py    # hook behaviour
 ```
 
-It copies the core to `~/.claude/delivery-standard.md` and adds one import line to `~/.claude/CLAUDE.md`, installs the two skills and the reviewer agent, and registers the force-push hook in `~/.claude/settings.json`. Re-run it after editing the bundle. Keep the bundle itself in a git repo so the standard has history.
+Test a local checkout for one session without installing it: `claude --plugin-dir /path/to/delivery-standard`.
 
-## Per project
+## Outside Claude Code
 
-1. Create the folder, `git init`, open it in Claude Code.
-2. `/discover <the idea>`. If there is no CLAUDE.md yet, discover creates it from the template with the agreed objective. Claude produces the checkpoint, you answer the numbered decisions, Claude seeds `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`, `docs/STATUS.md` and starts building.
-3. Day to day: just ask. Small work goes straight to implementation. Substantial work triggers `/discover` on its own because the core tells it to.
-4. At a milestone or before release: `/reassess`.
-5. For high-risk changes Claude spawns the `reviewer` subagent on its own; you can also ask: "have the reviewer check this".
-
-For a team repo where teammates lack the global install, copy `core/CLAUDE.md` into `<repo>/.claude/rules/delivery-standard.md` and the skills into `<repo>/.claude/skills/`, and commit them.
-
-## Using it outside Claude Code
-
-Concatenate the layers into one prompt for tools that have no skills or subagents:
+Concatenate the layers into one prompt for tools without skills or subagents:
 
 ```bash
 cat core/CLAUDE.md skills/discover/SKILL.md skills/discover/references/*.md skills/reassess/SKILL.md agents/reviewer.md > delivery-standard-single.md
 ```
 
-## Tuning
+## License
 
-- Too many checkpoints: tighten the **Substantial** definition in `core/CLAUDE.md`.
-- Too few questions: move items from "your call" to "Ask me only for".
-- Review too expensive: narrow the **High-risk** list; the reviewer runs only for those and on request.
-- Project-specific gates (lint, typecheck, tests on every edit): add a `PostToolUse` hook on `Edit|Write` in the repo's `.claude/settings.json`. That is the highest-value hook and it is project-specific, so it is not shipped here.
+MIT. Fork it, adapt it, and send improvements back as pull requests.

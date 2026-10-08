@@ -1,0 +1,15 @@
+{
+  "name": "delivery-standard",
+  "owner": {
+    "name": "Sultan Alsubaie",
+    "url": "https://github.com/sultan-repo"
+  },
+  "plugins": [
+    {
+      "name": "delivery-standard",
+      "source": "./",
+      "description": "Discover, challenge, build, verify, reassess: an outcome-driven delivery standard with /discover, /reassess and an independent reviewer agent."
+    }
+  ],
+  "description": "Sultan Alsubaie's Claude Code plugins. Currently: delivery-standard, an outcome-driven software delivery standard."
+}

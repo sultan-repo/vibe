@@ -1,0 +1,26 @@
+{
+  "description": "Delivery Standard: inject the always-on core rules at session start; deny force-pushes.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/session-start.sh\""
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}/hooks/block-force-push.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}

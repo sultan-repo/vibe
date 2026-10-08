@@ -10,7 +10,7 @@ Never silently override a higher level.
 
 ## Size the work before you start
 - **Small**: one clear change, a few files, no new dependency, no schema, API, or auth change, easy to revert. Examples: bug fix, copy change, new test, config tweak. Inspect, implement, validate, finish. No checkpoint.
-- **Substantial**: a new project, feature, or user journey; a new dependency or integration; a schema or public-contract change; or anything spanning more than a handful of files. Run `/discover` before building, build in increments, run `/reassess` at the milestone.
+- **Substantial**: a new project, feature, or user journey; a new dependency or integration; a schema or public-contract change; or anything spanning more than a handful of files. Run the `discover` skill before building (`/discover`, or `/delivery-standard:discover` when installed as a plugin), build in increments, run the `reassess` skill at the milestone.
 - **High-risk** (any size): auth, payments, personal data, migrations, destructive operations, production config. Treat as substantial, add an independent review with the `reviewer` subagent before calling it verified, and exercise it in a running environment where possible.
 
 Small is not the same as low-risk. When unsure, treat it as substantial.
