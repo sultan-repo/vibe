@@ -25,7 +25,7 @@ sys.exit(0)
 PY
 rc=$?
 if [ "$rc" -eq 2 ]; then
-  echo "Blocked by delivery standard: force-push rewrites shared history. Ask the user to run it themselves if it is truly needed." >&2
+  echo "Blocked by vibe: force-push rewrites shared history. Ask the user to run it themselves if it is truly needed." >&2
   exit 2
 fi
 exit 0

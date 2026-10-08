@@ -21,6 +21,6 @@
 <Only what Claude cannot infer from the code: naming rules, folder roles, branch naming, review etiquette.>
 
 ## Delivery
-This project follows the Delivery Standard v4.0 (`~/.claude/delivery-standard.md`, source: github.com/sultan-repo/delivery-standard).
+This project follows Vibe v4.1, an outcome-driven delivery standard (`~/.claude/vibe.md`, source: github.com/sultan-repo/vibe).
 Register: `docs/REQUIREMENTS.md` · Decisions: `docs/DECISIONS.md` · Status: `docs/STATUS.md`
 <If this repo tracks requirements elsewhere (GitHub issues, ADRs, a tasks file), say so here and Claude will use that instead.>

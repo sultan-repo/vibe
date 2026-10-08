@@ -5,10 +5,10 @@ CL="$HOME/.claude"
 
 # 1. Core: drop the import line and the installed file.
 if [ -f "$CL/CLAUDE.md" ]; then
-  grep -v '@~/.claude/delivery-standard.md' "$CL/CLAUDE.md" > "$CL/CLAUDE.md.tmp" || true
+  grep -v '@~/.claude/vibe.md' "$CL/CLAUDE.md" > "$CL/CLAUDE.md.tmp" || true
   mv "$CL/CLAUDE.md.tmp" "$CL/CLAUDE.md"
 fi
-rm -f "$CL/delivery-standard.md"
+rm -f "$CL/vibe.md"
 
 # 2. Skills and agent.
 rm -rf "$CL/skills/discover" "$CL/skills/reassess"
@@ -41,4 +41,4 @@ with open(path, "w") as f:
     f.write("\n")
 PY
 fi
-echo "Delivery Standard removed from $CL. Open a new Claude Code session to apply."
+echo "Vibe removed from $CL. Open a new Claude Code session to apply."

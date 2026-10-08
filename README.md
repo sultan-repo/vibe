@@ -1,4 +1,4 @@
-# Delivery Standard
+# Vibe
 
 An outcome-driven software delivery standard for [Claude Code](https://code.claude.com). It makes Claude discover and challenge requirements before building, keep a traceable requirements register, verify with real evidence, and reassess the product against its objective. Ceremony scales with the size of the work: small fixes go straight to code, substantial features get a one-screen checkpoint first.
 
@@ -21,35 +21,35 @@ Pick one option. Using both loads the core rules twice.
 Inside Claude Code:
 
 ```
-/plugin marketplace add sultan-repo/delivery-standard
-/plugin install delivery-standard
+/plugin marketplace add sultan-repo/vibe
+/plugin install vibe
 ```
 
-Open a new session. The skills are `/delivery-standard:discover` and `/delivery-standard:reassess`.
+Open a new session. The skills are `/vibe:discover` and `/vibe:reassess`.
 
-Update with `/plugin update delivery-standard`. Remove with `/plugin uninstall delivery-standard`.
+Update with `/plugin update vibe`. Remove with `/plugin uninstall vibe`.
 
 ### Option B: install script
 
 For machines without the plugin system, or to reuse the files with other tools. Needs macOS or Linux with `python3`.
 
 ```bash
-git clone https://github.com/sultan-repo/delivery-standard.git ~/Projects/delivery-standard && ~/Projects/delivery-standard/install.sh
+git clone https://github.com/sultan-repo/vibe.git ~/Projects/vibe && ~/Projects/vibe/install.sh
 ```
 
 Open a new session. The skills are `/discover` and `/reassess`.
 
-Update with `cd ~/Projects/delivery-standard && git pull && ./install.sh`. Remove with `~/Projects/delivery-standard/uninstall.sh`.
+Update with `cd ~/Projects/vibe && git pull && ./install.sh`. Remove with `~/Projects/vibe/uninstall.sh`.
 
 ### What it changes on your machine
 
 - **Option A**: only Claude Code's plugin list and cache. A SessionStart hook injects `core/CLAUDE.md` into each session; a PreToolUse hook denies force-pushes.
-- **Option B**: `~/.claude/delivery-standard.md` plus one import line appended to `~/.claude/CLAUDE.md`; `~/.claude/skills/discover` and `reassess`; `~/.claude/agents/reviewer.md`; `~/.claude/hooks/block-force-push.sh` plus one PreToolUse entry in `~/.claude/settings.json`. The uninstaller reverses exactly this and leaves your other content alone.
+- **Option B**: `~/.claude/vibe.md` plus one import line appended to `~/.claude/CLAUDE.md`; `~/.claude/skills/discover` and `reassess`; `~/.claude/agents/reviewer.md`; `~/.claude/hooks/block-force-push.sh` plus one PreToolUse entry in `~/.claude/settings.json`. The uninstaller reverses exactly this and leaves your other content alone.
 
 ## Use it on a project
 
 1. Create the folder, `git init`, open it in Claude Code.
-2. Send `/discover` (or `/delivery-standard:discover`) followed by your idea: the problem, the users, the outcome, hard constraints. You get a one-screen checkpoint. Answer the numbered decisions, or say "go with your recommendations". Claude creates the project CLAUDE.md, seeds the three `docs/` files, and starts the first increment on a branch.
+2. Send `/discover` (or `/vibe:discover`) followed by your idea: the problem, the users, the outcome, hard constraints. You get a one-screen checkpoint. Answer the numbered decisions, or say "go with your recommendations". Claude creates the project CLAUDE.md, seeds the three `docs/` files, and starts the first increment on a branch.
 3. Day to day, just ask. Small work goes straight to implementation. Substantial work triggers discover on its own, because the core rules say so.
 4. Begin later sessions with "continue". Claude reads `docs/STATUS.md` and the git log first.
 5. At a milestone or before a release: `/reassess`.
@@ -95,14 +95,14 @@ claude plugin validate --strict .        # manifests, skills, agents
 python3 hooks/test-force-push-hook.py    # hook behaviour
 ```
 
-Test a local checkout for one session without installing it: `claude --plugin-dir /path/to/delivery-standard`.
+Test a local checkout for one session without installing it: `claude --plugin-dir /path/to/vibe`.
 
 ## Outside Claude Code
 
 Concatenate the layers into one prompt for tools without skills or subagents:
 
 ```bash
-cat core/CLAUDE.md skills/discover/SKILL.md skills/discover/references/*.md skills/reassess/SKILL.md agents/reviewer.md > delivery-standard-single.md
+cat core/CLAUDE.md skills/discover/SKILL.md skills/discover/references/*.md skills/reassess/SKILL.md agents/reviewer.md > vibe-single.md
 ```
 
 ## License

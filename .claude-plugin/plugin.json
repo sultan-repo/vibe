@@ -1,10 +1,17 @@
 {
-  "name": "delivery-standard",
-  "version": "4.0.0",
-  "description": "Outcome-driven delivery standard for Claude Code: discover and challenge requirements before building, keep a traceable requirements register, verify with evidence, reassess against the objective. Adds /discover, /reassess, a fresh-context reviewer agent, and always-on core rules.",
+  "name": "vibe",
+  "version": "4.1.0",
+  "description": "Vibe: an outcome-driven delivery standard for Claude Code. Discover and challenge requirements before building, keep a traceable requirements register, verify with evidence, reassess against the objective. Adds /vibe:discover, /vibe:reassess, a fresh-context reviewer agent, and always-on core rules.",
   "author": {
     "name": "Sultan Alsubaie"
   },
   "license": "MIT",
-  "keywords": ["delivery", "requirements", "review", "workflow", "quality"]
+  "keywords": [
+    "vibe",
+    "delivery",
+    "requirements",
+    "review",
+    "workflow",
+    "quality"
+  ]
 }

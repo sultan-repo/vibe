@@ -1,4 +1,10 @@
-# What changed from v3.0 to v4.0, and why
+# Changes
+
+**2026-10-08, v4.1:** renamed the plugin, marketplace, and repo from `delivery-standard` to `vibe`. Skills are now `/vibe:discover` and `/vibe:reassess` when installed as a plugin. No change to the rules themselves.
+
+---
+
+## What changed from v3.0 to v4.0, and why
 
 ## Assessment of v3.0
 

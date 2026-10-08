@@ -1,5 +1,5 @@
 #!/bin/bash
-# Installs the Delivery Standard v4 into ~/.claude for all projects.
+# Installs Vibe (delivery standard) v4 into ~/.claude for all projects.
 # Safe to re-run after editing the bundle: copies are refreshed, your own ~/.claude/CLAUDE.md is kept.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -7,10 +7,10 @@ CL="$HOME/.claude"
 mkdir -p "$CL/skills" "$CL/agents" "$CL/hooks"
 
 # 1. Core rules: installed as their own file and imported, so personal notes in CLAUDE.md survive re-installs.
-cp "$HERE/core/CLAUDE.md" "$CL/delivery-standard.md"
+cp "$HERE/core/CLAUDE.md" "$CL/vibe.md"
 touch "$CL/CLAUDE.md"
-if ! grep -q '@~/.claude/delivery-standard.md' "$CL/CLAUDE.md"; then
-  printf '\n@~/.claude/delivery-standard.md\n' >> "$CL/CLAUDE.md"
+if ! grep -q '@~/.claude/vibe.md' "$CL/CLAUDE.md"; then
+  printf '\n@~/.claude/vibe.md\n' >> "$CL/CLAUDE.md"
 fi
 
 # 2. Skills and the reviewer subagent.
@@ -38,7 +38,7 @@ with open(path, "w") as f:
 PY
 
 echo "Installed into $CL:"
-echo "  delivery-standard.md   (imported by $CL/CLAUDE.md)"
+echo "  vibe.md   (imported by $CL/CLAUDE.md)"
 echo "  skills/discover, skills/reassess"
 echo "  agents/reviewer.md"
 echo "  hooks/block-force-push.sh  (PreToolUse hook in settings.json)"

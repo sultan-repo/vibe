@@ -1,5 +1,5 @@
 {
-  "description": "Delivery Standard: inject the always-on core rules at session start; deny force-pushes.",
+  "description": "Vibe: inject the always-on core rules at session start; deny force-pushes.",
   "hooks": {
     "SessionStart": [
       {
