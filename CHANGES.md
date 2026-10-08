@@ -1,5 +1,7 @@
 # Changes
 
+**2026-10-08, v4.2:** split discovery from building. `discover` now stops at the checkpoint and writes no code; it revises the checkpoint on each reply and hands off to the new `build` skill when the user approves. `build` applies decisions to the register, implements one approved increment, verifies, records evidence, commits, and stops. Every later session starts with `build` instead of "continue".
+
 **2026-10-08, v4.1:** renamed the plugin, marketplace, and repo from `delivery-standard` to `vibe`. Skills are now `/vibe:discover` and `/vibe:reassess` when installed as a plugin. No change to the rules themselves.
 
 ---

@@ -8,6 +8,7 @@ Lifecycle: **DISCOVER → CHALLENGE → ENRICH → APPROVE → BUILD → VERIFY 
 
 - **Always-on core rules** (about 720 words): how to size work (small / substantial / high-risk), evidence-based verification, when to ask the user and when to decide, fixed continuity files, git discipline.
 - **`discover` skill**: requirements discovery, challenge, and enrichment. Produces a one-screen checkpoint with numbered decisions, then seeds `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`, `docs/STATUS.md` and the project CLAUDE.md.
+- **`build` skill**: the daily driver. Applies your checkpoint decisions, takes the next approved increment, implements it under the core rules, runs the checks, exercises the journey, updates status and evidence, commits, and names what comes next.
 - **`reassess` skill**: product alignment review and definition of done at milestones. Ends with Done, Done with disclosed gaps, or Not done.
 - **`reviewer` subagent**: an independent reviewer with a fresh context for high-risk work. Reads and runs checks, never edits.
 - **A hook** that denies force-pushes.
@@ -25,7 +26,7 @@ Inside Claude Code:
 /plugin install vibe
 ```
 
-Open a new session. The skills are `/vibe:discover` and `/vibe:reassess`.
+Open a new session. The skills are `/vibe:discover`, `/vibe:build`, and `/vibe:reassess`.
 
 Update with `/plugin update vibe`. Remove with `/plugin uninstall vibe`.
 
@@ -37,23 +38,24 @@ For machines without the plugin system, or to reuse the files with other tools. 
 git clone https://github.com/sultan-repo/vibe.git ~/Projects/vibe && ~/Projects/vibe/install.sh
 ```
 
-Open a new session. The skills are `/discover` and `/reassess`.
+Open a new session. The skills are `/discover`, `/build`, and `/reassess`.
 
 Update with `cd ~/Projects/vibe && git pull && ./install.sh`. Remove with `~/Projects/vibe/uninstall.sh`.
 
 ### What it changes on your machine
 
 - **Option A**: only Claude Code's plugin list and cache. A SessionStart hook injects `core/CLAUDE.md` into each session; a PreToolUse hook denies force-pushes.
-- **Option B**: `~/.claude/vibe.md` plus one import line appended to `~/.claude/CLAUDE.md`; `~/.claude/skills/discover` and `reassess`; `~/.claude/agents/reviewer.md`; `~/.claude/hooks/block-force-push.sh` plus one PreToolUse entry in `~/.claude/settings.json`. The uninstaller reverses exactly this and leaves your other content alone.
+- **Option B**: `~/.claude/vibe.md` plus one import line appended to `~/.claude/CLAUDE.md`; `~/.claude/skills/discover`, `build`, and `reassess`; `~/.claude/agents/reviewer.md`; `~/.claude/hooks/block-force-push.sh` plus one PreToolUse entry in `~/.claude/settings.json`. The uninstaller reverses exactly this and leaves your other content alone.
 
 ## Use it on a project
 
 1. Create the folder, `git init`, open it in Claude Code.
-2. Send `/discover` (or `/vibe:discover`) followed by your idea: the problem, the users, the outcome, hard constraints. You get a one-screen checkpoint. Answer the numbered decisions, or say "go with your recommendations". Claude creates the project CLAUDE.md, seeds the three `docs/` files, and starts the first increment on a branch.
-3. Day to day, just ask. Small work goes straight to implementation. Substantial work triggers discover on its own, because the core rules say so.
-4. Begin later sessions with "continue". Claude reads `docs/STATUS.md` and the git log first.
-5. At a milestone or before a release: `/reassess`.
-6. Auth, payments, personal data, migrations, and large diffs get the reviewer subagent automatically. You can also ask: "have the reviewer check this".
+2. Send `/discover` (or `/vibe:discover`) followed by your idea: the problem, the users, the outcome, hard constraints. You get a one-screen checkpoint and no code. Reply with changes as many times as you like; each round revises the checkpoint and the register.
+3. Approve by answering the numbered decisions, or say "go with your recommendations". Claude records the decisions and hands off to `build`, which implements the first increment on a branch and reports.
+4. Begin every later session with `/build` (or `/vibe:build`). It reads `docs/STATUS.md` and the git log, takes the next approved increment, and stops when it is done. Add "through the milestone" to keep going.
+5. Day to day, just ask. Small work goes straight to implementation. Substantial work triggers discover on its own, because the core rules say so.
+6. At a milestone or before a release: `/reassess`.
+7. Auth, payments, personal data, migrations, and large diffs get the reviewer subagent automatically. You can also ask: "have the reviewer check this".
 
 ## Layout
 
@@ -61,6 +63,7 @@ Update with `cd ~/Projects/vibe && git pull && ./install.sh`. Remove with `~/Pro
 core/CLAUDE.md                    always-on rules
 core/PROJECT-CLAUDE.template.md   per-project CLAUDE.md template (discover uses it)
 skills/discover/                  DISCOVER → CHALLENGE → ENRICH → APPROVE, with reference checklists
+skills/build/                     BUILD → VERIFY, one approved increment per run
 skills/reassess/                  alignment review and definition of done
 agents/reviewer.md                independent reviewer subagent
 hooks/                            hooks.json (plugin), session-start.sh, block-force-push.sh and its tests

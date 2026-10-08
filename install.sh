@@ -14,8 +14,8 @@ if ! grep -q '@~/.claude/vibe.md' "$CL/CLAUDE.md"; then
 fi
 
 # 2. Skills and the reviewer subagent.
-rm -rf "$CL/skills/discover" "$CL/skills/reassess"
-cp -R "$HERE/skills/discover" "$HERE/skills/reassess" "$CL/skills/"
+rm -rf "$CL/skills/discover" "$CL/skills/build" "$CL/skills/reassess"
+cp -R "$HERE/skills/discover" "$HERE/skills/build" "$HERE/skills/reassess" "$CL/skills/"
 cp "$HERE/agents/reviewer.md" "$CL/agents/reviewer.md"
 
 # 3. Hook that denies force-pushes, registered in settings.json without touching other settings.
@@ -39,7 +39,7 @@ PY
 
 echo "Installed into $CL:"
 echo "  vibe.md   (imported by $CL/CLAUDE.md)"
-echo "  skills/discover, skills/reassess"
+echo "  skills/discover, skills/build, skills/reassess"
 echo "  agents/reviewer.md"
 echo "  hooks/block-force-push.sh  (PreToolUse hook in settings.json)"
 echo "Open a new Claude Code session to pick it up."

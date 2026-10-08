@@ -1,11 +1,11 @@
 ---
 name: discover
-description: Requirements discovery, challenge, and enrichment before building substantial work (a new project, feature, user journey, integration, schema or contract change). Produces a one-screen checkpoint of confirmed requirements, gaps, recommendations, and decisions, then seeds docs/REQUIREMENTS.md, docs/DECISIONS.md, and docs/STATUS.md. Use at the start of any substantial task, or when the user says "discover", "plan this feature", "what am I missing", "challenge this design".
+description: Requirements discovery, challenge, and enrichment before building substantial work (a new project, feature, user journey, integration, schema or contract change). Produces a one-screen checkpoint of confirmed requirements, gaps, recommendations, and decisions, then seeds docs/REQUIREMENTS.md, docs/DECISIONS.md, and docs/STATUS.md. It stops at the checkpoint and writes no application code; building starts with the build skill after the user decides. Use at the start of any substantial task, or when the user says "discover", "plan this feature", "what am I missing", "challenge this design".
 ---
 
 # Discover → Challenge → Enrich → Approve
 
-Goal: help the user end up with a better product than the one they described, without uncontrolled scope growth. The output is a short checkpoint and an updated requirements register, not a document.
+Goal: help the user end up with a better product than the one they described, without uncontrolled scope growth. The output is a short checkpoint and an updated requirements register, not a document and not code. Building is the `build` skill's job, after the user decides.
 
 Input: `$ARGUMENTS` is the idea or feature. If empty, use the request already in the conversation.
 
@@ -53,8 +53,13 @@ If the repository has no `CLAUDE.md`, create one from `references/project-claude
 
 Then create or update the three continuity files using `references/register-template.md`: confirmed and required items as `approved`, recommended items as `proposed`, architecture choices in DECISIONS.md with the reason, and a one-screen STATUS.md.
 
-Start the first increment immediately if it is authorized and independent of the open decisions. Build only approved scope. Proposed items stay proposed until the user says yes.
+Then stop and wait for decisions. Do not write application code in this skill.
+
+- If the user replies with changes or questions: revise the checkpoint and the register, keep the decisions numbered, and stop again. Discovery usually takes more than one round.
+- If the user approves (a clear yes, "go", "go with your recommendations", or answers to the decisions): record the answers in the register and DECISIONS.md, then invoke the `build` skill (`/build`, or `/vibe:build` as a plugin) so the first increment starts in the same conversation.
+
+Proposed items stay proposed until the user says yes. In plan mode, present the checkpoint and seed the files once the user leaves plan mode.
 
 ## Proportionality
 
-If step 1 shows the work is actually small, say so in one line and go straight to implementation. If the user asked for a quick hack, do the hack and list what was skipped under deferred.
+If step 1 shows the work is actually small, say so in one line and implement it directly; the checkpoint and the build skill exist for substantial work. If the user asked for a quick hack, do the hack and list what was skipped under deferred.

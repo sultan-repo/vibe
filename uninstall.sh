@@ -11,7 +11,7 @@ fi
 rm -f "$CL/vibe.md"
 
 # 2. Skills and agent.
-rm -rf "$CL/skills/discover" "$CL/skills/reassess"
+rm -rf "$CL/skills/discover" "$CL/skills/build" "$CL/skills/reassess"
 rm -f "$CL/agents/reviewer.md"
 
 # 3. Hook script and its settings entry.

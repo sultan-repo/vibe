@@ -8,7 +8,7 @@
     {
       "name": "vibe",
       "source": "./",
-      "description": "Vibe: discover, challenge, build, verify, reassess. An outcome-driven delivery standard with /vibe:discover, /vibe:reassess and an independent reviewer agent."
+      "description": "Vibe: discover, challenge, build, verify, reassess. An outcome-driven delivery standard with /vibe:discover, /vibe:build, /vibe:reassess and an independent reviewer agent."
     }
   ],
   "description": "Sultan Alsubaie's Claude Code plugins. Currently: vibe, an outcome-driven software delivery standard."

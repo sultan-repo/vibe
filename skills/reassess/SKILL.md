@@ -47,7 +47,7 @@ Check what applies: deployment and rollback, configuration and secrets handling,
 - Deferred capability.
 - Accepted limitation.
 
-Prioritize by impact, risk, and effort. Required corrections return to build and verify now if within authorized scope. Proposed changes go back through `/discover` step 4 for approval. Do not restart the whole lifecycle.
+Prioritize by impact, risk, and effort. Required corrections within authorized scope go to the `build` skill now. Proposed changes go back through the `discover` checkpoint for a decision. Do not restart the whole lifecycle.
 
 ## 7. Verdict (definition of done)
 Declare one of:

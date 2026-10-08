@@ -10,7 +10,7 @@ Never silently override a higher level.
 
 ## Size the work before you start
 - **Small**: one clear change, a few files, no new dependency, no schema, API, or auth change, easy to revert. Examples: bug fix, copy change, new test, config tweak. Inspect, implement, validate, finish. No checkpoint.
-- **Substantial**: a new project, feature, or user journey; a new dependency or integration; a schema or public-contract change; or anything spanning more than a handful of files. Run the `discover` skill before building (`/discover`, or `/vibe:discover` when installed as a plugin), build in increments, run the `reassess` skill at the milestone.
+- **Substantial**: a new project, feature, or user journey; a new dependency or integration; a schema or public-contract change; or anything spanning more than a handful of files. Run the `discover` skill (`/discover`, or `/vibe:discover` when installed as a plugin) and stop at its checkpoint. After my decisions, the `build` skill implements one approved increment at a time. Run the `reassess` skill at the milestone.
 - **High-risk** (any size): auth, payments, personal data, migrations, destructive operations, production config. Treat as substantial, add an independent review with the `reviewer` subagent before calling it verified, and exercise it in a running environment where possible.
 
 Small is not the same as low-risk. When unsure, treat it as substantial.
@@ -43,7 +43,7 @@ The repository is the memory. Fixed files, created on first need, never duplicat
 
 If the project already has an equivalent (issue tracker, ADRs, a tasks file), use that and name it in the project CLAUDE.md.
 
-Session start: read CLAUDE.md and STATUS.md, check `git status` and recent `git log`, reconcile saved state with reality, then continue without redoing verified work. Before ending a turn that changed substantial work: update register statuses and evidence, update STATUS.md next actions, commit.
+Session start: read CLAUDE.md and STATUS.md, check `git status` and recent `git log`, reconcile saved state with reality. On a substantial project the `build` skill does this and takes the next approved increment; do not redo verified work. Before ending a turn that changed substantial work: update register statuses and evidence, update STATUS.md next actions, commit.
 
 ## Git
 Feature branch for substantial work. Commit each coherent increment with a message naming the requirement IDs it serves. Never force-push, rewrite shared history, or push or merge without authorization.
