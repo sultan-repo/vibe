@@ -1,5 +1,8 @@
 # Changes
 
+**2026-10-18, v4.4:** review without drag: Claude handles focused intermediate reviews; Codex is deferred to the Reassess gate at high-risk pre-merge, release readiness, or explicit request. Ordinary milestones and small changes avoid Codex. A final approved HEAD and scope may be reused without repeating review. Every gate permits only one consolidated Codex pass and at most one targeted follow-up; unresolved blockers remain blocking after escalation. Read-only execution constraints are recorded separately from genuinely unverified acceptance evidence, with clearer CLI error messages and tests. Updated templates, policy and onboarding guidance.
+
+
 **2026-10-18, v4.3:** risk-aware review without expanding the always-on core. One-time opt-in to Codex CLI as independent reviewer; Claude selects per-run medium/high/xhigh effort. Added local, read-only Codex helper with structured output and fail-closed commit verification, plus mocked CLI tests. High-risk increments define material invariants before implementation, test stateful sequences against models where applicable, keep review fixes in scope, triage findings, track convergence, and require review on the final commit. Standing authorization is explicit and narrowly scoped; reviewer failures never silently switch providers. Updated installers, templates and usage docs.
 
 
