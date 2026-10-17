@@ -14,7 +14,7 @@ from pathlib import Path
 args = sys.argv[1:]
 if args[:2] == ['login', 'status']:
     sys.exit(1 if os.environ.get('FAKE_MODE') == 'login' else 0)
-assert args[0] == 'exec' and args[-1] == '-'
+assert args[:3] == ['--ask-for-approval', 'never', 'exec'] and args[-1] == '-'
 assert args[args.index('--sandbox') + 1] == 'read-only'
 assert args[args.index('--ask-for-approval') + 1] == 'never'
 assert args[args.index('-c') + 1] == 'model_reasoning_effort=' + os.environ['EXPECT_EFFORT']
