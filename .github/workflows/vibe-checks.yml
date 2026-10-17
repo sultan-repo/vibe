@@ -20,20 +20,18 @@ jobs:
           bash -n install.sh uninstall.sh hooks/*.sh
           python3 -m json.tool .claude-plugin/plugin.json >/dev/null
           python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
-          python3 -m json.tool scripts/review-result.schema.json >/dev/null
-          python3 -m py_compile scripts/codex-review.py tests/test_codex_review.py
-      - name: Existing force-push protection
+      - name: Force-push protection
         run: python3 hooks/test-force-push-hook.py
-      - name: Codex review helper
+      - name: Review workflow policy
         run: python3 -m unittest discover -s tests -v
       - name: Install and uninstall smoke test
         run: |
           export HOME="$(mktemp -d)"
           trap 'rm -rf "$HOME"' EXIT
           bash ./install.sh
-          test -f "$HOME/.claude/vibe-tools/codex-review.py"
+          test -f "$HOME/.claude/agents/reviewer.md"
           test -f "$HOME/.claude/hooks/check-force-push.py"
-          test -f "$HOME/.claude/vibe-tools/review-result.schema.json"
+          test ! -f "$HOME/.claude/vibe-tools/review-result.schema.json"
           bash ./uninstall.sh
-          test ! -f "$HOME/.claude/vibe-tools/codex-review.py"
+          test ! -f "$HOME/.claude/agents/reviewer.md"
           test ! -f "$HOME/.claude/hooks/check-force-push.py"
