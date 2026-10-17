@@ -1,7 +1,7 @@
 {
   "name": "vibe",
-  "version": "4.2.0",
-  "description": "Vibe: an outcome-driven delivery standard for Claude Code. Discover and challenge requirements before building, keep a traceable requirements register, verify with evidence, reassess against the objective. Adds /vibe:discover, /vibe:build, /vibe:reassess, a fresh-context reviewer agent, and always-on core rules.",
+  "version": "4.3.0",
+  "description": "Vibe: outcome-driven delivery with scoped risk-aware verification, optional locally authenticated Codex CLI independent review, one-time reviewer setup, and review convergence rules.",
   "author": {
     "name": "Sultan Alsubaie"
   },
