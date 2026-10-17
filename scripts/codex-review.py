@@ -25,7 +25,8 @@ def fail(message):
 
 def valid_report(report):
     if not isinstance(report, dict) or set(report) != {
-        "head_sha", "verdict", "findings", "previous_findings", "unverified_requirements"
+        "head_sha", "verdict", "findings", "previous_findings", "unverified_requirements",
+        "reviewer_limitations"
     }:
         return False
     if not isinstance(report["head_sha"], str) or report["verdict"] not in {
@@ -33,8 +34,10 @@ def valid_report(report):
     }:
         return False
     if not all(isinstance(report[k], list) for k in (
-        "findings", "previous_findings", "unverified_requirements"
+        "findings", "previous_findings", "unverified_requirements", "reviewer_limitations"
     )):
+        return False
+    if not all(isinstance(x, str) and x for x in report["reviewer_limitations"]):
         return False
     if not all(isinstance(x, str) and x for x in report["unverified_requirements"]):
         return False
@@ -116,11 +119,19 @@ def main():
         return fail("review result is missing required collections")
     if report.get("verdict") != "APPROVE":
         return fail(f"review verdict is {report.get('verdict', 'missing')}")
-    if unverified or any(item.get("severity") in ("blocker", "required") or
-                         item.get("kind") == "spec_question" for item in findings):
-        return fail("approval conflicts with unresolved findings or acceptance criteria")
+    if unverified:
+        return fail("unverified acceptance evidence: " + " | ".join(unverified)[:1500])
+    blocking = [item.get("id", "unknown") for item in findings
+                if item.get("severity") in ("blocker", "required") or item.get("kind") == "spec_question"]
+    if blocking:
+        return fail("unresolved required findings: " + ", ".join(blocking))
     if any(item.get("status") != "fixed" for item in previous):
         return fail("previous review findings have not all been resolved")
+    limitations = report["reviewer_limitations"]
+    if limitations:
+        print(f"Review limitations (not missing acceptance evidence): {len(limitations)}")
+        for item in limitations:
+            print(f"  - {item}")
     print(f"Vibe review APPROVED at {args.head[:12]} (effort: {args.effort}); {destination}")
     return 0
 
