@@ -21,7 +21,7 @@
 <Only what Claude cannot infer from the code: naming rules, folder roles, branch naming, review etiquette.>
 
 ## Delivery
-- Final gate reviewer: <codex-cli | claude-subagent | unset until one-time onboarding> (record also as Reviewer for compatibility)
+- Reviewer: <codex-cli | claude-subagent | unset until one-time onboarding> (final gates only)
 - Routine review: Claude subagent on substantial changes when useful; no Codex per increment
 - Review effort: automatic (medium/high/xhigh, model support permitting)
 - Standing permissions: <none, or precise branch/repo + checks + exclusions explicitly approved by owner>
