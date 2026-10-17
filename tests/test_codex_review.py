@@ -26,13 +26,16 @@ if mode == 'invalid':
     Path(args[args.index('--output-last-message') + 1]).write_text('bad json')
     sys.exit(0)
 report = {'head_sha': os.environ['EXPECT_HEAD'], 'verdict': 'APPROVE',
-          'findings': [], 'previous_findings': [], 'unverified_requirements': []}
+          'findings': [], 'previous_findings': [], 'unverified_requirements': [],
+          'reviewer_limitations': []}
 if mode == 'reject': report['verdict'] = 'REJECT'
 if mode == 'stale': report['head_sha'] = '0' * 40
 if mode == 'unverified': report['unverified_requirements'] = ['R-01']
+if mode == 'limitations': report['reviewer_limitations'] = ['CI tests require write access but verified CI logs pass']
 if mode == 'spec': report['findings'] = [{'kind': 'spec_question', 'severity': 'minor'}]
 if mode == 'previous': report['previous_findings'] = [{'id': 'F-1', 'status': 'open', 'evidence': 'still broken'}]
 if mode == 'incomplete': report['findings'] = [{}]
+if mode == 'missing_limitations': del report['reviewer_limitations']
 Path(args[args.index('--output-last-message') + 1]).write_text(json.dumps(report))
 '''
 
@@ -71,8 +74,18 @@ class TestCodexReview(unittest.TestCase):
             with self.subTest(effort=effort):
                 self.assertEqual(self.run_review(effort=effort).returncode, 0)
 
+    def test_nonblocking_read_only_limitations(self):
+        result = self.run_review(mode='limitations')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('Review limitations', result.stdout)
+
+    def test_unverified_error_names_issue(self):
+        result = self.run_review(mode='unverified')
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('R-01', result.stderr)
+
     def test_fail_closed(self):
-        for mode in ("login", "execution", "invalid", "reject", "stale", "unverified", "spec", "previous", "incomplete"):
+        for mode in ("login", "execution", "invalid", "reject", "stale", "unverified", "spec", "previous", "incomplete", "missing_limitations"):
             with self.subTest(mode=mode):
                 self.assertNotEqual(self.run_review(mode=mode).returncode, 0)
 
