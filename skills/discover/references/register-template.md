@@ -50,6 +50,7 @@ Done so far: <three to six lines>
 In progress: <what and where>
 Blocked: <blocker and the decision or input needed>
 Known limitations: <accepted, with who accepted>
+Review gate: <not required | pending before high-risk merge/release | approved full HEAD and scope; note reviewed tests/CI evidence and count of Codex gate calls>
 Deferred: <item, reason>
 Next approved actions: <numbered>
 ```
