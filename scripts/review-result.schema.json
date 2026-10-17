@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "properties": {
+    "head_sha": {"type": "string"},
+    "verdict": {"type": "string", "enum": ["APPROVE", "APPROVE_WITH_REQUIRED_FIXES", "REJECT"]},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string"},
+          "kind": {"type": "string", "enum": ["bug", "spec_question", "out_of_scope"]},
+          "severity": {"type": "string", "enum": ["blocker", "required", "minor"]},
+          "requirement": {"type": "string"},
+          "evidence": {"type": "string"},
+          "impact": {"type": "string"},
+          "suggested_resolution": {"type": "string"}
+        },
+        "required": ["id", "kind", "severity", "requirement", "evidence", "impact", "suggested_resolution"],
+        "additionalProperties": false
+      }
+    },
+    "previous_findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {"type": "string"},
+          "status": {"type": "string", "enum": ["fixed", "open", "disputed"]},
+          "evidence": {"type": "string"}
+        },
+        "required": ["id", "status", "evidence"],
+        "additionalProperties": false
+      }
+    },
+    "unverified_requirements": {"type": "array", "items": {"type": "string"}}
+  },
+  "required": ["head_sha", "verdict", "findings", "previous_findings", "unverified_requirements"],
+  "additionalProperties": false
+}
