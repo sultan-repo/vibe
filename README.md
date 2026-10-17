@@ -10,7 +10,8 @@ Lifecycle: **DISCOVER → CHALLENGE → ENRICH → APPROVE → BUILD → VERIFY 
 - **`discover` skill**: requirements discovery, challenge, and enrichment. Produces a one-screen checkpoint with numbered decisions, then seeds `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`, `docs/STATUS.md` and the project CLAUDE.md.
 - **`build` skill**: the daily driver. Applies your checkpoint decisions, takes the next approved increment, implements it under the core rules, runs the checks, exercises the journey, updates status and evidence, commits, and names what comes next.
 - **`reassess` skill**: product alignment review and definition of done at milestones. Ends with Done, Done with disclosed gaps, or Not done.
-- **`reviewer` subagent**: an independent reviewer with a fresh context for high-risk work. Reads and runs checks, never edits.
+- **Independent review choice**: opt into local Codex CLI at first onboarding or keep the fresh-context Claude `reviewer` subagent. Claude chooses per-run review effort according to risk; Codex has a read-only helper that fails closed on stale or unverified results.
+- **Risk-aware review loop**: high-risk rules contract, model-based sequence tests when stateful, bounded review iterations, finding triage and final-commit approval.
 - **A hook** that denies force-pushes.
 
 ## Install
@@ -55,7 +56,13 @@ Update with `cd ~/Projects/vibe && git pull && ./install.sh`. Remove with `~/Pro
 4. Begin every later session with `/build` (or `/vibe:build`). It reads `docs/STATUS.md` and the git log, takes the next approved increment, and stops when it is done. Add "through the milestone" to keep going.
 5. Day to day, just ask. Small work goes straight to implementation. Substantial work triggers discover on its own, because the core rules say so.
 6. At a milestone or before a release: `/reassess`.
-7. Auth, payments, personal data, migrations, and large diffs get the reviewer subagent automatically. You can also ask: "have the reviewer check this".
+7. When you first onboard a project, Vibe asks whether to use Codex CLI as your default independent reviewer. It remembers the choice in project CLAUDE.md. High-risk changes get an independent review from your chosen reviewer; you can also request one explicitly. An unavailable configured reviewer blocks approval instead of silently switching.
+
+## Codex CLI review (optional)
+
+Choose **Yes** to the one-time reviewer question, install Codex CLI and sign in on the *review machine* (`codex login status`). Vibe uses your current Codex model and selects `medium`, `high`, or `xhigh` reasoning effort per invocation. It does not need or copy your credentials, and does not modify global Codex settings. A model that rejects the selected effort causes an explicit failure, not a silent fallback.
+
+For high-risk code, Claude writes a reviewer brief and commits a clean worktree before invoking the helper. The exact command is in `skills/build/references/review-loop.md`; it uses `codex exec` in read-only mode, requires JSON structured findings, verifies the reviewed commit SHA and only exits successfully with a clean APPROVE verdict. This **does not replace tests, CI, or required GitHub approvals**. The Python 3 helper is bundled in the plugin or installed as `~/.claude/vibe-tools/codex-review.py` using Option B.
 
 ## Layout
 
@@ -65,7 +72,10 @@ core/PROJECT-CLAUDE.template.md   per-project CLAUDE.md template (discover uses 
 skills/discover/                  DISCOVER → CHALLENGE → ENRICH → APPROVE, with reference checklists
 skills/build/                     BUILD → VERIFY, one approved increment per run
 skills/reassess/                  alignment review and definition of done
-agents/reviewer.md                independent reviewer subagent
+agents/reviewer.md                fresh-context Claude reviewer subagent
+scripts/codex-review.py            fail-closed local Codex CLI review helper
+scripts/review-result.schema.json  reviewer response contract
+skills/build/references/           risk-aware workflow + reviewer brief
 hooks/                            hooks.json (plugin), session-start.sh, block-force-push.sh and its tests
 .claude-plugin/                   plugin.json and marketplace.json
 install.sh / uninstall.sh         Option B
@@ -96,6 +106,7 @@ A single long prompt costs thousands of tokens on every turn and gets ignored in
 ```bash
 claude plugin validate --strict .        # manifests, skills, agents
 python3 hooks/test-force-push-hook.py    # hook behaviour
+python3 -m unittest discover -s tests -v # Codex review helper, mocked CLI
 ```
 
 Test a local checkout for one session without installing it: `claude --plugin-dir /path/to/vibe`.
