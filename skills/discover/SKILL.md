@@ -15,7 +15,7 @@ Establish from evidence:
 - The problem, intended users, desired outcome, and how success will be measured.
 - Current state. For an existing repo, read the code, tests, config, CI, recent git log, and any `docs/REQUIREMENTS.md`, `docs/STATUS.md`, `docs/DECISIONS.md`. Trust code over docs.
 - Constraints, non-goals, operating environment, dependencies, integrations.
-- Risks and unknowns.
+- Risks and unknowns. Classify high-risk by impact, including consent, auth, deletion, payments, permissions, concurrency and data integrity; do not equate a small diff with low risk.
 
 Label each item as **confirmed fact**, **assumption**, **existing decision**, or **proposed change**. Ask the user only what the repo cannot answer, and ask inside the checkpoint, not one question at a time.
 
@@ -35,6 +35,8 @@ Classify every meaningful finding:
 - **Optional**: future enhancement. Goes to the deferred list in STATUS.md only if worth remembering.
 - **Not applicable**: dropped without mention.
 
+For high-risk increments, read `../build/references/review-loop.md` (or resolve it through the installed build skill). Draft a concise rules contract defining invariants, equivalence, action scope, transitions, race/retry behavior and non-goals; ask the owner to approve material choices before coding. Use `docs/RULES.md` or the project's existing equivalent. Require state-machine/property tests when the rules are stateful and sequences matter.
+
 Five strong recommendations beat twenty weak ones. Include only findings that would change the outcome if omitted.
 
 ## 4. Approve (the checkpoint)
@@ -46,10 +48,12 @@ Present one checkpoint, one screen at most, in this shape:
 - **Gaps found (Required)**: what, why it matters, evidence.
 - **Recommended (your decision)**: a table with item, benefit, cost, impact if omitted, my recommendation, and the default if you do not answer.
 - **Assumptions I will proceed on** unless corrected.
-- **Decisions needed now**: numbered, each with a recommendation.
+- **Decisions needed now**: numbered, each with a recommendation. On first project onboarding, if reviewer preference is not recorded, include one question: "Use Codex CLI as your default independent reviewer?" Recommend Yes, with fresh-context Claude reviewer as the alternative. Do not assume consent. Detect availability and local sign-in when Yes is selected.
 - **Plan**: milestones in order, first increment named.
 
 If the repository has no `CLAUDE.md`, create one from `references/project-claude-template.md` with the objective, non-goals, and constraints agreed in the checkpoint; fill the Commands section once the stack is decided.
+
+Record the review preference in project CLAUDE.md (`Reviewer: codex-cli` or `Reviewer: claude-subagent`). If a configured Codex CLI is unavailable, flag independent review as blocked rather than silently switching. Record any owner-approved rules contract and the required acceptance tests.
 
 Then create or update the three continuity files using `references/register-template.md`: confirmed and required items as `approved`, recommended items as `proposed`, architecture choices in DECISIONS.md with the reason, and a one-screen STATUS.md.
 
