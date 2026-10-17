@@ -33,8 +33,9 @@
         "additionalProperties": false
       }
     },
-    "unverified_requirements": {"type": "array", "items": {"type": "string"}}
+    "unverified_requirements": {"type": "array", "items": {"type": "string"}},
+    "reviewer_limitations": {"type": "array", "items": {"type": "string"}}
   },
-  "required": ["head_sha", "verdict", "findings", "previous_findings", "unverified_requirements"],
+  "required": ["head_sha", "verdict", "findings", "previous_findings", "unverified_requirements", "reviewer_limitations"],
   "additionalProperties": false
 }
