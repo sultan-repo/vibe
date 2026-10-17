@@ -48,12 +48,12 @@ Present one checkpoint, one screen at most, in this shape:
 - **Gaps found (Required)**: what, why it matters, evidence.
 - **Recommended (your decision)**: a table with item, benefit, cost, impact if omitted, my recommendation, and the default if you do not answer.
 - **Assumptions I will proceed on** unless corrected.
-- **Decisions needed now**: numbered, each with a recommendation. On first project onboarding, if reviewer preference is not recorded, include one question: "Use Codex CLI as your default independent reviewer?" Recommend Yes, with fresh-context Claude reviewer as the alternative. Do not assume consent. Detect availability and local sign-in when Yes is selected.
+- **Decisions needed now**: numbered, each with a recommendation. On first project onboarding, if reviewer preference is not recorded, include one question: "Use Codex CLI for final independent reviews (high-risk pre-merge and release)?" Recommend Yes, with fresh-context Claude reviewer as the alternative. Do not assume consent. Detect availability and local sign-in when Yes is selected.
 - **Plan**: milestones in order, first increment named.
 
 If the repository has no `CLAUDE.md`, create one from `references/project-claude-template.md` with the objective, non-goals, and constraints agreed in the checkpoint; fill the Commands section once the stack is decided.
 
-Record the review preference in project CLAUDE.md (`Reviewer: codex-cli` or `Reviewer: claude-subagent`). If a configured Codex CLI is unavailable, flag independent review as blocked rather than silently switching. Record any owner-approved rules contract and the required acceptance tests.
+The preference controls Reassess gate reviews only; ordinary Build uses tests and, when useful, a focused Claude subagent review regardless of the final reviewer selection. Record the review preference in project CLAUDE.md (`Reviewer: codex-cli` or `Reviewer: claude-subagent`). If a configured Codex CLI is unavailable, flag independent review as blocked rather than silently switching. Record any owner-approved rules contract and the required acceptance tests.
 
 Then create or update the three continuity files using `references/register-template.md`: confirmed and required items as `approved`, recommended items as `proposed`, architecture choices in DECISIONS.md with the reason, and a one-screen STATUS.md.
 
