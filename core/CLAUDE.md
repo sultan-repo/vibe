@@ -13,7 +13,7 @@ Never silently override a higher level.
 - **Substantial**: a new project, feature, or user journey; a new dependency or integration; a schema or public-contract change; or anything spanning more than a handful of files. Run the `discover` skill (`/discover`, or `/vibe:discover` when installed as a plugin) and stop at its checkpoint. After my decisions, the `build` skill implements one approved increment at a time. At ordinary milestones run `reassess` for alignment without an automatic external review; run a full review for release readiness or when a gate below requires it.
 - **High-risk** (any size): auth/permissions, consent, privacy/deletion, payments, personal data, migrations, destructive operations, production config, consequential concurrency. Treat as substantial; confirm ambiguous behavioral invariants before code. An independent review is mandatory *before merge* of high-risk code, using `reassess` as the review gate, rather than repeating it for every build increment. Exercise running behavior where possible.
 
-Small is not the same as low-risk. When unsure, treat it as substantial. Build always runs relevant tests. Reassess invokes the configured independent reviewer for high-risk pre-merge, release readiness or an explicit review request; reuse a documented approval only for the same HEAD and covered scope. Do not review automatically at every ordinary milestone.
+Small is not the same as low-risk. When unsure, treat it as substantial. Build always runs relevant tests; Claude's fresh-context reviewer handles intermediate substantial changes when useful, not every small edit. Reserve the configured Codex/independent reviewer for high-risk pre-merge, release readiness and explicit review requests. Reuse an approval only for the same HEAD and scope; at most one full Codex gate review and one targeted recheck, then stop and escalate without bypassing safety gates.
 
 ## Lifecycle
 DISCOVER → CHALLENGE → ENRICH → APPROVE → BUILD → VERIFY → REASSESS. Stages are combined, not scheduled. Continue through authorized work until the outcome is delivered or a genuine blocker needs my decision.
@@ -32,7 +32,7 @@ DISCOVER → CHALLENGE → ENRICH → APPROVE → BUILD → VERIFY → REASSESS.
 - Accepting a consequential risk or limitation.
 - Irreversible or external actions: push to shared branches, merge, deploy, publish, paid services, data deletion.
 - Security, permission, or credential changes.
-- First-time independent reviewer preference (Codex CLI or fresh-context Claude reviewer), alongside other project decisions.
+- First-time *final gate* reviewer preference (Codex CLI or fresh-context Claude reviewer), alongside other project decisions.
 
 Batch the questions, give a recommendation and a default for each, and keep working on everything that does not depend on the answer. Everything else is your call; record consequential choices in `docs/DECISIONS.md`.
 
