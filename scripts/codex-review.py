@@ -23,6 +23,41 @@ def fail(message):
     return 2
 
 
+def valid_report(report):
+    if not isinstance(report, dict) or set(report) != {
+        "head_sha", "verdict", "findings", "previous_findings", "unverified_requirements"
+    }:
+        return False
+    if not isinstance(report["head_sha"], str) or report["verdict"] not in {
+        "APPROVE", "APPROVE_WITH_REQUIRED_FIXES", "REJECT"
+    }:
+        return False
+    if not all(isinstance(report[k], list) for k in (
+        "findings", "previous_findings", "unverified_requirements"
+    )):
+        return False
+    if not all(isinstance(x, str) and x for x in report["unverified_requirements"]):
+        return False
+    for item in report["findings"]:
+        keys = {"id", "kind", "severity", "requirement", "evidence", "impact", "suggested_resolution"}
+        if not isinstance(item, dict) or set(item) != keys:
+            return False
+        if not all(isinstance(item[k], str) and item[k].strip() for k in keys):
+            return False
+        if item["kind"] not in {"bug", "spec_question", "out_of_scope"} or item["severity"] not in {
+            "blocker", "required", "minor"
+        }:
+            return False
+    for item in report["previous_findings"]:
+        if not isinstance(item, dict) or set(item) != {"id", "status", "evidence"}:
+            return False
+        if not all(isinstance(item[k], str) and item[k].strip() for k in item):
+            return False
+        if item["status"] not in {"fixed", "open", "disputed"}:
+            return False
+    return True
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--brief", required=True, type=Path, help="Reviewer brief text file")
@@ -33,6 +68,8 @@ def main():
 
     if not args.brief.is_file() or not args.brief.read_text(encoding="utf-8").strip():
         return fail("reviewer brief is missing or empty")
+    if args.head not in args.brief.read_text(encoding="utf-8"):
+        return fail("reviewer brief does not identify the requested commit")
     if not shutil.which("codex"):
         return fail("Codex CLI is not installed; no reviewer substitution was made")
     try:
@@ -65,6 +102,8 @@ def main():
         report = json.loads(destination.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return fail("Codex did not return a valid JSON review")
+    if not valid_report(report):
+        return fail("review report does not match the expected schema")
     if report.get("head_sha") != args.head:
         return fail("review result targets another commit")
     if git("rev-parse", "HEAD") != args.head or git("status", "--porcelain"):
