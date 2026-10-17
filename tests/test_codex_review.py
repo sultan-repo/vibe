@@ -31,7 +31,8 @@ if mode == 'reject': report['verdict'] = 'REJECT'
 if mode == 'stale': report['head_sha'] = '0' * 40
 if mode == 'unverified': report['unverified_requirements'] = ['R-01']
 if mode == 'spec': report['findings'] = [{'kind': 'spec_question', 'severity': 'minor'}]
-if mode == 'previous': report['previous_findings'] = [{'id': 'F-1', 'status': 'open'}]
+if mode == 'previous': report['previous_findings'] = [{'id': 'F-1', 'status': 'open', 'evidence': 'still broken'}]
+if mode == 'incomplete': report['findings'] = [{}]
 Path(args[args.index('--output-last-message') + 1]).write_text(json.dumps(report))
 '''
 
@@ -71,7 +72,7 @@ class TestCodexReview(unittest.TestCase):
                 self.assertEqual(self.run_review(effort=effort).returncode, 0)
 
     def test_fail_closed(self):
-        for mode in ("login", "execution", "invalid", "reject", "stale", "unverified", "spec", "previous"):
+        for mode in ("login", "execution", "invalid", "reject", "stale", "unverified", "spec", "previous", "incomplete"):
             with self.subTest(mode=mode):
                 self.assertNotEqual(self.run_review(mode=mode).returncode, 0)
 
