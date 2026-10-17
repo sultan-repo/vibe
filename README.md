@@ -8,10 +8,10 @@ Lifecycle: **DISCOVER → CHALLENGE → ENRICH → APPROVE → BUILD → VERIFY 
 
 - **Always-on core rules** (about 720 words): how to size work (small / substantial / high-risk), evidence-based verification, when to ask the user and when to decide, fixed continuity files, git discipline.
 - **`discover` skill**: requirements discovery, challenge, and enrichment. Produces a one-screen checkpoint with numbered decisions, then seeds `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`, `docs/STATUS.md` and the project CLAUDE.md.
-- **`build` skill**: the daily driver. Applies your checkpoint decisions, takes the next approved increment, implements it under the core rules, runs the checks, exercises the journey, updates status and evidence, commits, and names what comes next.
-- **`reassess` skill**: product alignment review and definition of done at milestones. Ends with Done, Done with disclosed gaps, or Not done.
-- **Independent review choice**: opt into local Codex CLI at first onboarding or keep the fresh-context Claude `reviewer` subagent. Claude chooses per-run review effort according to risk; Codex has a read-only helper that fails closed on stale or unverified results.
-- **Risk-aware review loop**: high-risk rules contract, model-based sequence tests when stateful, bounded review iterations, finding triage and final-commit approval.
+- **`build` skill**: implements the next approved increment, runs tests and user journeys, and uses a focused Claude reviewer for substantial changes when useful. No routine Codex calls for small fixes or normal increments.
+- **`reassess` skill**: product alignment at milestones plus **conditional independent reviews** at high-risk pre-merge, release readiness or on explicit request. Normal milestones do not launch Codex.
+- **Two-tier reviews**: Claude reviews intermediate substantial changes when worthwhile; optionally choose locally authenticated Codex CLI for consolidated, final independent gates. Review effort follows risk and a read-only helper fails closed on real unverified acceptance gaps.
+- **Bounded review**: high-risk rules contract, state-machine tests when applicable, one consolidated Codex review and at most one targeted recheck per gate. Unresolved defects stop the loop and block high-risk merge/release approval.
 - **A hook** that denies force-pushes.
 
 ## Install
@@ -55,14 +55,14 @@ Update with `cd ~/Projects/vibe && git pull && ./install.sh`. Remove with `~/Pro
 3. Approve by answering the numbered decisions, or say "go with your recommendations". Claude records the decisions and hands off to `build`, which implements the first increment on a branch and reports.
 4. Begin every later session with `/build` (or `/vibe:build`). It reads `docs/STATUS.md` and the git log, takes the next approved increment, and stops when it is done. Add "through the milestone" to keep going.
 5. Day to day, just ask. Small work goes straight to implementation. Substantial work triggers discover on its own, because the core rules say so.
-6. At a milestone or before a release: `/reassess`.
-7. When you first onboard a project, Vibe asks whether to use Codex CLI as your default independent reviewer. It remembers the choice in project CLAUDE.md. High-risk changes get an independent review from your chosen reviewer; you can also request one explicitly. An unavailable configured reviewer blocks approval instead of silently switching.
+6. At an ordinary milestone: `/reassess` checks alignment without automatic Codex. Before a high-risk merge or release: `/reassess` performs the required final independent review (or reuses a valid approval for the exact same commit).
+7. On first onboarding, Vibe asks whether to use Codex CLI for **final gate reviews**. It remembers the answer in project CLAUDE.md. Claude handles routine code review; Codex does not run on each increment. High-risk code still requires final independent approval before merge. If your chosen final reviewer is unavailable, the gate blocks without silent substitution.
 
 ## Codex CLI review (optional)
 
 Choose **Yes** to the one-time reviewer question, install Codex CLI and sign in on the *review machine* (`codex login status`). Vibe uses your current Codex model and selects `medium`, `high`, or `xhigh` reasoning effort per invocation. It does not need or copy your credentials, and does not modify global Codex settings. A model that rejects the selected effort causes an explicit failure, not a silent fallback.
 
-For high-risk code, Claude writes a reviewer brief and commits a clean worktree before invoking the helper. The exact command is in `skills/build/references/review-loop.md`; it uses `codex exec` in read-only mode, requires JSON structured findings, verifies the reviewed commit SHA and only exits successfully with a clean APPROVE verdict. This **does not replace tests, CI, or required GitHub approvals**. The Python 3 helper is bundled in the plugin or installed as `~/.claude/vibe-tools/codex-review.py` using Option B.
+At a pre-merge or release gate, Claude collects all relevant changes into one review brief and commits a clean worktree before invoking the helper. The exact command is in `skills/build/references/review-loop.md`; it uses `codex exec` in read-only mode, requires JSON structured findings, verifies the reviewed commit SHA and only exits successfully with a clean APPROVE verdict. One full Codex review plus at most one targeted recheck is permitted per gate. Test/CI evidence is gathered outside the read-only reviewer. Genuine missing evidence blocks approval; inability to rerun already-verified tests is reported as a non-blocking reviewer limitation. This **does not replace tests, CI, or required GitHub approvals**. The Python 3 helper is bundled in the plugin or installed as `~/.claude/vibe-tools/codex-review.py` using Option B.
 
 ## Layout
 
@@ -71,7 +71,7 @@ core/CLAUDE.md                    always-on rules
 core/PROJECT-CLAUDE.template.md   per-project CLAUDE.md template (discover uses it)
 skills/discover/                  DISCOVER → CHALLENGE → ENRICH → APPROVE, with reference checklists
 skills/build/                     BUILD → VERIFY, one approved increment per run
-skills/reassess/                  alignment review and definition of done
+skills/reassess/                  alignment review and conditional independent gate
 agents/reviewer.md                fresh-context Claude reviewer subagent
 scripts/codex-review.py            fail-closed local Codex CLI review helper
 scripts/review-result.schema.json  reviewer response contract
@@ -98,7 +98,7 @@ A single long prompt costs thousands of tokens on every turn and gets ignored in
 
 - Too many checkpoints: tighten the **Substantial** definition in `core/CLAUDE.md`.
 - Too few questions: move items from "your call" into "Ask me only for".
-- Review too expensive: narrow the **High-risk** list.
+- Review too expensive: Codex is only triggered at a high-risk pre-merge, release, explicit review request or approved exceptional risk. Claude and tests handle daily development. Do not bypass genuine high-risk gates.
 - Project-specific gates (lint, typecheck, tests after every edit) belong in the project's own `.claude/settings.json` as a `PostToolUse` hook on `Edit|Write`.
 
 ## Developing the standard itself
