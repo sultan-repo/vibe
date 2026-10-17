@@ -1,6 +1,6 @@
 ---
 name: reassess
-description: Product alignment review and definition-of-done check. Use at a milestone, before a release, after a material requirements change, or when the user asks "are we done", "review the product", "what's missing", "does this still match the goal". Compares the objective, approved requirements, actual behavior, user journeys, and evidence; classifies gaps; updates docs/REQUIREMENTS.md and docs/STATUS.md; gives a done / not-done verdict with what remains.
+description: Product alignment review and definition-of-done check. Use at a milestone, before a high-risk merge or release, after a material requirements change, or when the user asks "are we done", "review the product", "what's missing", "does this still match the goal". Compares the objective, approved requirements, actual behavior, user journeys, and evidence; classifies gaps; updates docs/REQUIREMENTS.md and docs/STATUS.md; gives a done / not-done verdict with what remains.
 ---
 
 # Reassess: does the software serve its purpose?
