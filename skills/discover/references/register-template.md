@@ -50,6 +50,7 @@ Done so far: <three to six lines>
 In progress: <what and where>
 Blocked: <blocker and the decision or input needed>
 Known limitations: <accepted, with who accepted>
+Final review gate: <not required | pending high-risk merge/release | approved full SHA and scope, plus test/CI evidence>
 Deferred: <item, reason>
 Next approved actions: <numbered>
 ```

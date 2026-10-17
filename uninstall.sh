@@ -13,7 +13,7 @@ rm -f "$CL/vibe.md"
 # 2. Skills and agent.
 rm -rf "$CL/skills/discover" "$CL/skills/build" "$CL/skills/reassess"
 rm -f "$CL/agents/reviewer.md"
-rm -f "$CL/vibe-tools/codex-review.py" "$CL/vibe-tools/review-result.schema.json"
+rm -f "$CL/vibe-tools/codex-review.py" "$CL/vibe-tools/review-result.schema.json" # legacy upgrade cleanup
 rmdir "$CL/vibe-tools" 2>/dev/null || true
 
 # 3. Hook script and its settings entry.

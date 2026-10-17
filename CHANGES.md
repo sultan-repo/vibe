@@ -1,6 +1,8 @@
 # Changes
 
-**2026-10-18, v4.3:** risk-aware review without expanding the always-on core. One-time opt-in to Codex CLI as independent reviewer; Claude selects per-run medium/high/xhigh effort. Added local, read-only Codex helper with structured output and fail-closed commit verification, plus mocked CLI tests. High-risk increments define material invariants before implementation, test stateful sequences against models where applicable, keep review fixes in scope, triage findings, track convergence, and require review on the final commit. Standing authorization is explicit and narrowly scoped; reviewer failures never silently switch providers. Updated installers, templates and usage docs.
+**2026-10-18, v4.4:** removed the external CLI reviewer, model configuration and its tests. Fresh-context Claude is Vibe's sole reviewer. Build handles small edits with normal checks and uses a focused Claude review only when useful. Reassess performs one consolidated final review for high-risk pre-merge, release readiness or explicit requests, with a maximum of one targeted recheck before escalating unresolved findings. Older installer artifacts are cleaned up during upgrade.
+
+**2026-10-18, v4.3 (superseded):** introduced risk-aware business rules, model-based state tests, review triage and an optional external CLI reviewer. The external integration and related setup were removed in v4.4.
 
 
 **2026-10-08, v4.2:** split discovery from building. `discover` now stops at the checkpoint and writes no code; it revises the checkpoint on each reply and hands off to the new `build` skill when the user approves. `build` applies decisions to the register, implements one approved increment, verifies, records evidence, commits, and stops. Every later session starts with `build` instead of "continue".

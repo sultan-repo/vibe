@@ -1,124 +1,98 @@
 # Vibe
 
-An outcome-driven software delivery standard for [Claude Code](https://code.claude.com). It makes Claude discover and challenge requirements before building, keep a traceable requirements register, verify with real evidence, and reassess the product against its objective. Ceremony scales with the size of the work: small fixes go straight to code, substantial features get a one-screen checkpoint first.
+An outcome-driven software delivery standard for [Claude Code](https://code.claude.com). Vibe discovers and challenges requirements, builds one approved increment at a time, verifies observable outcomes, and reassesses against the product's objective.
 
 Lifecycle: **DISCOVER → CHALLENGE → ENRICH → APPROVE → BUILD → VERIFY → REASSESS**
 
-## What you get
+Vibe uses **Claude only**. There are no external reviewer CLIs, sign-in requirements or model-specific reviewer settings.
 
-- **Always-on core rules** (about 720 words): how to size work (small / substantial / high-risk), evidence-based verification, when to ask the user and when to decide, fixed continuity files, git discipline.
-- **`discover` skill**: requirements discovery, challenge, and enrichment. Produces a one-screen checkpoint with numbered decisions, then seeds `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`, `docs/STATUS.md` and the project CLAUDE.md.
-- **`build` skill**: the daily driver. Applies your checkpoint decisions, takes the next approved increment, implements it under the core rules, runs the checks, exercises the journey, updates status and evidence, commits, and names what comes next.
-- **`reassess` skill**: product alignment review and definition of done at milestones. Ends with Done, Done with disclosed gaps, or Not done.
-- **Independent review choice**: opt into local Codex CLI at first onboarding or keep the fresh-context Claude `reviewer` subagent. Claude chooses per-run review effort according to risk; Codex has a read-only helper that fails closed on stale or unverified results.
-- **Risk-aware review loop**: high-risk rules contract, model-based sequence tests when stateful, bounded review iterations, finding triage and final-commit approval.
-- **A hook** that denies force-pushes.
+## How it works
+
+- **Always-on core** (`core/CLAUDE.md`): risk classification, evidence, requirements continuity and git discipline.
+- **`discover`**: a one-screen checkpoint of confirmed requirements, missing decisions, tradeoffs and scope; no application code before approval.
+- **`build`**: implement the next approved increment, run tests and user journeys, update evidence and commit. A fresh-context Claude reviewer may check meaningful substantial changes; tiny edits do not require repeated review.
+- **`reassess`**: review product alignment at milestones. Run a consolidated independent **Claude reviewer** gate before merging high-risk code, declaring a release ready, or on explicit request. Normal milestones do not run a code reviewer automatically.
+- **Safety**: the force-push hook denies shared-history rewrites and fails closed when validation is unavailable.
+
+### Review cadence
+
+| Event | What happens |
+| --- | --- |
+| Small fix | Claude implements and runs relevant tests; no mandatory reviewer |
+| Normal approved increment | Tests, lint/typecheck and end-to-end checks; focused fresh-context Claude reviewer only when useful |
+| Ordinary milestone | Reassess requirements, actual behavior and evidence; no automatic code-review cycle |
+| High-risk PR before merge | One consolidated fresh-context Claude review of the final commit and applicable invariants |
+| Release readiness / explicit review request | One consolidated review of changed behavior and acceptance evidence |
+
+A final gate allows **one full review and at most one targeted recheck** of required fixes. If issues remain, Vibe stops and reports the blocker or required decision instead of launching an endless loop. A passing review on the exact same HEAD and unchanged scope can be reused. An unverified acceptance criterion or a required security/data defect still blocks release or high-risk merge approval.
+
+High-risk logic requires clarified invariants, permission boundaries, retries/races and acceptance tests before building. Stateful rules use sequence/property tests when appropriate.
 
 ## Install
 
-Pick one option. Using both loads the core rules twice.
+Choose **one** option. Both methods load the same core rules.
 
 ### Option A: plugin (recommended)
 
-Inside Claude Code:
+In Claude Code:
 
-```
+```text
 /plugin marketplace add sultan-repo/vibe
 /plugin install vibe
 ```
 
-Open a new session. The skills are `/vibe:discover`, `/vibe:build`, and `/vibe:reassess`.
+Open a new session. Skills: `/vibe:discover`, `/vibe:build`, `/vibe:reassess`.
 
-Update with `/plugin update vibe`. Remove with `/plugin uninstall vibe`.
+Update: `/plugin update vibe`. Remove: `/plugin uninstall vibe`.
 
-### Option B: install script
-
-For machines without the plugin system, or to reuse the files with other tools. Needs macOS or Linux with `python3`.
+### Option B: installer (macOS / Linux, Python 3)
 
 ```bash
-git clone https://github.com/sultan-repo/vibe.git ~/Projects/vibe && ~/Projects/vibe/install.sh
+git clone https://github.com/sultan-repo/vibe.git ~/Projects/vibe
+~/Projects/vibe/install.sh
 ```
 
-Open a new session. The skills are `/discover`, `/build`, and `/reassess`.
+Open a new session. Skills: `/discover`, `/build`, `/reassess`.
 
-Update with `cd ~/Projects/vibe && git pull && ./install.sh`. Remove with `~/Projects/vibe/uninstall.sh`.
+Update: `cd ~/Projects/vibe && git pull && ./install.sh`. Remove: `~/Projects/vibe/uninstall.sh`.
 
-### What it changes on your machine
+Option A uses Claude Code's plugin cache and hooks. Option B installs the core import, skills, Claude reviewer agent and safety hook in `~/.claude`. The installer preserves user-owned CLAUDE.md/settings content and removes legacy reviewer helper files from older Vibe installations when upgrading.
 
-- **Option A**: only Claude Code's plugin list and cache. A SessionStart hook injects `core/CLAUDE.md` into each session; a PreToolUse hook denies force-pushes.
-- **Option B**: `~/.claude/vibe.md` plus one import line appended to `~/.claude/CLAUDE.md`; `~/.claude/skills/discover`, `build`, and `reassess`; `~/.claude/agents/reviewer.md`; `~/.claude/hooks/block-force-push.sh` plus one PreToolUse entry in `~/.claude/settings.json`. The uninstaller reverses exactly this and leaves your other content alone.
+## Use it
 
-## Use it on a project
+1. In your project, run `/discover` (or `/vibe:discover`) with the idea, intended users, objective and constraints. Approve the checkpoint.
+2. `/build` implements the next approved increment, with tests and evidence. Say "through the milestone" to complete approved increments consecutively.
+3. Use `/reassess` at milestones to check alignment. Before merging a high-risk change or preparing a release, Reassess runs its required final Claude review and reports a clear readiness verdict.
+4. Small day-to-day requests can be made in normal conversation without extra ceremony.
 
-1. Create the folder, `git init`, open it in Claude Code.
-2. Send `/discover` (or `/vibe:discover`) followed by your idea: the problem, the users, the outcome, hard constraints. You get a one-screen checkpoint and no code. Reply with changes as many times as you like; each round revises the checkpoint and the register.
-3. Approve by answering the numbered decisions, or say "go with your recommendations". Claude records the decisions and hands off to `build`, which implements the first increment on a branch and reports.
-4. Begin every later session with `/build` (or `/vibe:build`). It reads `docs/STATUS.md` and the git log, takes the next approved increment, and stops when it is done. Add "through the milestone" to keep going.
-5. Day to day, just ask. Small work goes straight to implementation. Substantial work triggers discover on its own, because the core rules say so.
-6. At a milestone or before a release: `/reassess`.
-7. When you first onboard a project, Vibe asks whether to use Codex CLI as your default independent reviewer. It remembers the choice in project CLAUDE.md. High-risk changes get an independent review from your chosen reviewer; you can also request one explicitly. An unavailable configured reviewer blocks approval instead of silently switching.
+The repository is the memory: `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`, `docs/STATUS.md` (or named equivalents).
 
-## Codex CLI review (optional)
+## Repository layout
 
-Choose **Yes** to the one-time reviewer question, install Codex CLI and sign in on the *review machine* (`codex login status`). Vibe uses your current Codex model and selects `medium`, `high`, or `xhigh` reasoning effort per invocation. It does not need or copy your credentials, and does not modify global Codex settings. A model that rejects the selected effort causes an explicit failure, not a silent fallback.
-
-For high-risk code, Claude writes a reviewer brief and commits a clean worktree before invoking the helper. The exact command is in `skills/build/references/review-loop.md`; it uses `codex exec` in read-only mode, requires JSON structured findings, verifies the reviewed commit SHA and only exits successfully with a clean APPROVE verdict. This **does not replace tests, CI, or required GitHub approvals**. The Python 3 helper is bundled in the plugin or installed as `~/.claude/vibe-tools/codex-review.py` using Option B.
-
-## Layout
-
-```
-core/CLAUDE.md                    always-on rules
-core/PROJECT-CLAUDE.template.md   per-project CLAUDE.md template (discover uses it)
-skills/discover/                  DISCOVER → CHALLENGE → ENRICH → APPROVE, with reference checklists
-skills/build/                     BUILD → VERIFY, one approved increment per run
-skills/reassess/                  alignment review and definition of done
-agents/reviewer.md                fresh-context Claude reviewer subagent
-scripts/codex-review.py            fail-closed local Codex CLI review helper
-scripts/review-result.schema.json  reviewer response contract
-skills/build/references/           risk-aware workflow + reviewer brief
-hooks/                            hooks.json (plugin), session-start.sh, block-force-push.sh and its tests
-.claude-plugin/                   plugin.json and marketplace.json
-install.sh / uninstall.sh         Option B
-CHANGES.md                        how this grew out of a single 4,200-word master prompt, and why
+```text
+core/CLAUDE.md                     always-on rules
+core/PROJECT-CLAUDE.template.md    per-project instructions
+skills/discover/                   discover, challenge, enrich, approve
+skills/build/                      build and local verification
+skills/build/references/           high-risk rules and Claude review guidance
+skills/reassess/                   alignment and conditional final review gates
+agents/reviewer.md                 fresh-context Claude reviewer
+hooks/                             fail-closed force-push protection and tests
+.claude-plugin/                    plugin metadata
+install.sh / uninstall.sh          alternative installer and cleanup
+CHANGES.md                         version history
 ```
 
-## Why it is split this way
-
-| Layer | Loaded | Holds |
-|---|---|---|
-| core rules | every turn | only rules that apply to every turn |
-| skills | when triggered or invoked; reference files load lazily | multi-step procedures used a few times per project |
-| subagent | spawned on demand with a clean context | the independent review |
-| hooks | run by Claude Code, cannot be ignored | the one rule that must never be broken |
-| project CLAUDE.md | every turn in that repo | objective, commands, conventions |
-
-A single long prompt costs thousands of tokens on every turn and gets ignored in the middle. Keeping the always-on part short and loading the rest on demand is what keeps quality up.
-
-## Tuning
-
-- Too many checkpoints: tighten the **Substantial** definition in `core/CLAUDE.md`.
-- Too few questions: move items from "your call" into "Ask me only for".
-- Review too expensive: narrow the **High-risk** list.
-- Project-specific gates (lint, typecheck, tests after every edit) belong in the project's own `.claude/settings.json` as a `PostToolUse` hook on `Edit|Write`.
-
-## Developing the standard itself
+## Developing Vibe
 
 ```bash
-claude plugin validate --strict .        # manifests, skills, agents
-python3 hooks/test-force-push-hook.py    # hook behaviour
-python3 -m unittest discover -s tests -v # Codex review helper, mocked CLI
+claude plugin validate --strict .
+python3 hooks/test-force-push-hook.py
+python3 -m unittest discover -s tests -v
 ```
 
-Test a local checkout for one session without installing it: `claude --plugin-dir /path/to/vibe`.
-
-## Outside Claude Code
-
-Concatenate the layers into one prompt for tools without skills or subagents:
-
-```bash
-cat core/CLAUDE.md skills/discover/SKILL.md skills/discover/references/*.md skills/reassess/SKILL.md agents/reviewer.md > vibe-single.md
-```
+Test a checkout in one session using `claude --plugin-dir /path/to/vibe`.
 
 ## License
 
-MIT. Fork it, adapt it, and send improvements back as pull requests.
+MIT.

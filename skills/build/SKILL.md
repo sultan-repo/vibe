@@ -16,7 +16,7 @@ Input: `$ARGUMENTS` names an increment, a milestone, or requirement IDs. If empt
 If the conversation contains answers to checkpoint decisions (yes, no, changes, "go with your recommendations"), update the register: `proposed` becomes `approved`, or `deferred` with the reason. Record the choices in DECISIONS.md and restate in one line what is now in scope. Never promote a proposed item without an answer.
 
 ## 3. Pick the increment
-Take the named increment, or the next approved one. State it in one line: the requirement IDs and what will be observable when it is done. If it is high-risk (auth/consent/permissions, privacy/deletion, payments, personal data, migrations, destructive operations, production config, consequential concurrent state), say so and load `references/review-loop.md`. Require approved rules, reviewable scope and an independent approval on the final commit.
+Take the named increment, or the next approved one. State it in one line: the requirement IDs and what will be observable when it is done. If it is high-risk (auth/consent/permissions, privacy/deletion, payments, personal data, migrations, destructive operations, production config, consequential concurrent state), say so and load `references/review-loop.md` for rules and tests. Require approved rules and reviewable scope; record final review as pending until the pre-merge gate.
 
 ## 4. Implement
 Follow the core rules:
@@ -29,9 +29,10 @@ Follow the core rules:
 
 ## 5. Verify and record
 - For each requirement touched: `implemented` when the code is complete; `verified` only when its acceptance criteria were observed to pass on the current code. Write the command and result in the Evidence column, or `unverified`.
-- For high-risk increments, follow `references/review-loop.md` and its `references/reviewer-brief.md` template. Use the project-selected reviewer: Codex CLI through the bundled read-only wrapper (auto-select medium/high/xhigh based on complexity) or the fresh-context `reviewer` subagent. If preference is absent, ask once before review, record the choice, and do not silently fall back if Codex fails. Test, commit a clean worktree, and review the exact final HEAD. Classify every finding as bug, spec question, or out of scope with stable ID, severity, evidence and disposition. After three unsuccessful rounds or one recurring blocker in previously reviewed code, stop the fix loop for root-cause analysis and an explicit next decision.
+- Build performs normal local verification. For substantial changes when valuable, spawn the fresh-context Claude `reviewer` subagent for one focused check; do not automatically run it for small fixes or unchanged code.
+- **Before a high-risk merge or release**, invoke `reassess` for a consolidated final Claude reviewer check, or reuse a valid approval on the exact same final HEAD and scope. Never claim merge/release readiness until any required review gate passes. Reassess handles finding triage, one targeted recheck and the stop rule.
 - A successful reviewer verdict alone is not verification: require passing acceptance checks on current code, no unresolved required findings or spec decisions, and applicable CI gates.
-- Update STATUS.md: done so far, in progress, blocked, known limitations, next approved actions; for review loops capture round, unresolved severity counts and next action without messaging every round. Commit with a message naming the requirement IDs.
+- Update STATUS.md: done so far, in progress, blocked, known limitations, next approved actions; record review status (`not required`, `pending pre-merge/release`, or approved final HEAD and scope). Commit with a message naming the requirement IDs.
 
 ## 6. Report and stop
 Report in the core's milestone format (Delivered, Requirements, Verified, Discoveries, Alignment, Remaining), about 15 lines, and name the next increment. Stop there. If the user asked to continue through the milestone, repeat from step 3 until its increments are done or a decision is needed.

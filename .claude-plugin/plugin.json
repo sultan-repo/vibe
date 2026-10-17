@@ -1,7 +1,7 @@
 {
   "name": "vibe",
-  "version": "4.3.0",
-  "description": "Vibe: outcome-driven delivery with scoped risk-aware verification, optional locally authenticated Codex CLI independent review, one-time reviewer setup, and review convergence rules.",
+  "version": "4.4.0",
+  "description": "Vibe: outcome-driven delivery with Claude-only, risk-aware review, independent final gate checks, and bounded review cycles.",
   "author": {
     "name": "Sultan Alsubaie"
   },
