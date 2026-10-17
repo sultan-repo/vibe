@@ -1,0 +1,37 @@
+name: Vibe checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Static file validation
+        run: |
+          bash -n install.sh uninstall.sh hooks/*.sh
+          python3 -m json.tool .claude-plugin/plugin.json >/dev/null
+          python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
+          python3 -m json.tool scripts/review-result.schema.json >/dev/null
+          python3 -m py_compile scripts/codex-review.py tests/test_codex_review.py
+      - name: Existing force-push protection
+        run: python3 hooks/test-force-push-hook.py
+      - name: Codex review helper
+        run: python3 -m unittest discover -s tests -v
+      - name: Install and uninstall smoke test
+        run: |
+          export HOME="$(mktemp -d)"
+          trap 'rm -rf "$HOME"' EXIT
+          bash ./install.sh
+          test -f "$HOME/.claude/vibe-tools/codex-review.py"
+          test -f "$HOME/.claude/vibe-tools/review-result.schema.json"
+          bash ./uninstall.sh
+          test ! -f "$HOME/.claude/vibe-tools/codex-review.py"
