@@ -16,7 +16,7 @@ Input: `$ARGUMENTS` names an increment, a milestone, or requirement IDs. If empt
 If the conversation contains answers to checkpoint decisions (yes, no, changes, "go with your recommendations"), update the register: `proposed` becomes `approved`, or `deferred` with the reason. Record the choices in DECISIONS.md and restate in one line what is now in scope. Never promote a proposed item without an answer.
 
 ## 3. Pick the increment
-Take the named increment, or the next approved one. State it in one line: the requirement IDs and what will be observable when it is done. If it is high-risk (auth/consent/permissions, privacy/deletion, payments, personal data, migrations, destructive operations, production config, consequential concurrent state), say so and load `references/review-loop.md`. Require approved rules, reviewable scope and an independent approval on the final commit.
+Take the named increment, or the next approved one. State it in one line: the requirement IDs and what will be observable when it is done. If it is high-risk (auth/consent/permissions, privacy/deletion, payments, personal data, migrations, destructive operations, production config, consequential concurrent state), say so and load `references/review-loop.md`. Require approved rules and reviewable scope. Mark independent review pending before high-risk merge, not after each build increment.
 
 ## 4. Implement
 Follow the core rules:
@@ -29,9 +29,11 @@ Follow the core rules:
 
 ## 5. Verify and record
 - For each requirement touched: `implemented` when the code is complete; `verified` only when its acceptance criteria were observed to pass on the current code. Write the command and result in the Evidence column, or `unverified`.
-- For high-risk increments, follow `references/review-loop.md` and its `references/reviewer-brief.md` template. Use the project-selected reviewer: Codex CLI through the bundled read-only wrapper (auto-select medium/high/xhigh based on complexity) or the fresh-context `reviewer` subagent. If preference is absent, ask once before review, record the choice, and do not silently fall back if Codex fails. Test, commit a clean worktree, and review the exact final HEAD. Classify every finding as bug, spec question, or out of scope with stable ID, severity, evidence and disposition. After three unsuccessful rounds or one recurring blocker in previously reviewed code, stop the fix loop for root-cause analysis and an explicit next decision.
-- A successful reviewer verdict alone is not verification: require passing acceptance checks on current code, no unresolved required findings or spec decisions, and applicable CI gates.
-- Update STATUS.md: done so far, in progress, blocked, known limitations, next approved actions; for review loops capture round, unresolved severity counts and next action without messaging every round. Commit with a message naming the requirement IDs.
+- Build runs tests, lint/type checks and user journeys, and records actual commands, results and code commit. **Do not invoke Codex for routine increments or ordinary milestones.**
+- Before merging high-risk changes, invoke `reassess` in pre-merge mode on the final HEAD. It invokes the selected independent reviewer or reuses a still-valid approval for that exact HEAD and scope; a missing approval blocks merge-readiness.
+- At release readiness, an explicit review request or a material risk discovery, hand off to `reassess` to decide the review gate. Reassess owns review rounds, finding triage and the three-round stop rule; build only tracks pending/approved review state.
+- A successful reviewer verdict alone is not verification: require passing acceptance checks on current code, no unresolved required findings or spec decisions, and applicable CI gates. Pending review prevents claiming high-risk merge or release readiness, but not reporting verified local tests.
+- Update STATUS.md with done/pending work, blockers, next actions and the independent review status (`not required`, `pending high-risk pre-merge/release`, or approval HEAD + scope). Commit with a message naming the requirement IDs.
 
 ## 6. Report and stop
 Report in the core's milestone format (Delivered, Requirements, Verified, Discoveries, Alignment, Remaining), about 15 lines, and name the next increment. Stop there. If the user asked to continue through the milestone, repeat from step 3 until its increments are done or a decision is needed.
