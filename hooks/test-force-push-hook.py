@@ -51,6 +51,19 @@ def main():
             ok = rc == expected
             failures += not ok
             print(f"{'PASS' if ok else 'FAIL'} {label:5} rc={rc} {cmd!r}")
+    # Validator failures must never fail open (even with a restricted temp dir).
+    probe = json.dumps({"tool_name": "Bash", "tool_input": {"command": "git push --force origin main"}})
+    cases = [
+        ("invalid JSON", "{", os.environ.copy()),
+        ("empty payload", "", os.environ.copy()),
+        ("missing Python interpreter", probe, {**os.environ, "PATH": ""}),
+        ("unwritable temp area", probe, {**os.environ, "TMPDIR": "/vibe/nonexistent-restricted-tmp-dir"}),
+    ]
+    for label, payload, env in cases:
+        rc = subprocess.run([HOOK], input=payload, text=True, capture_output=True, env=env).returncode
+        ok = rc == 2
+        failures += not ok
+        print(f"{'PASS' if ok else 'FAIL'} fail-closed rc={rc} {label}")
     print(f"failures: {failures}")
     sys.exit(1 if failures else 0)
 

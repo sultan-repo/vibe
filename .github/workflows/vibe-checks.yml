@@ -32,6 +32,8 @@ jobs:
           trap 'rm -rf "$HOME"' EXIT
           bash ./install.sh
           test -f "$HOME/.claude/vibe-tools/codex-review.py"
+          test -f "$HOME/.claude/hooks/check-force-push.py"
           test -f "$HOME/.claude/vibe-tools/review-result.schema.json"
           bash ./uninstall.sh
           test ! -f "$HOME/.claude/vibe-tools/codex-review.py"
+          test ! -f "$HOME/.claude/hooks/check-force-push.py"

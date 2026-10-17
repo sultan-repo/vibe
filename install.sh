@@ -20,7 +20,7 @@ cp "$HERE/agents/reviewer.md" "$CL/agents/reviewer.md"
 cp "$HERE/scripts/codex-review.py" "$HERE/scripts/review-result.schema.json" "$CL/vibe-tools/"
 
 # 3. Hook that denies force-pushes, registered in settings.json without touching other settings.
-cp "$HERE/hooks/block-force-push.sh" "$CL/hooks/block-force-push.sh"
+cp "$HERE/hooks/block-force-push.sh" "$HERE/hooks/check-force-push.py" "$CL/hooks/"
 chmod +x "$CL/hooks/block-force-push.sh"
 python3 - "$CL/settings.json" "$CL/hooks/block-force-push.sh" <<'PY'
 import json, os, sys
@@ -43,5 +43,5 @@ echo "  vibe.md   (imported by $CL/CLAUDE.md)"
 echo "  skills/discover, skills/build, skills/reassess"
 echo "  agents/reviewer.md"
 echo "  vibe-tools/codex-review.py + review-result.schema.json (optional Codex reviewer)"
-echo "  hooks/block-force-push.sh  (PreToolUse hook in settings.json)"
+echo "  hooks/block-force-push.sh + check-force-push.py (PreToolUse hook in settings.json)"
 echo "Open a new Claude Code session to pick it up."

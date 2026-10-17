@@ -18,7 +18,7 @@ rmdir "$CL/vibe-tools" 2>/dev/null || true
 
 # 3. Hook script and its settings entry.
 HOOK="$CL/hooks/block-force-push.sh"
-rm -f "$HOOK"
+rm -f "$HOOK" "$CL/hooks/check-force-push.py"
 if [ -f "$CL/settings.json" ]; then
 python3 - "$CL/settings.json" "$HOOK" <<'PY'
 import json, sys
