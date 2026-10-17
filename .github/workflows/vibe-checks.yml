@@ -22,8 +22,10 @@ jobs:
           python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
       - name: Force-push protection
         run: python3 hooks/test-force-push-hook.py
-      - name: Review workflow policy
-        run: python3 -m unittest discover -s tests -v
+      - name: Review workflow and YAML skill metadata
+        run: |
+          python3 -m pip install "PyYAML>=6.0,<7"
+          python3 -m unittest discover -s tests -v
       - name: Install and uninstall smoke test
         run: |
           export HOME="$(mktemp -d)"

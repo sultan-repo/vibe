@@ -1,6 +1,6 @@
 ---
 name: build
-description: Implement the next approved increment of a project that has been through discover. Applies pending checkpoint decisions to docs/REQUIREMENTS.md, picks the next approved work (or the increment named in the arguments), builds it under the core rules, runs the checks, exercises the user journey, updates status and evidence, and commits on the feature branch. Use to kick off development after a checkpoint is approved, and at the start of every later session instead of "continue". Triggers: "build", "start building", "kick off", "continue the project", "next increment", "go".
+description: 'Implement the next approved increment of a project that has been through discover. Applies pending checkpoint decisions to docs/REQUIREMENTS.md, picks the next approved work (or the increment named in the arguments), builds it under the core rules, runs the checks, exercises the user journey, updates status and evidence, and commits on the feature branch. Use to kick off development after a checkpoint is approved, and at the start of every later session instead of "continue". Triggers: "build", "start building", "kick off", "continue the project", "next increment", "go".'
 ---
 
 # Build: the next approved increment
