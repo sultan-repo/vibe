@@ -29,9 +29,9 @@ Follow the core rules:
 
 ## 5. Verify and record
 - For each requirement touched: `implemented` when the code is complete; `verified` only when its acceptance criteria were observed to pass on the current code. Write the command and result in the Evidence column, or `unverified`.
-- Build runs tests, lint/type checks and user journeys, and records actual commands, results and code commit. **Do not invoke Codex for routine increments or ordinary milestones.**
+- Build runs tests, lint/type checks and user journeys, and records actual commands, results and code commit. For meaningful substantial code changes, use the fresh-context Claude `reviewer` subagent for a focused check when valuable; resolve its findings and add regression tests. **Do not invoke Codex for routine increments, small fixes or ordinary milestones.** Avoid repetitive Claude reviews of the same unchanged scope.
 - Before merging high-risk changes, invoke `reassess` in pre-merge mode on the final HEAD. It invokes the selected independent reviewer or reuses a still-valid approval for that exact HEAD and scope; a missing approval blocks merge-readiness.
-- At release readiness, an explicit review request or a material risk discovery, hand off to `reassess` to decide the review gate. Reassess owns review rounds, finding triage and the three-round stop rule; build only tracks pending/approved review state.
+- At release readiness, an explicit review request or a material risk discovery, hand off to `reassess` to decide the review gate. Reassess owns findings and the hard limit of one full Codex review plus at most one targeted recheck per gate; build only tracks pending/approved review state.
 - A successful reviewer verdict alone is not verification: require passing acceptance checks on current code, no unresolved required findings or spec decisions, and applicable CI gates. Pending review prevents claiming high-risk merge or release readiness, but not reporting verified local tests.
 - Update STATUS.md with done/pending work, blockers, next actions and the independent review status (`not required`, `pending high-risk pre-merge/release`, or approval HEAD + scope). Commit with a message naming the requirement IDs.
 
