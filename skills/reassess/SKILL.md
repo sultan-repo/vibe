@@ -29,7 +29,7 @@ Answer briefly, with evidence:
 - What meaningful requirements were overlooked?
 - Has the implementation drifted from the objective, or has new evidence changed the best solution?
 - Where will users hit friction?
-- Are reliability and security proportionate to the risk?
+- Are reliability and security proportionate to the risk? For stateful high-risk rules, were invariants exercised against a model/sequence suite or justified deterministic equivalent, and did independent approval cover the final HEAD?
 - Is anything more complicated than the product needs?
 
 ## 4. Exercise the real software
@@ -51,7 +51,7 @@ Prioritize by impact, risk, and effort. Required corrections within authorized s
 
 ## 7. Verdict (definition of done)
 Declare one of:
-- **Done**: all approved material requirements implemented and verified; intended journeys work including recovery paths; required checks and any required independent review passed on the current code; status files reflect reality; authorized external actions completed.
+- **Done**: all approved material requirements implemented and verified; intended journeys work including recovery paths; required checks and any required independent review passed against the exact final commit; no unresolved required finding, safety invariant or material specification question; status files reflect reality; authorized external actions completed.
 - **Done with disclosed gaps**: as above except for named gaps the user has accepted or must now accept.
 - **Not done**: list exactly what is delivered, what is unverified, and what remains.
 

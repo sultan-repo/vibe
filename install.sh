@@ -4,7 +4,7 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 CL="$HOME/.claude"
-mkdir -p "$CL/skills" "$CL/agents" "$CL/hooks"
+mkdir -p "$CL/skills" "$CL/agents" "$CL/hooks" "$CL/vibe-tools"
 
 # 1. Core rules: installed as their own file and imported, so personal notes in CLAUDE.md survive re-installs.
 cp "$HERE/core/CLAUDE.md" "$CL/vibe.md"
@@ -17,6 +17,7 @@ fi
 rm -rf "$CL/skills/discover" "$CL/skills/build" "$CL/skills/reassess"
 cp -R "$HERE/skills/discover" "$HERE/skills/build" "$HERE/skills/reassess" "$CL/skills/"
 cp "$HERE/agents/reviewer.md" "$CL/agents/reviewer.md"
+cp "$HERE/scripts/codex-review.py" "$HERE/scripts/review-result.schema.json" "$CL/vibe-tools/"
 
 # 3. Hook that denies force-pushes, registered in settings.json without touching other settings.
 cp "$HERE/hooks/block-force-push.sh" "$CL/hooks/block-force-push.sh"
@@ -41,5 +42,6 @@ echo "Installed into $CL:"
 echo "  vibe.md   (imported by $CL/CLAUDE.md)"
 echo "  skills/discover, skills/build, skills/reassess"
 echo "  agents/reviewer.md"
+echo "  vibe-tools/codex-review.py + review-result.schema.json (optional Codex reviewer)"
 echo "  hooks/block-force-push.sh  (PreToolUse hook in settings.json)"
 echo "Open a new Claude Code session to pick it up."
