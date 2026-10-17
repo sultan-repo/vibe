@@ -90,14 +90,15 @@ def main():
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.unlink(missing_ok=True)  # Never treat an old approval as a new result.
     command = [
-        "codex", "exec", "--sandbox", "read-only", "--ask-for-approval", "never",
+        "codex", "--ask-for-approval", "never", "exec", "--sandbox", "read-only",
         "-c", f"model_reasoning_effort={args.effort}",
         "--output-schema", str(SCHEMA), "--output-last-message", str(destination), "-",
     ]
     run = subprocess.run(command, input=args.brief.read_text(encoding="utf-8"),
                          cwd=root, text=True, capture_output=True)
     if run.returncode != 0:
-        return fail("Codex execution failed (check CLI model/effort support and authentication)")
+        return fail("Codex execution failed (check CLI model/effort support and authentication). "
+                    + (run.stderr.strip()[-1200:] if run.stderr else f"Exit code: {run.returncode}"))
     try:
         report = json.loads(destination.read_text(encoding="utf-8"))
     except (OSError, ValueError):
