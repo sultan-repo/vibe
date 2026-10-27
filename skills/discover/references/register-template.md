@@ -49,8 +49,14 @@ Milestone: <current milestone and what "done" means for it>
 Done so far: <three to six lines>
 In progress: <what and where>
 Blocked: <blocker and the decision or input needed>
+Resume anchor (if interrupted): <last checked HEAD; verified command/result; failed approach to avoid; next approved step + verification command>
 Known limitations: <accepted, with who accepted>
 Final review gate: <not required | pending high-risk merge/release | approved full SHA and scope, plus test/CI evidence>
 Deferred: <item, reason>
 Next approved actions: <numbered>
+```
+
+## docs/LESSONS.md (optional, only after qualified repeated evidence)
+
+Do not create this file on first discovery. When a failure/solution repeats in two independently evidenced instances, or the owner explicitly requests a verified lesson, see `skills/build/references/lessons-and-handoff.md` and keep one project-scoped entry per actionable pattern. Never store secrets, personal information, raw chat or logs. Add no learning hooks or automatic global promotions.
 ```
