@@ -13,6 +13,8 @@ Vibe uses **Claude only**. There are no external reviewer CLIs, sign-in requirem
 - **`build`**: implement the next approved increment, run tests and user journeys, update evidence and commit. A fresh-context Claude reviewer may check meaningful substantial changes; tiny edits do not require repeated review.
 - **`reassess`**: review product alignment at milestones. Run a consolidated independent **Claude reviewer** gate before merging high-risk code, declaring a release ready, or on explicit request. Normal milestones do not run a code reviewer automatically.
 - **Safety**: the force-push hook denies shared-history rewrites and fails closed when validation is unavailable.
+- **Selective learning and recovery**: STATUS.md holds a checked resume anchor for interrupted substantial work. An optional, project-scoped `docs/LESSONS.md` stores repeated proven fixes, not every conversation or edit.
+- **Targeted security preflight**: an on-demand checklist examines relevant security-sensitive surfaces at applicable high-risk/release gates, without installing a scanner or adding review rounds.
 
 ### Review cadence
 
@@ -67,15 +69,28 @@ Option A uses Claude Code's plugin cache and hooks. Option B installs the core i
 
 The repository is the memory: `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`, `docs/STATUS.md` (or named equivalents).
 
+## What we adopted from ECC, and what we skipped
+
+Vibe borrows the *principles* of evidence-backed lessons and reliable handoffs from [ECC](https://github.com/affaan-m/ECC) without copying the full memory/runtime system:
+
+- **Lessons** are project-specific, optional and added only after two independently evidenced repeats, or a verified rule explicitly requested by the owner. They are loaded only when relevant. Never auto-promote global rules or store transcripts/secrets.
+- **Session recovery** reuses STATUS.md, kept to one screen: checked HEAD, test evidence, important unsuccessful approach, exact next approved step and verification command. No separate session log or memory database.
+- **Security preflight** is a conditional checklist at affected high-risk/release gates. It inspects changed paths and existing tests; it is not a secret scanner or a claim of security certification.
+- **Specialists**: use a relevant project-installed skill when useful. Vibe does not install packs or spawn additional agents by default.
+
+No new hooks, dependencies, required setup questions, autonomous observers or code-review cycles were added. This design deliberately prioritizes low workflow overhead; reduced errors or time savings should be measured in real project use rather than assumed.
+
+
 ## Repository layout
 
 ```text
 core/CLAUDE.md                     always-on rules
 core/PROJECT-CLAUDE.template.md    per-project instructions
 skills/discover/                   discover, challenge, enrich, approve
-skills/build/                      build and local verification
+skills/build/                      build and local verification; optional lessons/handoff reference
 skills/build/references/           high-risk rules and Claude review guidance
 skills/reassess/                   alignment and conditional final review gates
+skills/reassess/references/        risk-scoped security preflight
 agents/reviewer.md                 fresh-context Claude reviewer
 hooks/                             fail-closed force-push protection and tests
 .claude-plugin/                    plugin metadata
