@@ -9,7 +9,7 @@ Input: `$ARGUMENTS` names an increment, a milestone, or requirement IDs. If empt
 
 ## 1. Load state
 - Read the project CLAUDE.md, `docs/STATUS.md`, `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`.
-- Check `git status` and recent `git log`. Reconcile saved state with reality before building anything new: a requirement marked implemented with no code, or code with no requirement, gets corrected first.
+- Check `git status` and recent `git log`. Reconcile saved state with reality before building anything new: a requirement marked implemented with no code, or code with no requirement, gets corrected first. If resuming unfinished substantial work or a recurring error, load `references/lessons-and-handoff.md` for a concise checked resume anchor and only relevant verified lessons.
 - If there is no register or STATUS.md, the project has not been through discover. For substantial work, run the `discover` skill first and stop at its checkpoint. For a small task, implement it directly without this skill.
 
 ## 2. Apply decisions
@@ -25,14 +25,14 @@ Follow the core rules:
 - Add or update tests that express the acceptance criteria. For stateful high-risk rules, include model-based randomized/property or state-machine sequence tests, or record why an equivalent deterministic sequence suite is more suitable.
 - Keep changes limited to the approved increment, including essential supporting refactors. A separate new mechanism or behavior needs its own approved increment rather than being smuggled into review fixes.
 - Run the relevant tests, type checks, and linters. If the app can run here and the change is user-visible, exercise the journey and report what you saw.
-- Fix what breaks. Never weaken a check to get green.
+- Fix what breaks. Never weaken a check to get green. If a failed approach has recurred and a remedy was verified, consult `references/lessons-and-handoff.md` before considering an optional project-scoped lesson; do not create lessons from one-off mistakes.
 
 ## 5. Verify and record
 - For each requirement touched: `implemented` when the code is complete; `verified` only when its acceptance criteria were observed to pass on the current code. Write the command and result in the Evidence column, or `unverified`.
 - Build performs normal local verification. For substantial changes when valuable, spawn the fresh-context Claude `reviewer` subagent for one focused check; do not automatically run it for small fixes or unchanged code.
 - **Before a high-risk merge or release**, invoke `reassess` for a consolidated final Claude reviewer check, or reuse a valid approval on the exact same final HEAD and scope. Never claim merge/release readiness until any required review gate passes. Reassess handles finding triage, one targeted recheck and the stop rule.
 - A successful reviewer verdict alone is not verification: require passing acceptance checks on current code, no unresolved required findings or spec decisions, and applicable CI gates.
-- Update STATUS.md: done so far, in progress, blocked, known limitations, next approved actions; record review status (`not required`, `pending pre-merge/release`, or approved final HEAD and scope). Commit with a message naming the requirement IDs.
+- Update STATUS.md: done so far, in progress, blocked, known limitations, next approved actions; record review status (`not required`, `pending pre-merge/release`, or approved final HEAD and scope). If interrupted, capture the last checked commit and next verification command using `references/lessons-and-handoff.md`. Commit with a message naming the requirement IDs.
 
 ## 6. Report and stop
 Report in the core's milestone format (Delivered, Requirements, Verified, Discoveries, Alignment, Remaining), about 15 lines, and name the next increment. Stop there. If the user asked to continue through the milestone, repeat from step 3 until its increments are done or a decision is needed.
