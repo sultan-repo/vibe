@@ -11,7 +11,7 @@ A finished task list, a green test suite, or a clean architecture does not prove
 - The objective and non-goals (project CLAUDE.md, STATUS.md).
 - `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`.
 - The code as it is now: `git log` and `git diff` since the last reassessment or milestone.
-- Evidence: test runs, CI results, review findings, any user or operator feedback. Separate what was observed from what was claimed. Inspect any prior reviewer approval's full SHA, scope, required findings and evidence.
+- Evidence: test runs, CI results, review findings, any user or operator feedback. Separate what was observed from what was claimed. Inspect any prior reviewer approval's full SHA, scope, required findings and evidence. For recurring defects, consult verified project lessons only when relevant; do not run continuous-learning hooks.
 
 ## 2. Coverage check (structural)
 For the register, confirm:
@@ -40,7 +40,7 @@ Check what applies: deployment and rollback, configuration and secrets handling,
 
 ## 6. Conditional final review gate
 
-Reassess always checks requirements, real behavior and test evidence. Use the fresh-context Claude `reviewer` subagent only when:
+Reassess always checks requirements, real behavior and test evidence. When a high-risk or release gate affects security-sensitive surfaces, read `references/security-preflight.md` and assess only relevant changed paths using existing checks; skip when not applicable. Use the fresh-context Claude `reviewer` subagent only when:
 - A high-risk change is about to merge (mandatory approval on the final HEAD);
 - A release candidate is being declared ready (mandatory approval for relevant changed code);
 - The user explicitly asks for an independent review;
@@ -72,6 +72,6 @@ Declare one of:
 An ordinary milestone may be Done for that milestone without a final code review when no gate is due; that does not mean release-ready or high-risk merge-approved. Never manufacture done through documentation, status edits, or unrelated passing tests. An unresolved acceptance failure blocks a clean verdict regardless of severity.
 
 ## 9. Update files and report
-Update REQUIREMENTS.md statuses and evidence, STATUS.md (milestone, limitations, deferred, next actions and final review status/SHA/scope when relevant), DECISIONS.md for any decision made. Commit if work is on a branch; any new code commit requires reconsidering final approval.
+Update REQUIREMENTS.md statuses and evidence, STATUS.md (milestone, limitations, deferred, next actions and final review status/SHA/scope when relevant), DECISIONS.md for any decision made. If the same verified fix recurs, apply the optional learning criteria in `../build/references/lessons-and-handoff.md`, but never add a lesson for each review finding. Commit if work is on a branch; any new code commit requires reconsidering final approval.
 
 Report in about 20 lines: Verdict, Delivered, Requirements (met and open with IDs), Verified (commands and results), Findings by class, Decisions needed, Next actions.
