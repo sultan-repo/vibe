@@ -1,5 +1,7 @@
 # Changes
 
+**2026-10-27, v4.5:** selective ECC-inspired improvements without new services or review cycles. Optional evidence-backed project lessons (only recurring verified findings or owner-requested patterns), an explicit resume anchor in existing STATUS.md, and an on-demand security preflight for affected high-risk/release surfaces. Relevant installed specialist guidance can be loaded selectively. No background hooks, always-on memory store, new reviewer, heavy scanner or new agent orchestration. Includes policy regression tests.
+
 **2026-10-18, v4.4:** removed the external CLI reviewer, model configuration and its tests. Fresh-context Claude is Vibe's sole reviewer. Build handles small edits with normal checks and uses a focused Claude review only when useful. Reassess performs one consolidated final review for high-risk pre-merge, release readiness or explicit requests, with a maximum of one targeted recheck before escalating unresolved findings. Older installer artifacts are cleaned up during upgrade.
 
 **2026-10-18, v4.3 (superseded):** introduced risk-aware business rules, model-based state tests, review triage and an optional external CLI reviewer. The external integration and related setup were removed in v4.4.
