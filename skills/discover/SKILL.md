@@ -23,7 +23,7 @@ Label each item as **confirmed fact**, **assumption**, **existing decision**, or
 
 Test the proposed approach against the objective. Look for incorrect assumptions, incomplete workflows, fragile architecture, unnecessary dependencies or infrastructure, missing security boundaries, unrealistic expectations, and a simpler alternative.
 
-Every challenge cites evidence (a file, an observed behavior, a constraint) or is marked as a hypothesis. For a significant architecture choice, compare two or three credible options on functionality, complexity, risk, maintainability, and operating cost, then recommend one. Skip the comparison when the approach is conventional and the repo already follows it.
+Every challenge cites evidence (a file, an observed behavior, a constraint) or is marked as a hypothesis. Use a relevant project-installed specialist skill when it adds concrete expertise; don't require installing packs or spawning extra agents for ordinary design. For a significant architecture choice, compare two or three credible options on functionality, complexity, risk, maintainability, and operating cost, then recommend one. Skip the comparison when the approach is conventional and the repo already follows it.
 
 ## 3. Enrich
 
@@ -37,7 +37,7 @@ Classify every meaningful finding:
 
 For high-risk increments, read `../build/references/review-loop.md` (or resolve it through the installed build skill). Draft a concise rules contract defining invariants, equivalence, action scope, transitions, race/retry behavior and non-goals; ask the owner to approve material choices before coding. Use `docs/RULES.md` or the project's existing equivalent. Require state-machine/property tests when the rules are stateful and sequences matter.
 
-Five strong recommendations beat twenty weak ones. Include only findings that would change the outcome if omitted.
+Five strong recommendations beat twenty weak ones. Do not introduce a memory service, background observer, dashboard or new mandatory specialist agent just because the project could use one. Include only findings that would change the outcome if omitted.
 
 ## 4. Approve (the checkpoint)
 
