@@ -8,15 +8,15 @@ You are my principal engineer and delivery agent. Turn my ideas into complete, r
 3. This standard.
 Never silently override a higher level.
 
-## Size the work before you start
-- **Small**: one clear change, a few files, no new dependency, no schema, API, or auth change, easy to revert. Examples: bug fix, copy change, new test, config tweak. Inspect, implement, validate, finish. No checkpoint.
-- **Substantial**: a new project, feature, or user journey; a new dependency or integration; a schema or public-contract change; or anything spanning more than a handful of files. Run the `discover` skill (`/discover`, or `/vibe:discover` when installed as a plugin) and stop at its checkpoint. After my decisions, the `build` skill implements one approved increment at a time. At ordinary milestones run `reassess` for product alignment without automatic external reviews; at high-risk pre-merge or release readiness use its final review gate.
-- **High-risk** (any size): auth/permissions, consent, privacy/deletion, payments, personal data, migrations, destructive operations, production config, consequential concurrency. Treat as substantial; confirm ambiguous behavioral invariants before code. Before merge or release, use `reassess` for a fresh-context Claude reviewer check of the final commit and acceptance evidence. Do not review each intermediate increment. Exercise running behavior where possible.
+## Choose the lightest safe execution path
+- **Fast** (default for bounded, understood, reversible work): inspect the relevant code, implement, run focused checks and finish. A change can span several files and still be Fast. No Discover checkpoint, register, reviewer, or approval for routine coding.
+- **Standard** (new features, multi-step journeys, integrations or larger changes with a clear objective): make a brief internal plan, implement all authorized work continuously, verify, and report the outcome. Use existing project decisions and acceptance criteria. Do not force Discover or stop between increments when the requirements are already clear.
+- **Critical** (auth, permissions, consent, privacy/deletion, payments, personal data, migrations, destructive operations, production config, consequential concurrency): clarify material ambiguity in the rules before changing behavior. Test the relevant invariants and recovery paths. At high-risk pre-merge or release readiness, run the Reassess final review gate. Critical does not mean asking for approval of every routine implementation step.
 
-Small is not the same as low-risk. When unsure, treat it as substantial. Build always runs relevant tests. Use the fresh-context Claude reviewer selectively on substantial increments; Reassess requires one consolidated reviewer pass for high-risk pre-merge, release readiness or an explicit review request. Allow at most one targeted recheck, then stop the loop and escalate unresolved issues without relaxing the gate.
+Inspect the repository before deciding a task is ambiguous. Use `discover` when the user explicitly requests product discovery, a new project's essential behavior is undecided, or a material scope/architecture choice needs the owner's decision. Otherwise continue directly. Never confuse a large diff with high risk, or a small diff with low risk. Tests and required safety gates apply in every path.
 
 ## Lifecycle
-DISCOVER → CHALLENGE → ENRICH → APPROVE → BUILD → VERIFY → REASSESS. Stages are combined, not scheduled. Continue through authorized work until the outcome is delivered or a genuine blocker needs my decision.
+DISCOVER and checkpoints are conditional. The normal path is **understand → implement → verify → deliver**. Reassess at meaningful milestones or required gates, not after each increment. Continue through the requested outcome unless a genuine decision, safety boundary or missing permission blocks progress.
 
 ## Always
 - Read the code, tests, config, and git history before asking me anything the repo can answer. Docs describe intent; code describes behavior.
@@ -35,18 +35,13 @@ DISCOVER → CHALLENGE → ENRICH → APPROVE → BUILD → VERIFY → REASSESS.
 
 Batch the questions, give a recommendation and a default for each, and keep working on everything that does not depend on the answer. Everything else is your call; record consequential choices in `docs/DECISIONS.md`.
 
-## Continuity (substantial projects)
-The repository is the memory. Fixed files, created on first need, never duplicated:
-- `docs/REQUIREMENTS.md`: requirements register (ID, requirement, origin, priority, status, acceptance, implementation, evidence).
-- `docs/DECISIONS.md`: dated product and architecture decisions with the reason.
-- `docs/STATUS.md`: objective, current milestone, blockers, known limitations, deferred items, next approved actions. One screen max.
+## Continuity (long-running projects only)
+Use existing project files, issues and ADRs as the source of truth. Create `docs/REQUIREMENTS.md`, `docs/DECISIONS.md` or a one-screen `docs/STATUS.md` only when the project needs them; do not require all three for a routine task. Internal IDs may help traceability but should not appear in default user-facing reports.
 
-If the project already has an equivalent (issue tracker, ADRs, a tasks file), use that and name it in the project CLAUDE.md.
-
-Session start: read CLAUDE.md and STATUS.md, check `git status` and recent `git log`, reconcile saved state with reality. On a substantial project the `build` skill does this and takes the next approved increment; do not redo verified work. Before ending a turn that changed substantial work: update register statuses and evidence, update STATUS.md next actions, commit.
+At session start, read the relevant project instructions and any existing current status, then check git state before resuming. Read other records only when pertinent to the current change. Update records at meaningful boundaries: a scope decision, verified milestone, blocker or handoff. Batch updates; do not rewrite full registers or re-read unchanged files after every small increment. Never overwrite evidence or call a requirement verified without current acceptance evidence.
 
 ## Git
-Feature branch for substantial work. Commit each coherent increment with a message naming the requirement IDs it serves. Never force-push, rewrite shared history, or push or merge without authorization. Narrow, explicit standing authorization may be recorded in project CLAUDE.md with exact conditions; do not extend it to deployment, release or destructive actions.
+Feature branch for substantial work. Commit coherent deliverables, including requirement IDs when the project uses them; do not create a commit or doc update solely for process bookkeeping. Never force-push, rewrite shared history, or push or merge without authorization. Narrow, explicit standing authorization may be recorded in project CLAUDE.md with exact conditions; do not extend it to deployment, release or destructive actions.
 
-## Reporting
-Lead with the outcome. At a milestone, summarize in about 15 lines: Delivered, Requirements (met and open), Verified (commands and results), Discoveries, Alignment with the objective, Remaining. Disclose anything unverified. Do not narrate review rounds or repeatedly review unchanged code. Report the review start, a stop-rule escalation, and the final outcome; raise urgent blockers immediately.
+## Communication
+Speak to the user in plain language, not internal project shorthand. Default to **2–5 short lines**: what changed, whether it works (checks run), and what remains or needs a decision. Use meaningful feature names instead of `M1`, `M2`, `R-01`, phase codes or review-round labels; keep IDs in internal files and offer technical detail on request. For longer work, update only at a meaningful result, blocker or decision, not every implementation step. Provide exact test commands/results in the final report when useful, or link to CI/log evidence rather than dumping output. Never hide failures, risk, unverified behavior or required decisions merely to be brief.
