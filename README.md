@@ -1,17 +1,17 @@
 # Vibe
 
-An outcome-driven software delivery standard for [Claude Code](https://code.claude.com). Vibe discovers and challenges requirements, builds one approved increment at a time, verifies observable outcomes, and reassesses against the product's objective.
+An outcome-driven software delivery standard for [Claude Code](https://code.claude.com). Vibe challenges unclear requirements, implements approved work continuously, verifies observable outcomes and reassesses when useful or required.
 
-Lifecycle: **DISCOVER → CHALLENGE → ENRICH → APPROVE → BUILD → VERIFY → REASSESS**
+Default: **understand → build → verify → deliver**. Discover and Reassess are invoked when needed, not for every change.
 
 Vibe uses **Claude only**. There are no external reviewer CLIs, sign-in requirements or model-specific reviewer settings.
 
 ## How it works
 
-- **Always-on core** (`core/CLAUDE.md`): risk classification, evidence, requirements continuity and git discipline.
-- **`discover`**: a one-screen checkpoint of confirmed requirements, missing decisions, tradeoffs and scope; no application code before approval.
-- **`build`**: implement the next approved increment, run tests and user journeys, update evidence and commit. A fresh-context Claude reviewer may check meaningful substantial changes; tiny edits do not require repeated review.
-- **`reassess`**: review product alignment at milestones. Run a consolidated independent **Claude reviewer** gate before merging high-risk code, declaring a release ready, or on explicit request. Normal milestones do not run a code reviewer automatically.
+- **Always-on core** (`core/CLAUDE.md`): Fast / Standard / Critical routing, concise communication, appropriate evidence and git safety.
+- **`discover`**: explore unresolved product decisions or an explicitly requested design; skip it when implementation is already clear.
+- **`build`**: complete the requested feature or milestone in one continuous run, with focused tests and minimal documentation. Independent review is selective, not automatic per increment.
+- **`reassess`**: check product alignment when requested or consequential. Keep the consolidated independent **Claude reviewer** gate before high-risk merges and release readiness.
 - **Safety**: the force-push hook denies shared-history rewrites and fails closed when validation is unavailable.
 
 ### Review cadence
@@ -27,6 +27,16 @@ Vibe uses **Claude only**. There are no external reviewer CLIs, sign-in requirem
 A final gate allows **one full review and at most one targeted recheck** of required fixes. If issues remain, Vibe stops and reports the blocker or required decision instead of launching an endless loop. A passing review on the exact same HEAD and unchanged scope can be reused. An unverified acceptance criterion or a required security/data defect still blocks release or high-risk merge approval.
 
 High-risk logic requires clarified invariants, permission boundaries, retries/races and acceptance tests before building. Stateful rules use sequence/property tests when appropriate.
+
+### Execution modes
+
+| Mode | When | Default behavior |
+| --- | --- | --- |
+| **Fast** | Small or bounded, clear, reversible work | Implement and run relevant checks; no checkpoint or register |
+| **Standard** | Features and multi-step work with understood scope | Brief internal plan, build continuously, verify at the end |
+| **Critical** | Security, personal data, payments, migrations, destructive or other high-risk work | Clarify material risks, test invariants, preserve required review gates |
+
+User updates default to **2–5 plain-language lines**: delivered, verified and remaining. Technical IDs such as M1 and R-01 stay in the project records, not the user-facing narrative. Full evidence remains available on request.
 
 ## Install
 
@@ -60,12 +70,12 @@ Option A uses Claude Code's plugin cache and hooks. Option B installs the core i
 
 ## Use it
 
-1. In your project, run `/discover` (or `/vibe:discover`) with the idea, intended users, objective and constraints. Approve the checkpoint.
-2. `/build` implements the next approved increment, with tests and evidence. Say "through the milestone" to complete approved increments consecutively.
-3. Use `/reassess` at milestones to check alignment. Before merging a high-risk change or preparing a release, Reassess runs its required final Claude review and reports a clear readiness verdict.
-4. Small day-to-day requests can be made in normal conversation without extra ceremony.
+1. For clear work, ask Claude to build it or use `/build` (`/vibe:build`). It completes the approved task continuously by default.
+2. Use `/discover` when product requirements need exploration or a material choice is unresolved. Do not repeat discovery for an already approved feature.
+3. Use `/reassess` when you want an outcome review. High-risk merge and release-readiness gates still require independent review.
+4. Fast fixes can be requested in ordinary conversation without extra ceremony.
 
-The repository is the memory: `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`, `docs/STATUS.md` (or named equivalents).
+For ongoing projects, existing issues, documents or optional `docs/REQUIREMENTS.md`, `docs/DECISIONS.md` and `docs/STATUS.md` preserve useful decisions. They are not prerequisites for small work.
 
 ## Repository layout
 

@@ -5,11 +5,11 @@ description: Product alignment review and definition-of-done check. Use at an or
 
 # Reassess: does the software serve its purpose?
 
-A finished task list, a green test suite, or a clean architecture does not prove the product is done. This skill checks alignment between the intended outcome, the approved requirements, the delivered behavior, and the evidence. It ends with a verdict and updated continuity files. Ordinary milestone reassessments do **not** automatically trigger a code-review round.
+A finished task list, a green test suite, or a clean architecture does not prove the product is done. This skill checks alignment between the intended outcome, the approved requirements, the delivered behavior, and the evidence. It ends with a verdict and updated continuity files. Ordinary milestone reassessments do **not** automatically trigger a code-review round. Run this skill when requested, when alignment genuinely needs checking, or at a required high-risk/release gate, not after each routine increment.
 
 ## 1. Gather inputs
 - The objective and non-goals (project CLAUDE.md, STATUS.md).
-- `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`.
+- Relevant portions of existing `docs/REQUIREMENTS.md`, `docs/DECISIONS.md` or equivalent tracking where present; do not create missing records just to reassess.
 - The code as it is now: `git log` and `git diff` since the last reassessment or milestone.
 - Evidence: test runs, CI results, review findings, any user or operator feedback. Separate what was observed from what was claimed. Inspect any prior reviewer approval's full SHA, scope, required findings and evidence.
 
@@ -72,6 +72,6 @@ Declare one of:
 An ordinary milestone may be Done for that milestone without a final code review when no gate is due; that does not mean release-ready or high-risk merge-approved. Never manufacture done through documentation, status edits, or unrelated passing tests. An unresolved acceptance failure blocks a clean verdict regardless of severity.
 
 ## 9. Update files and report
-Update REQUIREMENTS.md statuses and evidence, STATUS.md (milestone, limitations, deferred, next actions and final review status/SHA/scope when relevant), DECISIONS.md for any decision made. Commit if work is on a branch; any new code commit requires reconsidering final approval.
+Update existing tracking only where findings, verified evidence, scope or decisions changed. Batch related updates; do not rewrite every register for a routine progress check. Commit material changes if appropriate; any new code commit requires reconsidering final approval.
 
-Report in about 20 lines: Verdict, Delivered, Requirements (met and open with IDs), Verified (commands and results), Findings by class, Decisions needed, Next actions.
+Report in **2–5 concise user-facing lines** by default: whether the outcome is ready, what works and was checked, and what needs attention. State material risks, failed or missing verification and blockers explicitly. Keep requirement IDs, finding IDs and review-round mechanics in internal evidence, not the default user message; provide the detailed audit on request.

@@ -1,40 +1,38 @@
 ---
 name: build
-description: 'Implement the next approved increment of a project that has been through discover. Applies pending checkpoint decisions to docs/REQUIREMENTS.md, picks the next approved work (or the increment named in the arguments), builds it under the core rules, runs the checks, exercises the user journey, updates status and evidence, and commits on the feature branch. Use to kick off development after a checkpoint is approved, and at the start of every later session instead of "continue". Triggers: "build", "start building", "kick off", "continue the project", "next increment", "go".'
+description: 'Implement approved project work continuously with risk-appropriate checks. Resume from existing project state, build and verify the requested feature or milestone without artificial per-increment stops. Triggers: "build", "start building", "kick off", "continue the project", "next increment", "go".'
 ---
 
-# Build: the next approved increment
+# Build: finish the approved outcome
 
-Input: `$ARGUMENTS` names an increment, a milestone, or requirement IDs. If empty, take the next approved item in the order listed in `docs/STATUS.md`.
+Input: `$ARGUMENTS` may name a feature, milestone or requirement ID. Without arguments, use the user's current request and the next authorized work in project state. **Continuous delivery is the default**: finish the requested scope, not just its first internal increment.
 
-## 1. Load state
-- Read the project CLAUDE.md, `docs/STATUS.md`, `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`.
-- Check `git status` and recent `git log`. Reconcile saved state with reality before building anything new: a requirement marked implemented with no code, or code with no requirement, gets corrected first.
-- If there is no register or STATUS.md, the project has not been through discover. For substantial work, run the `discover` skill first and stop at its checkpoint. For a small task, implement it directly without this skill.
+## 1. Check context selectively
+- Read project CLAUDE.md and the relevant code/tests. Check `git status` and recent history before editing. If STATUS.md exists and work is being resumed, reconcile it with the current code.
+- Read REQUIREMENTS.md, DECISIONS.md, and other records **only where they affect this work**. Reuse existing issue/task tracking; do not create documentation solely to unlock Build.
+- Missing continuity files do **not** force Discover. For clear, approved work, proceed. Invoke `discover` only when product intent or a consequential decision is unresolved (or the user asked for discovery).
 
-## 2. Apply decisions
-If the conversation contains answers to checkpoint decisions (yes, no, changes, "go with your recommendations"), update the register: `proposed` becomes `approved`, or `deferred` with the reason. Record the choices in DECISIONS.md and restate in one line what is now in scope. Never promote a proposed item without an answer.
+## 2. Choose the route and scope
+- **Fast:** implement a bounded, understood change with focused checks. Do not automatically launch a reviewer or create checkpoint files for small fixes.
+- **Standard:** briefly plan the authorized feature internally, then implement all connected increments in the current request. No automatic user pause between increments.
+- **Critical:** identify high-risk invariants, action scope and recovery behavior. Load `references/review-loop.md` only for relevant high-risk work or a final review gate. Ask about genuinely ambiguous rules, not routine engineering choices.
+- Incorporate previously approved decisions; never silently approve a proposed feature. If new scope is needed, ask once with a recommendation while continuing unaffected work.
 
-## 3. Pick the increment
-Take the named increment, or the next approved one. State it in one line: the requirement IDs and what will be observable when it is done. If it is high-risk (auth/consent/permissions, privacy/deletion, payments, personal data, migrations, destructive operations, production config, consequential concurrent state), say so and load `references/review-loop.md` for rules and tests. Require approved rules and reviewable scope; record final review as pending until the pre-merge gate.
+## 3. Implement continuously
+- Work on a feature branch for substantial changes. Deliver the user journey, including relevant failure, empty and recovery paths.
+- Prefer the smallest effective implementation. Do not introduce speculative frameworks, agents, dependencies, broad refactors or duplicate planning artifacts.
+- Add or update acceptance tests. For stateful Critical rules, use sequence/property tests where valuable, otherwise explain equivalent deterministic coverage.
+- Run relevant tests, lint/typecheck, and exercise user-visible behavior where the app can run. Fix failures without weakening checks.
+- Continue through the approved feature or milestone **without stopping after each increment**. Commit coherent deliverables; requirement IDs belong in commit messages only when the project tracks them.
 
-## 4. Implement
-Follow the core rules:
-- Work on a feature branch. Make the smallest coherent change that delivers the whole user journey for the increment, including failure, empty, and recovery paths.
-- Real behavior only. No placeholders standing in for required functionality.
-- Add or update tests that express the acceptance criteria. For stateful high-risk rules, include model-based randomized/property or state-machine sequence tests, or record why an equivalent deterministic sequence suite is more suitable.
-- Keep changes limited to the approved increment, including essential supporting refactors. A separate new mechanism or behavior needs its own approved increment rather than being smuggled into review fixes.
-- Run the relevant tests, type checks, and linters. If the app can run here and the change is user-visible, exercise the journey and report what you saw.
-- Fix what breaks. Never weaken a check to get green.
+## 4. Verify and hand off
+- Mark requirements verified only with passing acceptance evidence on the current code. Record commands/results and unresolved limitations accurately.
+- Update existing STATUS.md and requirement records **once at a meaningful milestone or interruption**, not at each intermediate edit. Keep the handoff concise. Do not create a register for a standalone routine fix.
+- Build normally relies on direct verification. For substantial changes when a specific independent check materially helps, the fresh-context Claude `reviewer` may perform one focused check; **do not automatically** review every increment or unchanged code.
+- **Before a high-risk merge or release**, invoke `reassess` for the consolidated final Claude review, or reuse a valid review of the exact same final HEAD/scope with current evidence. Required security/data findings still block readiness. Reassess owns the one targeted recheck and stop rule.
+- Do not equate a reviewer verdict with test evidence or claim checks passed when they did not run.
 
-## 5. Verify and record
-- For each requirement touched: `implemented` when the code is complete; `verified` only when its acceptance criteria were observed to pass on the current code. Write the command and result in the Evidence column, or `unverified`.
-- Build performs normal local verification. For substantial changes when valuable, spawn the fresh-context Claude `reviewer` subagent for one focused check; do not automatically run it for small fixes or unchanged code.
-- **Before a high-risk merge or release**, invoke `reassess` for a consolidated final Claude reviewer check, or reuse a valid approval on the exact same final HEAD and scope. Never claim merge/release readiness until any required review gate passes. Reassess handles finding triage, one targeted recheck and the stop rule.
-- A successful reviewer verdict alone is not verification: require passing acceptance checks on current code, no unresolved required findings or spec decisions, and applicable CI gates.
-- Update STATUS.md: done so far, in progress, blocked, known limitations, next approved actions; record review status (`not required`, `pending pre-merge/release`, or approved final HEAD and scope). Commit with a message naming the requirement IDs.
+## 5. Tell the user what matters
+Default to a short plain-language report: **Delivered**, **Verified**, **Remaining** (only if applicable). Use feature names, not `M1`/`M2` or `R-01`; put internal traceability in files. Give exact commands/results when they matter. Disclose blockers and unverified outcomes. Do not output a six-section, 15-line process report by default.
 
-## 6. Report and stop
-Report in the core's milestone format (Delivered, Requirements, Verified, Discoveries, Alignment, Remaining), about 15 lines, and name the next increment. Stop there. If the user asked to continue through the milestone, repeat from step 3 until its increments are done or a decision is needed.
-
-A discovery that changes scope goes back to the `discover` checkpoint for a decision. It does not go straight into code.
+Stop only when the requested work is complete or a real blocker, material decision or external permission is required. Do not stop simply because an internal increment, checklist or milestone boundary was reached.

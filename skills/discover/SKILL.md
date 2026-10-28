@@ -1,11 +1,11 @@
 ---
 name: discover
-description: Requirements discovery, challenge, and enrichment before building substantial work (a new project, feature, user journey, integration, schema or contract change). Produces a one-screen checkpoint of confirmed requirements, gaps, recommendations, and decisions, then seeds docs/REQUIREMENTS.md, docs/DECISIONS.md, and docs/STATUS.md. It stops at the checkpoint and writes no application code; building starts with the build skill after the user decides. Use at the start of any substantial task, or when the user says "discover", "plan this feature", "what am I missing", "challenge this design".
+description: Explore product intent and resolve material uncertainty before implementation. Use on explicit discovery or planning requests, or when an important product or architecture decision is unresolved. For clear approved implementation tasks, Build proceeds without a mandatory checkpoint.
 ---
 
 # Discover → Challenge → Enrich → Approve
 
-Goal: help the user end up with a better product than the one they described, without uncontrolled scope growth. The output is a short checkpoint and an updated requirements register, not a document and not code. Building is the `build` skill's job, after the user decides.
+Goal: improve the product direction without blocking clear implementation. Explicit Discover requests produce analysis and a concise decision checkpoint, not application code. Ordinary Build requests with an understood objective and approved decisions skip this skill entirely.
 
 Input: `$ARGUMENTS` is the idea or feature. If empty, use the request already in the conversation.
 
@@ -41,29 +41,29 @@ Five strong recommendations beat twenty weak ones. Include only findings that wo
 
 ## 4. Approve (the checkpoint)
 
-Present one checkpoint, one screen at most, in this shape:
+Present one checkpoint, ideally 5–10 short lines, only when a material decision is needed. Use this shape selectively:
 
 - **Objective**: one sentence. **Size**: substantial or high-risk, and why.
-- **Confirmed requirements**: R-01, R-02 ... one line each.
+- **Confirmed requirements**: describe the important observable behavior in plain language; keep any R-IDs in internal records.
 - **Gaps found (Required)**: what, why it matters, evidence.
-- **Recommended (your decision)**: a table with item, benefit, cost, impact if omitted, my recommendation, and the default if you do not answer.
+- **Recommended**: at most three consequential choices, each with its tradeoff and recommended default. Avoid a wide table unless it improves clarity.
 - **Assumptions I will proceed on** unless corrected.
 - **Decisions needed now**: numbered, each with a recommendation. No reviewer setup question is needed; Vibe uses its existing fresh-context Claude reviewer when a review is genuinely required.
-- **Plan**: milestones in order, first increment named.
+- **Plan**: the next useful outcome; internal milestone codes stay out of user-facing text.
 
 If the repository has no `CLAUDE.md`, create one from `references/project-claude-template.md` with the objective, non-goals, and constraints agreed in the checkpoint; fill the Commands section once the stack is decided.
 
 Record any owner-approved rules contract, the required acceptance tests, and whether a high-risk pre-merge/release gate will apply. No external reviewer configuration or authentication is required.
 
-Then create or update the three continuity files using `references/register-template.md`: confirmed and required items as `approved`, recommended items as `proposed`, architecture choices in DECISIONS.md with the reason, and a one-screen STATUS.md.
+Use existing project tracking. For long-running projects that need it, create or update relevant continuity files using `references/register-template.md`; do not require all three files or update them when no material state changed.
 
-Then stop and wait for decisions. Do not write application code in this skill.
+When material decisions remain, stop for the owner's answer. If the user already gave approval or clear defaults, record them and proceed to `build` in the same conversation when implementation was requested. An explicit request for discovery alone ends with the checkpoint and does not change application code.
 
-- If the user replies with changes or questions: revise the checkpoint and the register, keep the decisions numbered, and stop again. Discovery usually takes more than one round.
+- If the user replies with changes or questions: address them concisely; only stop again if an important decision remains. Do not default to multiple rounds.
 - If the user approves (a clear yes, "go", "go with your recommendations", or answers to the decisions): record the answers in the register and DECISIONS.md, then invoke the `build` skill (`/build`, or `/vibe:build` as a plugin) so the first increment starts in the same conversation.
 
 Proposed items stay proposed until the user says yes. In plan mode, present the checkpoint and seed the files once the user leaves plan mode.
 
 ## Proportionality
 
-If step 1 shows the work is actually small, say so in one line and implement it directly; the checkpoint and the build skill exist for substantial work. If the user asked for a quick hack, do the hack and list what was skipped under deferred.
+If the implementation request is clear, proceed directly to Build regardless of file count. If the user requested discovery only, return the analysis without code. A requested quick hack uses the Fast path with disclosed limitations; applicable safety rules still hold.
