@@ -13,6 +13,7 @@ Vibe uses **Claude only**. There are no external reviewer CLIs, sign-in requirem
 - **`build`**: complete the requested feature or milestone in one continuous run, with focused tests and minimal documentation. Independent review is selective, not automatic per increment.
 - **`reassess`**: check product alignment when requested or consequential. Keep the consolidated independent **Claude reviewer** gate before high-risk merges and release readiness.
 - **Safety**: the force-push hook denies shared-history rewrites and fails closed when validation is unavailable.
+- **Optional visual board**: a Claude Code Mod shows the plan, reported task completion and current activity in a native pane. No separate server or continuous model polling.
 
 ### Review cadence
 
@@ -37,6 +38,16 @@ High-risk logic requires clarified invariants, permission boundaries, retries/ra
 | **Critical** | Security, personal data, payments, migrations, destructive or other high-risk work | Clarify material risks, test invariants, preserve required review gates |
 
 User updates default to **2–5 plain-language lines**: delivered, verified and remaining. Technical IDs such as M1 and R-01 stay in the project records, not the user-facing narrative. Full evidence remains available on request.
+
+## Visual progress board (optional)
+
+The plugin includes a native Claude Code Mod for interactive terminal sessions and supported graphical Code views. Run `/vibe-board` to open it, or let it open once when Claude creates a tracked plan. Close the pane whenever you want; it will not force itself open again that session. Task statuses are **reported progress**, not proof of passing tests.
+
+- Prefers existing `TodoWrite` or `TaskCreate`/`TaskUpdate` task events. A small deferred `mcp__vibe__progress` tool can supply a plan in sessions without those tools, for Standard/Critical multi-step work only.
+- Fast fixes do not generate extra progress reports. The mod observes tool activity without changing permission decisions, model prompts, or tool results.
+- Requires Claude Code 2.1.287+ for Mods. Panes work in compatible terminal, Desktop Code tab, and supported newer VS Code extension builds; non-visual sessions simply don't show the pane.
+- The alternate `install.sh` path installs skills and hooks, **not** Mods; install Vibe as a Claude Code plugin for the board.
+- For local testing: `node --test tests/mod-board.test.mjs`.
 
 ## Install
 
