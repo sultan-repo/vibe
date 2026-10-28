@@ -49,7 +49,7 @@ test('tracks native todos and does not count denied changes', async () => {
     {content:'Test login',status:'in_progress'}
   ]}
   await h.fire('tool.call',todo,{result:{ok:true}})
-  assert.match(text(await h.render()),/1\\/2 steps reported complete/)
+  assert.ok(text(await h.render()).includes('1/2 steps reported complete'))
   assert.equal(h.calls.opened.length,1)
   await h.fire('tool.call',{tool:'TodoWrite',todos:[{content:'Bad',status:'completed'}]},
     {deny:'permission denied'})
@@ -62,7 +62,7 @@ test('tracks native task create and update by returned id', async () => {
     {result:{taskId:'7',success:true}})
   await h.fire('tool.call',{tool:'TaskUpdate',taskId:'7',status:'completed'},
     {result:{success:true}})
-  assert.match(text(await h.render()),/1\\/1 steps reported complete/)
+  assert.ok(text(await h.render()).includes('1/1 steps reported complete'))
   await h.fire('tool.call',{tool:'TaskUpdate',taskId:'7',status:'deleted'},
     {result:{success:true}})
   assert.match(text(await h.render()),/No tracked plan yet/)
