@@ -23,7 +23,7 @@ Input: `$ARGUMENTS` may name a feature, milestone or requirement ID. Without arg
 - Prefer the smallest effective implementation. Do not introduce speculative frameworks, agents, dependencies, broad refactors or duplicate planning artifacts.
 - Add or update acceptance tests. For stateful Critical rules, use sequence/property tests where valuable, otherwise explain equivalent deterministic coverage.
 - Run relevant tests, lint/typecheck, and exercise user-visible behavior where the app can run. Fix failures without weakening checks.
-- Continue through the approved feature or milestone **without stopping after each increment**. Commit coherent deliverables; requirement IDs belong in commit messages only when the project tracks them.
+- Continue through the approved feature or milestone **without stopping after each increment**. Commit coherent deliverables with human-readable, action-first commit titles. When tracking requirement IDs, put them in the commit body, not the title. Use purpose-based branch names and descriptive PR titles.
 - For a multi-step Standard/Critical task, reuse native Claude task tracking if already used. If those tools are unavailable **and** `mcp__vibe__progress` is present, optionally publish 3–7 meaningful outcome steps to the visual board once, then update only when a step changes status. Never call this tool for Fast work or on every code change; skip it if reporting would slow a short task. Completing a progress item is not the same as verifying acceptance.
 
 ## 4. Verify and hand off

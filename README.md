@@ -39,6 +39,8 @@ High-risk logic requires clarified invariants, permission boundaries, retries/ra
 
 User updates default to **2–5 plain-language lines**: delivered, verified and remaining. Technical IDs such as M1 and R-01 stay in the project records, not the user-facing narrative. Full evidence remains available on request.
 
+GitHub gets the same treatment. Commit and PR titles describe the actual change (`Improve Premium subscription page`), not `R-73 R-74: M7`. Keep requirement IDs in commit bodies and PR descriptions for traceability. Branch names describe their purpose (`feature/premium-page`). These defaults apply to new work and do not rename existing commits.
+
 ## Visual progress board (optional)
 
 The plugin includes a native Claude Code Mod for interactive terminal sessions and supported graphical Code views. Run `/vibe-board` to open it, or let it open once when Claude creates a tracked plan. Close the pane whenever you want; it will not force itself open again that session. Task statuses are **reported progress**, not proof of passing tests.
