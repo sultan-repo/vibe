@@ -41,7 +41,14 @@ Use existing project files, issues and ADRs as the source of truth. Create `docs
 At session start, read the relevant project instructions and any existing current status, then check git state before resuming. Read other records only when pertinent to the current change. Update records at meaningful boundaries: a scope decision, verified milestone, blocker or handoff. Batch updates; do not rewrite full registers or re-read unchanged files after every small increment. Never overwrite evidence or call a requirement verified without current acceptance evidence.
 
 ## Git
-Feature branch for substantial work. Commit coherent deliverables, including requirement IDs when the project uses them; do not create a commit or doc update solely for process bookkeeping. Never force-push, rewrite shared history, or push or merge without authorization. Narrow, explicit standing authorization may be recorded in project CLAUDE.md with exact conditions; do not extend it to deployment, release or destructive actions.
+Use a feature branch for substantial work and commit coherent deliverables; never add commits solely for bookkeeping. Never force-push, rewrite shared history, or push or merge without authorization. Narrow, explicit standing authorization may be recorded in project CLAUDE.md with exact conditions; do not extend it to deployment, release or destructive actions.
+
+**Human-readable Git metadata (all execution paths):**
+- **Commit titles:** a short, action-first description of what changed, ideally under 72 characters. Prefer `Fix login validation after session expiry` over `R-70 R-71: M7 fixes`. Never start or fill the subject with requirement IDs, milestone codes, issue counters, raw hashes, or test IDs.
+- **Traceability:** if the project tracks IDs, retain them in the optional commit body (`Requirements: R-70, R-71`), PR description, issue links, and project records. Do not lose useful associations just to shorten a title.
+- **PR titles:** say what the change achieves, in plain language. Keep IDs and detailed test evidence in the PR body, not its title.
+- **Branch names:** describe the work (e.g. `fix/login-validation`, `feature/premium-page`), not an internal milestone or a list of IDs.
+- This applies to **future** commits and PRs. Do not rewrite existing history to rename old messages. Honor an explicit project or owner naming convention when it conflicts with these defaults.
 
 ## Communication
 Speak to the user in plain language, not internal project shorthand. Default to **2–5 short lines**: what changed, whether it works (checks run), and what remains or needs a decision. Use meaningful feature names instead of `M1`, `M2`, `R-01`, phase codes or review-round labels; keep IDs in internal files and offer technical detail on request. For longer work, update only at a meaningful result, blocker or decision, not every implementation step. Provide exact test commands/results in the final report when useful, or link to CI/log evidence rather than dumping output. Never hide failures, risk, unverified behavior or required decisions merely to be brief.

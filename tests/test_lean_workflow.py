@@ -43,6 +43,19 @@ class LeanWorkflowTest(unittest.TestCase):
         self.assertIn("2–5 concise", reassess)
         self.assertNotIn("about 20 lines", reassess)
 
+    def test_human_readable_github_titles(self):
+        core = read("core/CLAUDE.md")
+        build = read("skills/build/SKILL.md")
+        readme = read("README.md")
+        for rule in ("commit titles:", "commit body", "pr titles:", "branch names:",
+                     "do not rewrite existing history"):
+            with self.subTest(rule=rule):
+                self.assertIn(rule, core)
+        self.assertIn("human-readable, action-first commit titles", build)
+        self.assertIn("commit body, not the title", build)
+        self.assertIn("commit and pr titles", readme)
+        self.assertIn("do not rename existing commits", readme)
+
     def test_readme_describes_new_defaults(self):
         readme = read("README.md")
         for term in ("fast", "standard", "critical", "continuously by default",
