@@ -1,5 +1,8 @@
 {
-  "description": "Vibe: inject the always-on core rules at session start; deny force-pushes.",
+  "description": "Vibe core and force-push safeguards; optional native progress board mod.",
+  "modules": [
+    "./board.mjs"
+  ],
   "hooks": {
     "SessionStart": [
       {

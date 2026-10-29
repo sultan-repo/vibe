@@ -20,6 +20,10 @@ jobs:
           bash -n install.sh uninstall.sh hooks/*.sh
           python3 -m json.tool .claude-plugin/plugin.json >/dev/null
           python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
+          python3 -m json.tool hooks/hooks.json >/dev/null
+          node --check hooks/board.mjs
+      - name: Progress board unit tests
+        run: node --test tests/mod-board.test.mjs
       - name: Force-push protection
         run: python3 hooks/test-force-push-hook.py
       - name: Review workflow and YAML skill metadata
