@@ -22,6 +22,6 @@
 
 ## Delivery
 - Standing permissions: <none, or precise branch/repo + checks + exclusions explicitly approved by owner>
-This project follows Vibe v4.4, an outcome-driven delivery standard (`~/.claude/vibe.md`, source: github.com/sultan-repo/vibe).
+This project follows Vibe v4.5, an outcome-driven delivery standard (`~/.claude/vibe.md`, source: github.com/sultan-repo/vibe).
 Register: `docs/REQUIREMENTS.md` · Decisions: `docs/DECISIONS.md` · Status: `docs/STATUS.md`
 <If this repo tracks requirements elsewhere (GitHub issues, ADRs, a tasks file), say so here and Claude will use that instead.>
