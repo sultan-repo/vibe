@@ -1,7 +1,7 @@
 {
   "name": "vibe",
-  "version": "4.4.0",
-  "description": "Vibe: outcome-driven delivery with Claude-only, risk-aware review, independent final gate checks, and bounded review cycles.",
+  "version": "4.5.0",
+  "description": "Vibe: faster Claude Code delivery, readable updates, risk-aware verification, and an optional native progress board.",
   "author": {
     "name": "Sultan Alsubaie"
   },
