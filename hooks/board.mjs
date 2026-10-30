@@ -36,38 +36,38 @@ export function taskIdFromResult(result) {
   return match ? match[1] : null
 }
 
+async function openedWithPlan($, state) {
+  if (!state.steps.length || state.autoOpenAttempted || state.dismissed) return
+  state.autoOpenAttempted = true
+  try {
+    const result = await $.ui.open({ id: PANE, title: 'Vibe · Progress', columns: 48 })
+    state.isOpen = result?.isPlaced !== false
+  } catch { /* Non-visual surfaces continue normally. */ }
+}
+
+function redraw($, state) {
+  if (state.isOpen) void $.ui.invalidate('ui.render')
+}
+
+async function setPlan($, state, name, rows, origin) {
+  const normalized = normalizeSteps(rows)
+  if (!normalized.length) return false
+  state.goal = clean(name, 100) || state.goal
+  state.steps = normalized
+  state.source = origin
+  await openedWithPlan($, state)
+  redraw($, state)
+  return true
+}
+
 export function register(on) {
-  let goal = ''
-  let steps = []
-  let source = ''
+  const state = { goal: '', steps: [], source: '', isOpen: false,
+    autoOpenAttempted: false, dismissed: false }
   let working = false
   let action = ''
   let calls = 0
   let details = false
-  let isOpen = false
-  let autoOpenAttempted = false
-  let dismissed = false
   let synthetic = 0
-
-  const redraw = $ => { if (isOpen) $.ui.invalidate('ui.render') }
-  const openedWithPlan = async $ => {
-    if (!steps.length || autoOpenAttempted || dismissed) return
-    autoOpenAttempted = true
-    try {
-      const result = await $.ui.open({ id: PANE, title: 'Vibe · Progress', columns: 48 })
-      isOpen = result?.isPlaced !== false
-    } catch { /* Non-visual surfaces continue normally. */ }
-  }
-  const setPlan = async ($, name, rows, origin) => {
-    const normalized = normalizeSteps(rows)
-    if (!normalized.length) return false
-    goal = clean(name, 100) || goal
-    steps = normalized
-    source = origin
-    await openedWithPlan($)
-    redraw($)
-    return true
-  }
   const eventInput = e => e.input && typeof e.input === 'object' ? { ...e.input, ...e } : e
   const succeeded = result => !result?.deny && !result?.isError && result?.success !== false &&
     result?.result?.success !== false
@@ -104,7 +104,7 @@ export function register(on) {
     autoOpenAttempted = true
     const result = await $.ui.open({ id: PANE, title: 'Vibe · Progress', focus: true, columns: 48, closeOnEscape: true })
     isOpen = result?.isPlaced !== false
-    redraw($)
+    redraw($, state)
     return {}
   })
 
@@ -119,21 +119,21 @@ export function register(on) {
   on('turn.start', async ($, e, next) => {
     working = true
     action = 'Thinking'
-    redraw($)
+    redraw($, state)
     return next(e)
   })
 
   on('turn.complete', async ($, e, next) => {
     working = false
     action = ''
-    redraw($)
+    redraw($, state)
     return next(e)
   })
 
   on('tool.call', async ($, event, next) => {
     const e = eventInput(event)
     if (event.tool === 'mcp__vibe__progress') {
-      const ok = await setPlan($, e.goal, e.steps, 'Claude-reported')
+      const ok = await setPlan($, state, e.goal, e.steps, 'Claude-reported')
       return { result: { accepted: ok, message: ok ? 'Board updated' : 'No valid steps supplied' } }
     }
 
@@ -143,16 +143,16 @@ export function register(on) {
         ['Edit', 'Write', 'MultiEdit', 'NotebookEdit'].includes(event.tool) ? 'Editing code' :
         observed ? 'Updating the plan' : 'Using ' + clean(event.tool, 32)
       calls++
-      redraw($)
+      redraw($, state)
     }
 
     const result = await next(event)
     if (succeeded(result)) {
       if (event.tool === 'TodoWrite') {
-        await setPlan($, goal, e.todos, 'Native task list')
+        await setPlan($, state, goal, e.todos, 'Native task list')
       } else if (event.tool === 'TaskList') {
         const tasks = result?.result?.tasks ?? result?.tasks
-        if (Array.isArray(tasks) && tasks.length) await setPlan($, goal, tasks, 'Native task list')
+        if (Array.isArray(tasks) && tasks.length) await setPlan($, state, goal, tasks, 'Native task list')
       } else if (event.tool === 'TaskCreate') {
         const label = clean(e.subject)
         if (label) {
@@ -162,8 +162,8 @@ export function register(on) {
           if (existing >= 0) steps[existing] = entry
           else steps = [...steps, entry].slice(0, MAX_STEPS)
           source = 'Native task list'
-          await openedWithPlan($)
-          redraw($)
+          await openedWithPlan($, state)
+          redraw($, state)
         }
       } else if (event.tool === 'TaskUpdate') {
         const id = clean(e.taskId, 48)
@@ -178,7 +178,7 @@ export function register(on) {
               status: ['pending', 'in_progress', 'completed', 'blocked'].includes(e.status) ? e.status : current.status,
             }
           }
-          redraw($)
+          redraw($, state)
         }
       }
     }
@@ -195,7 +195,7 @@ export function register(on) {
     const text = value => Text({ children: [value] })
     const controls = Box({ flexDirection: 'row', columnGap: 2, children: [
       Button({ key: 'vibe-details', label: details ? 'Less' : 'Details', plain: true,
-        onPress: () => { details = !details; redraw($) } }),
+        onPress: () => { details = !details; redraw($, state) } }),
       Button({ key: 'vibe-close', label: 'Close', plain: true,
         onPress: async () => { dismissed = true; isOpen = false; await $.ui.close({ id: PANE }) } }),
     ] })
