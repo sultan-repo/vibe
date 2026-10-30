@@ -21,7 +21,7 @@ export function normalizeSteps(value) {
   }).filter(Boolean)
 }
 
-export function progressOf(steps) {
+export function progressOf(state.steps) {
   const done = steps.filter(s => s.status === 'completed').length
   // These are reported task statuses, not independent acceptance verification.
   return { done, total: steps.length, percent: steps.length ? Math.round(done * 100 / steps.length) : null }
@@ -100,18 +100,18 @@ export function register(on) {
   })
 
   on('command.run', { command: 'vibe-board' }, async $ => {
-    dismissed = false
-    autoOpenAttempted = true
+    state.dismissed = false
+    state.autoOpenAttempted = true
     const result = await $.ui.open({ id: PANE, title: 'Vibe · Progress', focus: true, columns: 48, closeOnEscape: true })
-    isOpen = result?.isPlaced !== false
+    state.isOpen = result?.isPlaced !== false
     redraw($, state)
     return {}
   })
 
   on('ui.close', async ($, e, next) => {
     if (e.id === PANE) {
-      isOpen = false
-      if (e.origin?.kind === 'person') dismissed = true
+      state.isOpen = false
+      if (e.origin?.kind === 'person') state.dismissed = true
     }
     return next(e)
   })
@@ -138,7 +138,7 @@ export function register(on) {
     }
 
     const observed = ['TodoWrite', 'TaskCreate', 'TaskUpdate', 'TaskList'].includes(event.tool)
-    if (isOpen) {
+    if (state.isOpen) {
       action = event.tool === 'Bash' ? 'Running a command' :
         ['Edit', 'Write', 'MultiEdit', 'NotebookEdit'].includes(event.tool) ? 'Editing code' :
         observed ? 'Updating the plan' : 'Using ' + clean(event.tool, 32)
@@ -149,7 +149,7 @@ export function register(on) {
     const result = await next(event)
     if (succeeded(result)) {
       if (event.tool === 'TodoWrite') {
-        await setPlan($, state, goal, e.todos, 'Native task list')
+        await setPlan($, state, state.goal, e.todos, 'Native task list')
       } else if (event.tool === 'TaskList') {
         const tasks = result?.result?.tasks ?? result?.tasks
         if (Array.isArray(tasks) && tasks.length) await setPlan($, state, goal, tasks, 'Native task list')
@@ -157,22 +157,22 @@ export function register(on) {
         const label = clean(e.subject)
         if (label) {
           const id = taskIdFromResult(result) ?? 'unlinked-' + (++synthetic)
-          const existing = steps.findIndex(s => s.id === id)
+          const existing = state.steps.findIndex(s => s.id === id)
           const entry = { id, label, status: 'pending', detail: clean(e.description, 160) }
-          if (existing >= 0) steps[existing] = entry
-          else steps = [...steps, entry].slice(0, MAX_STEPS)
-          source = 'Native task list'
+          if (existing >= 0) state.steps[existing] = entry
+          else state.steps = [...state.steps, entry].slice(0, MAX_STEPS)
+          state.source = 'Native task list'
           await openedWithPlan($, state)
           redraw($, state)
         }
       } else if (event.tool === 'TaskUpdate') {
         const id = clean(e.taskId, 48)
-        const index = steps.findIndex(s => s.id === id)
+        const index = state.steps.findIndex(s => s.id === id)
         if (index !== -1) {
-          if (e.status === 'deleted') steps.splice(index, 1)
+          if (e.status === 'deleted') state.steps.splice(index, 1)
           else {
-            const current = steps[index]
-            steps[index] = {
+            const current = state.steps[index]
+            state.steps[index] = {
               ...current,
               label: clean(e.subject) || current.label,
               status: ['pending', 'in_progress', 'completed', 'blocked'].includes(e.status) ? e.status : current.status,
@@ -197,21 +197,21 @@ export function register(on) {
       Button({ key: 'vibe-details', label: details ? 'Less' : 'Details', plain: true,
         onPress: () => { details = !details; redraw($, state) } }),
       Button({ key: 'vibe-close', label: 'Close', plain: true,
-        onPress: async () => { dismissed = true; isOpen = false; await $.ui.close({ id: PANE }) } }),
+        onPress: async () => { state.dismissed = true; state.isOpen = false; await $.ui.close({ id: PANE }) } }),
     ] })
-    const items = steps.map(s => {
+    const items = state.steps.map(s => {
       const symbol = s.status === 'completed' ? '✓' :
         s.status === 'in_progress' ? '◉' : s.status === 'blocked' ? '!' : '○'
       return text(symbol + ' ' + s.label)
     })
     return Box({ flexDirection: 'column', children: [
       text('VIBE  ·  ' + (working ? 'Working' : 'Ready')),
-      text(goal || 'Current session'),
+      text(state.goal || 'Current session'),
       text(total ? done + '/' + total + ' steps reported complete · ' + percent + '%' : 'No tracked plan yet'),
       text(total ? '▰'.repeat(filled) + '▱'.repeat(width - filled) : 'Run /build or report a plan to see steps'),
       ...items,
       ...(details ? [
-        text('Source: ' + (source || 'No task source')),
+        text('Source: ' + (state.source || 'No task source')),
         text('Activity: ' + (working ? (action || 'Working') : 'Not running')),
         text('Observed calls while open: ' + calls),
         text('Task status is not test or acceptance evidence.')
