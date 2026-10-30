@@ -44,3 +44,19 @@ jobs:
           bash ./uninstall.sh
           test ! -f "$HOME/.claude/agents/reviewer.md"
           test ! -f "$HOME/.claude/hooks/check-force-push.py"
+
+  native-mod-render:
+    # Only release candidates pay the extra CLI setup cost.
+    if: startsWith(github.head_ref || github.ref_name, 'release/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install pinned Claude Code
+        run: npm install --global @anthropic-ai/claude-code@2.1.314
+      - name: Validate plugin package
+        run: claude plugin validate --strict .
+      - name: Exercise native Mod render tree
+        run: claude plugin test .
