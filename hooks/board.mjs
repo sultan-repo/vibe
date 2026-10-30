@@ -21,7 +21,7 @@ export function normalizeSteps(value) {
   }).filter(Boolean)
 }
 
-export function progressOf(state.steps) {
+export function progressOf(steps) {
   const done = steps.filter(s => s.status === 'completed').length
   // These are reported task statuses, not independent acceptance verification.
   return { done, total: steps.length, percent: steps.length ? Math.round(done * 100 / steps.length) : null }
@@ -189,7 +189,7 @@ export function register(on) {
   on('ui.render', { component: 'Pane' }, async ($, e, next) => {
     if (e.requestId !== PANE) return next(e)
     const { Box, Text, Button } = $.ui.resolve(e)
-    const { done, total, percent } = progressOf(steps)
+    const { done, total, percent } = progressOf(state.steps)
     const width = 22
     const filled = percent === null ? 0 : Math.round(width * percent / 100)
     const text = value => Text({ children: [value] })
