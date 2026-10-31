@@ -1,9 +1,6 @@
 # Changes
 
-**Unreleased, readable GitHub titles:** use short, descriptive commit subjects and PR titles; move requirement/milestone references into bodies and tracking records, use purpose-based branch names, and keep existing history intact. Adds regression coverage without a new Git hook.
-
-
-**Unreleased, visual progress Mod:** optional native Claude Code pane with task status, progress bar and live tool activity. Uses built-in task events where available, an optional deferred progress tool otherwise, and no external service or extra reviewer. Adds Node tests and documents supported surfaces. Fast changes remain low-overhead.
+**2026-10-31, v4.5.0 (release candidate):** consolidates PR #7 (continuous Fast/Standard/Critical execution and concise reporting), PR #8 (native optional progress board), and PR #9 (human-readable GitHub titles). Adds release-readiness checks and a matched Claude/Vibe benchmark harness. Rejected PR #6 (learning and security extras) is deliberately **excluded**. Real interactive UI and model timing evidence are release gates, not claimed as passed.
 
 **2026-10-18, v4.4:** removed the external CLI reviewer, model configuration and its tests. Fresh-context Claude is Vibe's sole reviewer. Build handles small edits with normal checks and uses a focused Claude review only when useful. Reassess performs one consolidated final review for high-risk pre-merge, release readiness or explicit requests, with a maximum of one targeted recheck before escalating unresolved findings. Older installer artifacts are cleaned up during upgrade.
 

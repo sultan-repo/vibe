@@ -19,11 +19,14 @@ jobs:
         run: |
           bash -n install.sh uninstall.sh hooks/*.sh
           python3 -m json.tool .claude-plugin/plugin.json >/dev/null
+          python3 -c 'import json; assert json.load(open(".claude-plugin/plugin.json"))["version"] == "4.5.0"'
           python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
           python3 -m json.tool hooks/hooks.json >/dev/null
           node --check hooks/board.mjs
       - name: Progress board unit tests
         run: node --test tests/mod-board.test.mjs
+      - name: Benchmark harness self-test (no model calls)
+        run: node --test tests/benchmark-runner.test.mjs
       - name: Force-push protection
         run: python3 hooks/test-force-push-hook.py
       - name: Review workflow and YAML skill metadata
@@ -41,3 +44,19 @@ jobs:
           bash ./uninstall.sh
           test ! -f "$HOME/.claude/agents/reviewer.md"
           test ! -f "$HOME/.claude/hooks/check-force-push.py"
+
+  native-mod-render:
+    # Only release candidates pay the extra CLI setup cost.
+    if: startsWith(github.head_ref || github.ref_name, 'release/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install pinned Claude Code
+        run: npm install --global @anthropic-ai/claude-code@2.1.314
+      - name: Validate plugin package
+        run: claude plugin validate --strict .
+      - name: Exercise native Mod render tree
+        run: claude plugin test .

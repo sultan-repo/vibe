@@ -1,5 +1,7 @@
 # Vibe
 
+**v4.5.0 release candidate:** faster builds, readable updates, and optional native graphical progress.
+
 An outcome-driven software delivery standard for [Claude Code](https://code.claude.com). Vibe challenges unclear requirements, implements approved work continuously, verifies observable outcomes and reassesses when useful or required.
 
 Default: **understand → build → verify → deliver**. Discover and Reassess are invoked when needed, not for every change.
@@ -50,6 +52,17 @@ The plugin includes a native Claude Code Mod for interactive terminal sessions a
 - Requires Claude Code 2.1.287+ for Mods. Panes work in compatible terminal, Desktop Code tab, and supported newer VS Code extension builds; non-visual sessions simply don't show the pane.
 - The alternate `install.sh` path installs skills and hooks, **not** Mods; install Vibe as a Claude Code plugin for the board.
 - For local testing: `node --test tests/mod-board.test.mjs`.
+
+## Release verification
+
+Release checklist: [v4.5 readiness](docs/RELEASE-4.5.md).
+
+- GitHub Actions runs Node and Python policy tests, mod-unit tests, installer smoke tests and hook safeguards.
+- Native validation: `claude plugin validate --strict .`; `claude plugin test .` where supported.
+- UI smoke: use `claude --plugin-dir .` in a real interactive Claude Code session and test the board. This cannot be confirmed by headless CI.
+- Performance: `node scripts/compare-performance.mjs --dry-run` previews matched tasks. `node scripts/compare-performance.mjs --model sonnet --rounds 3` runs real model comparisons (subscription usage applies).
+
+No v4.5 release should be published until real UI observations are recorded and comparative results are measured or explicitly disclosed as unmeasured. Rejected PR #6 is excluded.
 
 ## Install
 
