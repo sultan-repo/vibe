@@ -1,0 +1,61 @@
+name: Publish Vibe 4.5.0
+
+# Run only after the trusted main-branch Vibe checks succeed. The publish
+# credential is kept out of the pull-request test workflow.
+on:
+  workflow_run:
+    workflows: ["Vibe checks"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-vibe-4-5
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.head_repository.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out tested source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - name: Verify tested source and release version
+        env:
+          EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          python3 - <<'PY'
+          import json
+          with open(".claude-plugin/plugin.json", encoding="utf-8") as f:
+              v = json.load(f)["version"]
+          assert v == "4.5.0", f"Expected 4.5.0, got {v}"
+          PY
+          test -f docs/RELEASE_NOTES_4.5.md
+          test -f docs/RELEASE-4.5.md
+      - name: Create tag and GitHub release (idempotent)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          TESTED_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          set -euo pipefail
+          if gh release view v4.5.0 >/dev/null 2>&1; then
+            echo "Vibe v4.5.0 was already published. No changes made."
+            exit 0
+          fi
+          gh release create v4.5.0 \
+            --target "$TESTED_SHA" \
+            --title "Vibe v4.5.0" \
+            --notes-file docs/RELEASE_NOTES_4.5.md \
+            --latest
