@@ -1,7 +1,7 @@
 {
   "name": "vibe",
-  "version": "4.7.0",
-  "description": "Vibe: lightweight Claude Code delivery, automatic model effort, focused development checks, milestone verification and useful parallel work.",
+  "version": "4.8.0",
+  "description": "Vibe: lightweight Claude Code delivery, durable session handoffs, automatic model effort, focused checks and useful parallel work.",
   "author": {
     "name": "Sultan Alsubaie"
   },

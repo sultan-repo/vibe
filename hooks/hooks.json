@@ -1,5 +1,5 @@
 {
-  "description": "Vibe core and force-push safeguards; optional native progress board mod.",
+  "description": "Vibe core, startup continuity and force-push safeguards; optional native progress board mod.",
   "modules": [
     "./board.mjs"
   ],

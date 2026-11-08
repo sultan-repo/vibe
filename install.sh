@@ -27,12 +27,13 @@ rmdir "$CL/vibe-tools" 2>/dev/null || true
 mkdir -p "$CL/vibe-tools"
 cp "$HERE/hooks/verification-cache.py" "$HERE/hooks/pre-push.template" "$HERE/hooks/verification-cache.md" "$CL/vibe-tools/"
 
-# 3. Hook that denies force-pushes, registered in settings.json without touching other settings.
+# 3. Force-push protection and startup continuity, preserving unrelated settings.
 cp "$HERE/hooks/block-force-push.sh" "$HERE/hooks/check-force-push.py" "$CL/hooks/"
-chmod +x "$CL/hooks/block-force-push.sh"
-python3 - "$CL/settings.json" "$CL/hooks/block-force-push.sh" <<'PY'
-import json, os, sys
-path, cmd = sys.argv[1], sys.argv[2]
+cp "$HERE/hooks/session-start.sh" "$HERE/hooks/session-start.py" "$CL/vibe-tools/"
+chmod +x "$CL/hooks/block-force-push.sh" "$CL/vibe-tools/session-start.sh"
+python3 - "$CL/settings.json" "$CL/hooks/block-force-push.sh" "$CL/vibe-tools/session-start.sh" <<'PY'
+import json, os, shlex, sys
+path, cmd, startup_path = sys.argv[1:]
 data = {}
 if os.path.exists(path) and os.path.getsize(path) > 0:
     with open(path) as f:
@@ -41,6 +42,12 @@ pre = data.setdefault("hooks", {}).setdefault("PreToolUse", [])
 present = any(h.get("command") == cmd for e in pre for h in e.get("hooks", []))
 if not present:
     pre.append({"matcher": "Bash", "hooks": [{"type": "command", "command": cmd}]})
+# The core is already imported by CLAUDE.md, so this hook adds only project status.
+startup_cmd = shlex.quote(startup_path) + " --status-only"
+starts = data["hooks"].setdefault("SessionStart", [])
+present = any(h.get("command") == startup_cmd for e in starts for h in e.get("hooks", []))
+if not present:
+    starts.append({"hooks": [{"type": "command", "command": startup_cmd}]})
 with open(path, "w") as f:
     json.dump(data, f, indent=2)
     f.write("\n")
@@ -53,4 +60,5 @@ echo "  skills/effort-low, skills/effort-medium, skills/effort-high (internal co
 echo "  agents/reviewer.md, agents/worker.md"
 echo "  vibe-tools/ (optional project verification reuse; not enabled globally)"
 echo "  hooks/block-force-push.sh + check-force-push.py (PreToolUse hook in settings.json)"
+echo "  vibe-tools/session-start.sh + session-start.py (project status at session start)"
 echo "Open a new Claude Code session to pick it up."

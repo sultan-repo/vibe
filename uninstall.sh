@@ -17,28 +17,35 @@ done
 rm -f "$CL/agents/reviewer.md" "$CL/agents/worker.md"
 rm -f "$CL/vibe-tools/codex-review.py" "$CL/vibe-tools/review-result.schema.json" # legacy upgrade cleanup
 rm -f "$CL/vibe-tools/verification-cache.py" "$CL/vibe-tools/pre-push.template" "$CL/vibe-tools/verification-cache.md"
-rmdir "$CL/vibe-tools" 2>/dev/null || true
 
-# 3. Hook script and its settings entry.
+# 3. Owned hook scripts and settings entries; preserve other hooks in the same entry.
 HOOK="$CL/hooks/block-force-push.sh"
-rm -f "$HOOK" "$CL/hooks/check-force-push.py"
+STARTUP="$CL/vibe-tools/session-start.sh"
+rm -f "$HOOK" "$CL/hooks/check-force-push.py" "$STARTUP" "$CL/vibe-tools/session-start.py"
+rmdir "$CL/vibe-tools" 2>/dev/null || true
 if [ -f "$CL/settings.json" ]; then
-python3 - "$CL/settings.json" "$HOOK" <<'PY'
-import json, sys
-path, cmd = sys.argv[1], sys.argv[2]
+python3 - "$CL/settings.json" "$HOOK" "$STARTUP" <<'PY'
+import json, shlex, sys
+path, cmd, startup_path = sys.argv[1:]
 with open(path) as f:
     data = json.load(f)
-pre = data.get("hooks", {}).get("PreToolUse", [])
-kept = []
-for entry in pre:
-    entry["hooks"] = [h for h in entry.get("hooks", []) if h.get("command") != cmd]
-    if entry["hooks"]:
-        kept.append(entry)
 if "hooks" in data:
-    if kept:
-        data["hooks"]["PreToolUse"] = kept
-    else:
-        data["hooks"].pop("PreToolUse", None)
+    owned = {"PreToolUse": cmd,
+             "SessionStart": shlex.quote(startup_path) + " --status-only"}
+    for event, owned_cmd in owned.items():
+        kept = []
+        for entry in data["hooks"].get(event, []):
+            original = entry.get("hooks", [])
+            remaining = [h for h in original if h.get("command") != owned_cmd]
+            if remaining == original:
+                kept.append(entry)
+            elif remaining:
+                entry["hooks"] = remaining
+                kept.append(entry)
+        if kept:
+            data["hooks"][event] = kept
+        else:
+            data["hooks"].pop(event, None)
     if not data["hooks"]:
         data.pop("hooks")
 with open(path, "w") as f:

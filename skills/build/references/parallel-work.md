@@ -19,7 +19,7 @@ Delegate substantial independent work only when the saved time warrants the extr
 
 - Prefer worktrees for substantial edits, verifying each starting SHA against the intended committed base. Uncommitted parent edits are absent; preserve them and deliberately supply authorized prerequisites or keep dependent work local.
 - A shared checkout is suitable only for disjoint edits with exclusive ownership. Stop a worker before transferring its files. Worktrees do not isolate ports, databases or services; isolate those resources or reserve their use.
-- The coordinator owns shared lockfiles, branch operations, integration, decision logs, status files and the board. Workers return proposed decision/status text in their reports; the coordinator batches updates. Delimited blocks in the same shared file do not prevent conflicts.
+- The coordinator owns shared lockfiles, branch operations, integration, decision logs, status files and the board. Workers never edit shared status; they return proposed decision/status text in their reports. Before launching substantial work, the coordinator records active packages and branch names, then combines reports at the core's state-change triggers rather than waiting for merges. Delimited blocks in the same shared file do not prevent conflicts.
 
 ## Budget performance work
 
