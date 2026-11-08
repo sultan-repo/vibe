@@ -1,7 +1,7 @@
 #!/bin/bash
 # Removes everything install.sh put into ~/.claude. Leaves your own CLAUDE.md content and other settings untouched.
 set -euo pipefail
-CL="$HOME/.claude"
+CL="${VIBE_CLAUDE_HOME:-$HOME/.claude}"
 
 # 1. Core: drop the import line and the installed file.
 if [ -f "$CL/CLAUDE.md" ]; then
@@ -10,10 +10,13 @@ if [ -f "$CL/CLAUDE.md" ]; then
 fi
 rm -f "$CL/vibe.md"
 
-# 2. Skills and agent.
-rm -rf "$CL/skills/discover" "$CL/skills/build" "$CL/skills/reassess"
-rm -f "$CL/agents/reviewer.md"
+# 2. Workflow/effort skills and agents.
+for skill in discover build reassess effort-low effort-medium effort-high; do
+  rm -rf "$CL/skills/$skill"
+done
+rm -f "$CL/agents/reviewer.md" "$CL/agents/worker.md"
 rm -f "$CL/vibe-tools/codex-review.py" "$CL/vibe-tools/review-result.schema.json" # legacy upgrade cleanup
+rm -f "$CL/vibe-tools/verification-cache.py" "$CL/vibe-tools/pre-push.template" "$CL/vibe-tools/verification-cache.md"
 rmdir "$CL/vibe-tools" 2>/dev/null || true
 
 # 3. Hook script and its settings entry.

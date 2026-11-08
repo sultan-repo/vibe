@@ -1,28 +1,30 @@
 # <Project name>
 
 ## Objective
-<One paragraph: the problem, who it is for, the outcome that matters, and how success is measured. Discovery and reassessment measure against this objective.>
+<The problem, intended users, useful outcome and success measure.>
 
-## Non-goals
-- <What this project deliberately does not do.>
+## Non-goals and constraints
+- <Non-goals, stack, compatibility requirements and prohibited actions.>
 
-## Constraints and preferences
-- Stack: <languages, frameworks, hosting>
-- Must: <hard requirements: compliance, compatibility, performance targets>
-- Never: <forbidden dependencies, patterns, or actions>
-
-## Commands
-- Install: `<cmd>`
-- Run: `<cmd>`
-- Test: `<cmd>`
-- Lint and typecheck: `<cmd>`
-
-## Conventions
-<Only what Claude cannot infer from the code: naming rules, folder roles, branch naming, review etiquette.>
+## Commands (the coordinator runs these)
+- Install/run: `<commands>`
+- Focused checks: `<affected tests and lint/typecheck commands>`
+- Full milestone gate: `<project checks and end-to-end journeys>`
 
 ## Delivery
-- Standing permissions: <none, or precise branch/repo + checks + exclusions explicitly approved by owner>
-This project follows Vibe v4.6, an outcome-driven delivery standard (`~/.claude/vibe.md`, source: github.com/sultan-repo/vibe).
-Vibe selects workflows from normal requests and delegates useful independent work automatically.
-Register: `docs/REQUIREMENTS.md` · Decisions: `docs/DECISIONS.md` · Status: `docs/STATUS.md`
-<If this repo tracks requirements elsewhere (GitHub issues, ADRs, a tasks file), say so here and Claude will use that instead.>
+This project follows Vibe v4.7. Normal requests select the workflow; the user does not run workflow commands.
+- Progress: short, natural updates for a nontechnical owner in their language. Explain the useful result, current focus, next step and any real decision. Keep engineering details in records; distinguish work finished from checked and available to users.
+- Milestones: <usable features or delivery boundaries; do not make each task a milestone>
+- During implementation: focused checks, no automatic full suite or independent reviewer per package/commit/push.
+- At a major milestone: full checks and E2E once on the integrated candidate; reuse valid evidence at release. Run relevant high-risk checks before affected work merges.
+- Independent review: affected high-risk behavior or an explicit owner request; low-risk documentation, performance and refactoring do not require it.
+- Model effort: Vibe selects native low/medium/high effort by the current work; honor explicit owner choices and host limits. Confirm effective settings from available runtime evidence when adopting, without user commands or global settings changes.
+- Deployment boundary: <integrated delivery or separate release promotion; intermediate stack branches must not deploy alone with reduced checks>
+- Standing permissions: <none, or exact authorized repository/branches/actions/checks/exclusions>
+- Existing hooks/CI: <applicable project requirements; preserve them when adapting Vibe>
+
+For duplicate verification, the coordinator may adapt Vibe's optional verification-cache helper and pre-push template to the existing gate. Reuse requires the actual pushed tree, a clean stable checkout, the right mode and unchanged declared context. Full includes quick only if the project defines that relationship. Test reuse does not replace required CI or reviewer approval. No owner setup command is needed.
+
+## Conventions and continuity
+<Only conventions that cannot be inferred from code. Use existing issues/ADRs/tasks; create extra records only when needed.>
+The coordinator owns shared decision/status files and collects worker text through reports. Batch tracked edits before the full gate; record its final evidence outside tracked files.

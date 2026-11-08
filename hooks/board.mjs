@@ -27,6 +27,14 @@ export function progressOf(steps) {
   return { done, total: steps.length, percent: steps.length ? Math.round(done * 100 / steps.length) : null }
 }
 
+function activityFor(tool) {
+  if (['Read', 'Grep', 'Glob', 'LSP'].includes(tool)) return 'Reading project details'
+  if (['Edit', 'Write', 'MultiEdit', 'NotebookEdit'].includes(tool)) return 'Making the changes'
+  if (['TodoWrite', 'TaskCreate', 'TaskUpdate', 'TaskList'].includes(tool)) return 'Updating the plan'
+  if (['WebSearch', 'WebFetch'].includes(tool)) return 'Looking up information'
+  return 'Working on the next step'
+}
+
 export function taskIdFromResult(result) {
   const value = result?.result ?? result
   const direct = value?.taskId ?? value?.task?.id ?? value?.result?.taskId
@@ -65,6 +73,7 @@ export function register(on) {
     autoOpenAttempted: false, dismissed: false }
   let working = false
   let action = ''
+  let lastTool = ''
   let calls = 0
   let details = false
   let synthetic = 0
@@ -77,7 +86,7 @@ export function register(on) {
     try {
       await $.tool.register({
         name: 'progress',
-        description: 'Optional Vibe visual board. For multi-step work only when no native Task/Todo tracking is available: send a concise goal and full step list, and update only when a step actually changes status. Never use for Fast fixes; completion reflects reported progress, not proof of testing.',
+        description: 'Optional Vibe visual board. For multi-step work only when native Task/Todo tracking is unavailable: send a concise goal and full step list with short outcome labels in the user’s language, such as "Let people sign in". Avoid engineering terms, file names and internal IDs in labels. Update only when a step changes; never use for Fast fixes. Finished steps do not establish that checks passed or changes are available to users.',
         isDeferred: true,
         inputSchema: {
           type: 'object',
@@ -118,7 +127,7 @@ export function register(on) {
 
   on('turn.start', async ($, e, next) => {
     working = true
-    action = 'Thinking'
+    action = 'Planning the next step'
     redraw($, state)
     return next(e)
   })
@@ -137,11 +146,9 @@ export function register(on) {
       return { result: { accepted: ok, message: ok ? 'Board updated' : 'No valid steps supplied' } }
     }
 
-    const observed = ['TodoWrite', 'TaskCreate', 'TaskUpdate', 'TaskList'].includes(event.tool)
     if (state.isOpen) {
-      action = event.tool === 'Bash' ? 'Running a command' :
-        ['Edit', 'Write', 'MultiEdit', 'NotebookEdit'].includes(event.tool) ? 'Editing code' :
-        observed ? 'Updating the plan' : 'Using ' + clean(event.tool, 32)
+      action = activityFor(event.tool)
+      lastTool = clean(event.tool, 64)
       calls++
       redraw($, state)
     }
@@ -189,33 +196,37 @@ export function register(on) {
   on('ui.render', { component: 'Pane' }, async ($, e, next) => {
     if (e.requestId !== PANE) return next(e)
     const { Box, Text, Button } = $.ui.resolve(e)
-    const { done, total, percent } = progressOf(state.steps)
-    const tasksInProgress = state.steps.some(s => s.status === 'in_progress')
-    const width = 22
-    const filled = percent === null ? 0 : Math.round(width * percent / 100)
+    const { done, total } = progressOf(state.steps)
+    const current = state.steps.filter(s => s.status === 'in_progress')
+    const waiting = state.steps.some(s => s.status === 'blocked')
+    const status = working || current.length ? 'In progress' : waiting ? 'Needs attention' :
+      total && done === total ? 'Planned steps finished' : total ? 'Work remaining' : 'Ready to start'
     const text = value => Text({ children: [value] })
     const controls = Box({ flexDirection: 'row', columnGap: 2, children: [
-      Button({ key: 'vibe-details', label: details ? 'Less' : 'Details', plain: true,
+      Button({ key: 'vibe-details', label: details ? 'Hide details' : 'Details', plain: true,
         onPress: () => { details = !details; redraw($, state) } }),
       Button({ key: 'vibe-close', label: 'Close', plain: true,
         onPress: async () => { state.dismissed = true; state.isOpen = false; await $.ui.close({ id: PANE }) } }),
     ] })
     const items = state.steps.map(s => {
-      const symbol = s.status === 'completed' ? '✓' :
-        s.status === 'in_progress' ? '◉' : s.status === 'blocked' ? '!' : '○'
-      return text(symbol + ' ' + s.label)
+      const prefix = s.status === 'completed' ? '✓ Finished: ' :
+        s.status === 'in_progress' ? '◉ In progress: ' : s.status === 'blocked' ? '! Waiting: ' : '○ Next: '
+      return text(prefix + s.label)
     })
     return Box({ flexDirection: 'column', children: [
-      text('VIBE  ·  ' + (working ? 'Working' : tasksInProgress ? 'Tasks in progress' : 'Ready')),
-      text(state.goal || 'Current session'),
-      text(total ? done + '/' + total + ' steps reported complete · ' + percent + '%' : 'No tracked plan yet'),
-      text(total ? '▰'.repeat(filled) + '▱'.repeat(width - filled) : 'Describe a task to see progress'),
+      text('VIBE  ·  ' + status),
+      text(state.goal || 'Your project'),
+      text(total ? done + ' of ' + total + ' planned steps finished' : 'Your plan will appear here'),
+      text(current.length ? 'Current: ' + current.map(s => s.label).join('; ') :
+        working ? action || 'Working on the next step' : waiting ? 'Some work is waiting. See the update for why.' :
+        total && done === total ? 'See the update for what was checked and what is ready to use.' :
+        total ? 'The remaining steps are listed below.' : 'Tell Claude what you want to achieve.'),
       ...items,
       ...(details ? [
         text('Source: ' + (state.source || 'No task source')),
-        text('Activity: ' + (working ? (action || 'Working') : tasksInProgress ? 'Tasks reported in progress' : 'Not running')),
+        text('Latest tool: ' + (lastTool || 'None yet')),
         text('Observed calls while open: ' + calls),
-        text('Task status is not test or acceptance evidence.')
+        text('Steps reflect the recorded plan. Check results and availability are reported separately.')
       ] : []),
       controls
     ] })

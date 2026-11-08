@@ -1,7 +1,7 @@
 {
   "name": "vibe",
-  "version": "4.6.0",
-  "description": "Vibe: automatic Claude Code workflows, parallel subagents, focused verification, and optional native progress.",
+  "version": "4.7.0",
+  "description": "Vibe: lightweight Claude Code delivery, automatic model effort, focused development checks, milestone verification and useful parallel work.",
   "author": {
     "name": "Sultan Alsubaie"
   },

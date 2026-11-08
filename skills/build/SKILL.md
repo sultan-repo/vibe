@@ -1,44 +1,34 @@
 ---
 name: build
-description: 'Automatically implement requested features, fixes and approved project work from normal conversation. Resume, build, delegate independent work in parallel and verify the complete outcome with risk-appropriate checks. Use for requests to add, change, fix, build or continue software; no slash command is required. Exclude explanation, discovery-only and review-only requests.'
+effort: medium
+description: 'Implement requested software features, fixes and continuations from normal conversation. Coordinate useful parallel work, use focused checks during development and full integrated checks at major milestones. No slash command is required. Exclude explanation, discovery-only and review-only requests.'
 ---
 
-# Build: finish the approved outcome
+# Build: deliver with minimal overhead
 
-Input: `$ARGUMENTS` may name a feature, milestone or requirement ID. Without arguments, use the user's current request and the next authorized work in project state. **Continuous delivery is the default**: finish the requested scope, not just its first internal increment.
+Use `$ARGUMENTS` when supplied; otherwise use the current request and authorized project state. **Continuous delivery is the default**: finish the approved outcome without stopping after each increment. Select skills internally; never ask the user to run workflow commands.
 
-Select this workflow internally from the user's intent. Never ask the user to run a command to start, resume, delegate or verify work. Use other installed Vibe skills internally when their conditions apply.
+After loading this workflow, apply the core's effort selection if this work needs a level other than medium. Effort changes do not change acceptance or verification requirements.
 
-## 1. Check context selectively
-- Read project CLAUDE.md and the relevant code/tests. Check `git status` and recent history before editing. If STATUS.md exists and work is being resumed, reconcile it with the current code.
-- Read REQUIREMENTS.md, DECISIONS.md, and other records **only where they affect this work**. Reuse existing issue/task tracking; do not create documentation solely to unlock Build.
-- Missing continuity files do **not** force Discover. For clear, approved work, proceed. Invoke `discover` only when product intent or a consequential decision is unresolved (or the user asked for discovery).
+## 1. Read only what this work needs
+- Inspect project CLAUDE.md, git state and relevant code/tests. On resume, reconcile existing status with the code. Search large records for applicable decisions; do not reread unchanged files or load every reference.
+- Missing continuity files do **not** force Discover. Use existing tracking. Invoke Discover only for requested exploration or unresolved material intent.
+- Use the core's Fast path for small fixes. For Standard work, make a brief internal plan with the next major milestone: an agreed usable feature or delivery boundary, not each package. Identify focused checks now and the full integration/E2E checks due there. This is coordinator planning, not another owner checkpoint.
+- For Critical behavior, load `references/review-loop.md` and identify the affected invariants. Clarify material ambiguity while continuing unaffected work.
 
-## 2. Choose the route and scope
-- **Fast:** implement a bounded, understood change with focused checks. Do not automatically launch a reviewer or create checkpoint files for small fixes.
-- **Standard:** briefly plan the authorized feature internally, then implement all connected increments in the current request. No automatic user pause between increments.
-- **Critical:** identify high-risk invariants, action scope and recovery behavior. Load `references/review-loop.md` only for relevant high-risk work or a final review gate. Ask about genuinely ambiguous rules, not routine engineering choices.
-- Incorporate previously approved decisions; never silently approve a proposed feature. If new scope is needed, ask once with a recommendation while continuing unaffected work.
-- For Standard/Critical work, identify ready independent tasks and their actual dependencies in the existing plan. Automatically delegate useful parallel work using `references/parallel-work.md`; do not wait for the user to request workers. Keep a short or tightly coupled task in the main agent.
+## 2. Implement and check the change
+- Prefer the smallest effective implementation. Deliver failure, empty and recovery paths where relevant; avoid speculative abstractions, agents and duplicate documentation.
+- Add meaningful regression/acceptance tests for changed behavior. During iteration, run affected tests and useful lint/type checks. Do not automatically run the full suite, production build or browser matrix after each edit, commit, worker or push.
+- Use a targeted browser check when the changed interaction cannot be validated adequately otherwise, or a build to diagnose a concrete build problem. Full end-to-end coverage belongs at the milestone; do not postpone critical invariant checks or remove failing checks.
+- Delegate substantial independent tasks only when the time saved warrants the extra context. Load `references/parallel-work.md` for ownership, build/browser capacity and measurement budgets. Keep small or coupled work local.
+- Commit coherent deliverables with human-readable, action-first commit titles; put IDs in the commit body, not the title. Continue authorized implementation without stopping after each increment.
+- Reuse native task tracking if useful. Name tasks for the user's outcome in their language; keep engineering details in descriptions. Only the coordinator updates the plan at meaningful changes. Use optional `mcp__vibe__progress` only when native tracking is unavailable and a longer task benefits; never add board calls to Fast work or poll workers continuously. The board opens automatically where supported.
 
-## 3. Implement continuously
-- Work on a feature branch for substantial changes. Deliver the user journey, including relevant failure, empty and recovery paths.
-- Prefer the smallest effective implementation. Do not introduce speculative frameworks, agents, dependencies, broad refactors or duplicate planning artifacts.
-- Add or update acceptance tests. For stateful Critical rules, use sequence/property tests where valuable, otherwise explain equivalent deterministic coverage.
-- Run relevant tests, lint/typecheck, and exercise user-visible behavior where the app can run. Fix failures without weakening checks.
-- Continue through the approved feature or milestone **without stopping after each increment**. Commit coherent deliverables with human-readable, action-first commit titles. When tracking requirement IDs, put them in the commit body, not the title. Use purpose-based branch names and descriptive PR titles.
-- For a multi-step Standard/Critical task, reuse native Claude task tracking if already used. If those tools are unavailable **and** `mcp__vibe__progress` is present, optionally publish 3–7 meaningful outcome steps to the visual board once, then update only when a step changes status. Never call this tool for Fast work or on every code change; skip it if reporting would slow a short task. Completing a progress item is not the same as verifying acceptance.
-- The coordinator owns the shared plan and board updates, including worker progress. Let the board open automatically from tracked work on supported surfaces; respect a dismissed pane and continue normally without a board. Do not ask the user to run `/vibe-board`.
+## 3. Complete the milestone
+- Integrate workers against the current target base, resolve conflicts and finalize tracked edits. Run the project's full relevant checks and applicable end-to-end journeys once on that stable candidate. Documentation-only work without executable or operational changes needs document checks, not app E2E. A standalone bounded fix needs focused evidence unless risk or delivery requires more.
+- Reuse valid test/CI evidence instead of rerunning unchanged checks in the coordinator, reviewer, push hook and release step. For an existing duplicate gate, load the optional `hooks/verification-cache.md` pattern from the Vibe plugin, or `~/.claude/vibe-tools/verification-cache.md` with the installer. Adapt it internally to project rules and existing hooks; never require the user to run setup commands or bypass checks.
+- Use Reassess to confirm the milestone's outcome. Do not automatically request independent review for normal increments, low-risk performance/refactoring/docs or a low-risk release. A high-risk change needs one consolidated review before merge/release; an explicit review request also applies. Preserve exact-HEAD review scope separately from reusable test evidence.
+- Batch shared status/decision updates. Keep final verification output outside tracked files so bookkeeping does not invalidate its tree. Never pre-mark a pending check passed. When E2E is deferred to the agreed milestone, report that fact without treating every intermediate task as a failed release.
 
-## 4. Verify and hand off
-- Mark requirements verified only with passing acceptance evidence on the current code. Record commands/results and unresolved limitations accurately.
-- Integrate worker results before checking the combined user journey. Run affected acceptance/integration checks on the combined code; isolated worker checks do not establish that the pieces work together. Resolve incomplete or failed assignments before reporting the requested outcome complete.
-- Update existing STATUS.md and requirement records **once at a meaningful milestone or interruption**, not at each intermediate edit. Keep the handoff concise. Do not create a register for a standalone routine fix.
-- Build normally relies on direct verification. For substantial changes when a specific independent check materially helps, the fresh-context Claude `reviewer` may perform one focused check; **do not automatically** review every increment or unchanged code.
-- **Before a high-risk merge or release**, invoke `reassess` for the consolidated final Claude review, or reuse a valid review of the exact same final HEAD/scope with current evidence. Required security/data findings still block readiness. Reassess owns the one targeted recheck and stop rule.
-- Do not equate a reviewer verdict with test evidence or claim checks passed when they did not run.
-
-## 5. Tell the user what matters
-Default to a short plain-language report: **Delivered**, **Verified**, **Remaining** (only if applicable). Use feature names, not `M1`/`M2` or `R-01`; put internal traceability in files. Give exact commands/results when they matter. Disclose blockers and unverified outcomes. Do not output a six-section, 15-line process report by default.
-
-Stop only when the requested work is complete or a real blocker, material decision or external permission is required. Do not stop simply because an internal increment, checklist or milestone boundary was reached.
+## 4. Report the outcome
+Apply the core's communication rules throughout the work. Finish with what the user can do now, what was checked and any remaining limitation in everyday language. Say whether the change is available to users or still awaiting publication. Link technical evidence when useful. Do not claim speed or token savings without a comparison. Stop only at completion or a real blocker, material decision or missing permission.

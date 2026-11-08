@@ -2,6 +2,7 @@ name: Vibe checks
 
 on:
   push:
+    branches: [main]
   pull_request:
 
 permissions:
@@ -17,9 +18,9 @@ jobs:
           python-version: "3.11"
       - name: Static file validation
         run: |
-          bash -n install.sh uninstall.sh hooks/*.sh
+          bash -n install.sh uninstall.sh hooks/*.sh hooks/pre-push.template
           python3 -m json.tool .claude-plugin/plugin.json >/dev/null
-          python3 -c 'import json; assert json.load(open(".claude-plugin/plugin.json"))["version"] == "4.6.0"'
+          python3 -c 'import json; assert json.load(open(".claude-plugin/plugin.json"))["version"] == "4.7.0"'
           python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
           python3 -m json.tool hooks/hooks.json >/dev/null
           node --check hooks/board.mjs
@@ -35,15 +36,27 @@ jobs:
           python3 -m unittest discover -s tests -v
       - name: Install and uninstall smoke test
         run: |
-          export HOME="$(mktemp -d)"
-          trap 'rm -rf "$HOME"' EXIT
+          VIBE_SMOKE_ROOT="$(mktemp -d)"
+          export VIBE_CLAUDE_HOME="$VIBE_SMOKE_ROOT/.claude"
+          trap 'rm -rf "$VIBE_SMOKE_ROOT"' EXIT
           bash ./install.sh
-          test -f "$HOME/.claude/agents/reviewer.md"
-          test -f "$HOME/.claude/hooks/check-force-push.py"
-          test ! -f "$HOME/.claude/vibe-tools/review-result.schema.json"
+          test -f "$VIBE_CLAUDE_HOME/agents/reviewer.md"
+          test -f "$VIBE_CLAUDE_HOME/agents/worker.md"
+          for level in low medium high; do
+            test -f "$VIBE_CLAUDE_HOME/skills/effort-$level/SKILL.md"
+          done
+          test -f "$VIBE_CLAUDE_HOME/hooks/check-force-push.py"
+          test -f "$VIBE_CLAUDE_HOME/vibe-tools/verification-cache.py"
+          test -f "$VIBE_CLAUDE_HOME/vibe-tools/pre-push.template"
+          test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/review-result.schema.json"
           bash ./uninstall.sh
-          test ! -f "$HOME/.claude/agents/reviewer.md"
-          test ! -f "$HOME/.claude/hooks/check-force-push.py"
+          test ! -f "$VIBE_CLAUDE_HOME/agents/reviewer.md"
+          test ! -f "$VIBE_CLAUDE_HOME/agents/worker.md"
+          for level in low medium high; do
+            test ! -d "$VIBE_CLAUDE_HOME/skills/effort-$level"
+          done
+          test ! -f "$VIBE_CLAUDE_HOME/hooks/check-force-push.py"
+          test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/verification-cache.py"
 
   native-mod-render:
     # Validate release candidates and the final main commit before publication.
