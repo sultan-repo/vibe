@@ -1,6 +1,6 @@
 # Vibe
 
-**v4.5.0 release candidate:** faster builds, readable updates, and optional native graphical progress.
+**v4.6.0:** automatic workflows, parallel subagents, and progress without workflow commands.
 
 An outcome-driven software delivery standard for [Claude Code](https://code.claude.com). Vibe challenges unclear requirements, implements approved work continuously, verifies observable outcomes and reassesses when useful or required.
 
@@ -66,14 +66,14 @@ The plugin includes a native Claude Code Mod for interactive terminal sessions a
 
 ## Release verification
 
-Release checklist: [v4.5 readiness](docs/RELEASE-4.5.md).
+Release verification and disclosed limits: [v4.6 verification](docs/RELEASE-4.6.md).
 
 - GitHub Actions runs Node and Python policy tests, mod-unit tests, installer smoke tests and hook safeguards.
 - Native validation: `claude plugin validate --strict .`; `claude plugin test .` where supported.
 - UI smoke: use `claude --plugin-dir .` in a real interactive Claude Code session and test the board. This cannot be confirmed by headless CI.
 - Performance: `node scripts/compare-performance.mjs --dry-run` previews matched tasks. `node scripts/compare-performance.mjs --model sonnet --rounds 3` runs real model comparisons (subscription usage applies).
 
-No v4.5 release should be published until real UI observations are recorded and comparative results are measured or explicitly disclosed as unmeasured. Rejected PR #6 is excluded.
+The v4.6 publisher requires successful checks on the tested main commit. Live Claude execution, interactive UI observations and comparative performance remain explicitly unverified in the [release notes](docs/RELEASE_NOTES_4.6.md). Rejected PR #6 remains excluded.
 
 ## Install
 

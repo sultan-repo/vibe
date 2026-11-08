@@ -19,7 +19,7 @@ jobs:
         run: |
           bash -n install.sh uninstall.sh hooks/*.sh
           python3 -m json.tool .claude-plugin/plugin.json >/dev/null
-          python3 -c 'import json; assert json.load(open(".claude-plugin/plugin.json"))["version"] == "4.5.0"'
+          python3 -c 'import json; assert json.load(open(".claude-plugin/plugin.json"))["version"] == "4.6.0"'
           python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
           python3 -m json.tool hooks/hooks.json >/dev/null
           node --check hooks/board.mjs
@@ -46,8 +46,8 @@ jobs:
           test ! -f "$HOME/.claude/hooks/check-force-push.py"
 
   native-mod-render:
-    # Only release candidates pay the extra CLI setup cost.
-    if: startsWith(github.head_ref || github.ref_name, 'release/')
+    # Validate release candidates and the final main commit before publication.
+    if: github.ref == 'refs/heads/main' || startsWith(github.head_ref || github.ref_name, 'release/')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

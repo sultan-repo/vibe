@@ -1,4 +1,4 @@
-name: Publish Vibe 4.5.0
+name: Publish Vibe 4.6.0
 
 # Run only after the trusted main-branch Vibe checks succeed. The publish
 # credential is kept out of the pull-request test workflow.
@@ -12,7 +12,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: publish-vibe-4-5
+  group: publish-vibe-${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
@@ -30,32 +30,69 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha }}
           persist-credentials: false
       - name: Verify tested source and release version
+        id: source
         env:
           EXPECTED_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
-          python3 - <<'PY'
-          import json
-          with open(".claude-plugin/plugin.json", encoding="utf-8") as f:
-              v = json.load(f)["version"]
-          assert v == "4.5.0", f"Expected 4.5.0, got {v}"
-          PY
-          test -f docs/RELEASE_NOTES_4.5.md
-          test -f docs/RELEASE-4.5.md
+          version="$(python3 -c 'import json; print(json.load(open(".claude-plugin/plugin.json"))["version"])')"
+          if [ "$version" != "4.6.0" ]; then
+            echo "Skipping tested source with version $version."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          test -f docs/RELEASE_NOTES_4.6.md
+          test -f docs/RELEASE-4.6.md
+          echo "publish=true" >> "$GITHUB_OUTPUT"
       - name: Create tag and GitHub release (idempotent)
+        if: steps.source.outputs.publish == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_REPO: ${{ github.repository }}
           TESTED_SHA: ${{ github.event.workflow_run.head_sha }}
+          CI_RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: |
           set -euo pipefail
-          if gh release view v4.5.0 >/dev/null 2>&1; then
-            echo "Vibe v4.5.0 was already published. No changes made."
+          released_sha="$(gh api --paginate "repos/$GH_REPO/releases" --jq '.[] | select(.tag_name == "v4.6.0") | .target_commitish')"
+          tag_object="$(gh api "repos/$GH_REPO/git/matching-refs/tags/v4.6.0" --jq '.[] | select(.ref == "refs/tags/v4.6.0") | [.object.type, .object.sha] | @tsv')"
+          read -r tag_type tag_sha <<< "$tag_object"
+          while [ "$tag_type" = "tag" ]; do
+            tag_object="$(gh api "repos/$GH_REPO/git/tags/$tag_sha" --jq '.object | [.type, .sha] | @tsv')"
+            read -r tag_type tag_sha <<< "$tag_object"
+          done
+          if [ -n "$tag_sha" ] && [ "$tag_type" != "commit" ]; then
+            echo "Release tag does not resolve to a commit." >&2
+            exit 1
+          fi
+          if [ -n "$released_sha" ]; then
+            if [[ ! "$released_sha" =~ ^[0-9a-f]{40}$ ]] || [ "$tag_sha" != "$released_sha" ]; then
+              echo "Published release target and tag do not match a full commit SHA." >&2
+              exit 1
+            fi
+            echo "Vibe v4.6.0 was already published at $released_sha. No changes made."
             exit 0
           fi
-          gh release create v4.5.0 \
+          main_sha="$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq '.object.sha')"
+          if [ "$main_sha" != "$TESTED_SHA" ]; then
+            echo "Skipping stale CI commit $TESTED_SHA; main is $main_sha."
+            exit 0
+          fi
+          if [ -n "$tag_sha" ] && [ "$tag_sha" != "$TESTED_SHA" ]; then
+            echo "Existing v4.6.0 tag does not match tested commit $TESTED_SHA." >&2
+            exit 1
+          fi
+          if [ -z "$tag_sha" ]; then
+            gh api --method POST "repos/$GH_REPO/git/refs" \
+              -f ref=refs/tags/v4.6.0 -f sha="$TESTED_SHA" >/dev/null
+          fi
+          notes="$(mktemp)"
+          trap 'rm -f "$notes"' EXIT
+          cat docs/RELEASE_NOTES_4.6.md > "$notes"
+          printf '\n\n## Release provenance\n\n- Successful CI run: %s\n- Tested commit: `%s`\n' "$CI_RUN_URL" "$TESTED_SHA" >> "$notes"
+          gh release create v4.6.0 \
+            --verify-tag \
             --target "$TESTED_SHA" \
-            --title "Vibe v4.5.0" \
-            --notes-file docs/RELEASE_NOTES_4.5.md \
+            --title "Vibe v4.6.0" \
+            --notes-file "$notes" \
             --latest
