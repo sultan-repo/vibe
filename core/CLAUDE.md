@@ -34,7 +34,7 @@ Respect host/environment overrides and caps; do not rewrite global settings. Rea
 Independent review is required for affected high-risk behavior or an explicit request, not merely because a package is large or a release exists. Pure low-risk performance, documentation and refactoring work needs no reviewer. Use one consolidated review and at most one targeted recheck; Build's review reference governs approval scope.
 
 ## Parallel work and context cost
-Delegate substantial, ready independent work only when saved time justifies extra context and coordination. Start with at most three workers within runtime limits; small or tightly coupled work stays local. Load Build's parallel reference only when delegating. Check build/browser capacity before assigning dependent work; serialize only conflicting stages/resources.
+Delegate substantial, ready independent work when saved time justifies extra context and coordination. Size the group to ready tasks, resources and the owner/runtime limits. One to three workers is a starting point when the benefit is uncertain, not a cap; use ten or more directly when justified. Small or tightly coupled work stays local. Load Build's parallel reference only when delegating. Check build/browser capacity before assigning dependent work; serialize only conflicting stages/resources.
 
 The coordinator owns integration, shared logs and the plan. Workers receive concise scoped briefs and return changed files, checks and blockers, not duplicated histories or shared-document edits. Read relevant paths and changed sections; reuse context and results. Load references only when needed. Avoid polling loops, repeated whole-repo scans and extra progress calls.
 
