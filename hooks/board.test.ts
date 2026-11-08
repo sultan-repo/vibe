@@ -21,6 +21,6 @@ test('Vibe board renders an empty state in the native mod host', async ($, on) =
     },
   })
   const rendered = await pane.drawn()
-  expect(JSON.stringify(rendered)).toContain('No tracked plan yet')
+  expect(JSON.stringify(rendered)).toContain('Your plan will appear here')
   await pane.unmount()
 })

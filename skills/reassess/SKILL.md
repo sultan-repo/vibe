@@ -37,7 +37,7 @@ When required:
 ## 3. Resolve and report
 Within authorized implementation, fix required defects through Build without restarting the lifecycle. Keep proposed scope additions separate and ask only about material decisions. Batch necessary tracking updates; keep gate output in Git-private storage, CI or PR records rather than creating a new tested-tree change.
 
-Give one verdict with **2–5 concise user-facing lines**:
+Give one outcome in **2–5 concise user-facing lines**, following the core's communication rules. The conditions below guide the verdict internally; explain the result, remaining limitations and availability in the user's everyday language:
 - **Done:** the requested scope is delivered, applicable acceptance and milestone checks passed, required review passed on the final HEAD, and authorized delivery actions are complete.
 - **Done with disclosed gaps:** name the limits and their acceptance status.
 - **Not done:** say what is delivered, what is unverified and the next necessary action.

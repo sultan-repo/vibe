@@ -13,6 +13,7 @@
 
 ## Delivery
 This project follows Vibe v4.7. Normal requests select the workflow; the user does not run workflow commands.
+- Progress: short, natural updates for a nontechnical owner in their language. Explain the useful result, current focus, next step and any real decision. Keep engineering details in records; distinguish work finished from checked and available to users.
 - Milestones: <usable features or delivery boundaries; do not make each task a milestone>
 - During implementation: focused checks, no automatic full suite or independent reviewer per package/commit/push.
 - At a major milestone: full checks and E2E once on the integrated candidate; reuse valid evidence at release. Run relevant high-risk checks before affected work merges.

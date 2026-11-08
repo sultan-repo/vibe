@@ -49,7 +49,7 @@ test('tracks native todos and does not count denied changes', async () => {
     {content:'Test login',status:'in_progress'}
   ]}
   await h.fire('tool.call',todo,{result:{ok:true}})
-  assert.ok(text(await h.render()).includes('1/2 steps reported complete'))
+  assert.ok(text(await h.render()).includes('1 of 2 planned steps finished'))
   assert.equal(h.calls.opened.length,1)
   await h.fire('tool.call',{tool:'TodoWrite',todos:[{content:'Bad',status:'completed'}]},
     {deny:'permission denied'})
@@ -62,10 +62,10 @@ test('tracks native task create and update by returned id', async () => {
     {result:{taskId:'7',success:true}})
   await h.fire('tool.call',{tool:'TaskUpdate',taskId:'7',status:'completed'},
     {result:{success:true}})
-  assert.ok(text(await h.render()).includes('1/1 steps reported complete'))
+  assert.ok(text(await h.render()).includes('1 of 1 planned steps finished'))
   await h.fire('tool.call',{tool:'TaskUpdate',taskId:'7',status:'deleted'},
     {result:{success:true}})
-  assert.match(text(await h.render()),/No tracked plan yet/)
+  assert.match(text(await h.render()),/Your plan will appear here/)
 })
 test('native TaskList reconciles the plan and preserves the goal and tool result', async () => {
   for (const wrap of [tasks => ({result:{tasks}}), tasks => ({tasks})]) {
@@ -79,7 +79,7 @@ test('native TaskList reconciles the plan and preserves the goal and tool result
     assert.equal(await h.fire('tool.call',{tool:'TaskList'},result),result)
     const rendered = text(await h.render())
     assert.match(rendered,/Account settings/)
-    assert.match(rendered,/1\/2 steps reported complete/)
+    assert.match(rendered,/1 of 2 planned steps finished/)
     assert.match(rendered,/Verify settings API/)
     assert.doesNotMatch(rendered,/Outdated step/)
     assert.equal(h.calls.opened.length,1)
@@ -92,7 +92,7 @@ test('an empty successful TaskList clears stale progress without opening the boa
   await h.fire('tool.call',{tool:'TaskCreate',subject:'Old task'},{result:{taskId:'1'}})
   await h.fire('tool.call',{tool:'TaskList'},{result:{tasks:[]}})
   const rendered = text(await h.render())
-  assert.match(rendered,/No tracked plan yet/)
+  assert.match(rendered,/Your plan will appear here/)
   assert.doesNotMatch(rendered,/Old task|\/build/)
   assert.equal(h.calls.opened.length,1)
 })
@@ -103,7 +103,7 @@ test('native empty todos clear the plan while invalid fallback snapshots do not'
   assert.equal(result.result.accepted,false)
   assert.match(text(await h.render()),/Existing task/)
   await h.fire('tool.call',{tool:'TodoWrite',todos:[]})
-  assert.match(text(await h.render()),/No tracked plan yet/)
+  assert.match(text(await h.render()),/Your plan will appear here/)
 })
 test('failed or malformed TaskList results leave the last valid plan intact', async () => {
   const h = harness()
@@ -132,14 +132,16 @@ test('multiple tasks remain visibly in progress after the coordinator turn ends'
     h.fire('tool.call',{tool:'TaskUpdate',taskId,status:'in_progress'},{result:{success:true}})))
   await h.fire('turn.complete')
   const rendered = text(await h.render())
-  assert.match(rendered,/Tasks in progress/)
-  assert.match(rendered,/◉ Build UI/)
-  assert.match(rendered,/◉ Build API/)
-  assert.match(rendered,/0\/2 steps reported complete/)
+  assert.match(rendered,/In progress/)
+  assert.match(rendered,/◉ In progress: Build UI/)
+  assert.match(rendered,/◉ In progress: Build API/)
+  assert.match(rendered,/0 of 2 planned steps finished/)
   await h.fire('tool.call',{tool:'TaskUpdate',taskId:'1',status:'completed'})
-  assert.match(text(await h.render()),/Tasks in progress/)
+  assert.match(text(await h.render()),/In progress/)
   await h.fire('tool.call',{tool:'TaskUpdate',taskId:'2',status:'completed'})
-  assert.match(text(await h.render()),/Ready/)
+  assert.match(text(await h.render()),/Planned steps finished/)
+  assert.match(text(await h.render()),/what was checked and what is ready to use/)
+  assert.doesNotMatch(text(await h.render()),/100%|VIBE  ·  Ready/)
 })
 test('native task tracking opens automatically and respects a dismissed board', async () => {
   const h = harness()
@@ -157,7 +159,8 @@ test('progress fallback updates a single snapshot without modifying tool calls',
     {id:'b',label:'Run tests',status:'pending'} ]})
   assert.equal(result.result.accepted,true)
   assert.match(text(await h.render()),/User profile/)
-  assert.match(text(await h.render()),/50%/)
+  assert.match(text(await h.render()),/1 of 2 planned steps finished/)
+  assert.doesNotMatch(text(await h.render()),/50%/)
   assert.match(text(await h.render()),/Run tests/)
 })
 test('opens on request and details can be expanded', async () => {
@@ -167,9 +170,38 @@ test('opens on request and details can be expanded', async () => {
   const tree = await h.render()
   const detailsButton = tree.children.at(-1).children[0]
   detailsButton.onPress()
-  assert.match(text(await h.render()),/Task status is not test/)
+  assert.match(text(await h.render()),/Check results and availability are reported separately/)
   await h.fire('turn.complete')
-  assert.match(text(await h.render()),/Ready/)
+  assert.match(text(await h.render()),/Ready to start/)
+})
+test('default activity stays plain and technical details remain optional', async () => {
+  const h = harness()
+  await h.fire('command.run',{command:'vibe-board'})
+  await h.fire('turn.start')
+  await h.fire('tool.call',{tool:'Read'})
+  assert.match(text(await h.render()),/Reading project details/)
+  await h.fire('tool.call',{tool:'mcp__private__run_step'})
+  const tree = await h.render()
+  assert.match(text(tree),/Working on the next step/)
+  assert.doesNotMatch(text(tree),/mcp__private|Source:|Observed calls/)
+  tree.children.at(-1).children[0].onPress()
+  assert.match(text(await h.render()),/mcp__private__run_step/)
+})
+test('current outcome labels retain the user language and blocked work is not ready', async () => {
+  const h = harness()
+  await h.fire('tool.call',{tool:'mcp__vibe__progress',goal:'تسجيل أفراد العائلة',steps:[
+    {id:'internal-42',label:'إضافة فرد إلى العائلة',status:'in_progress'}
+  ]})
+  await h.fire('turn.start')
+  await h.fire('tool.call',{tool:'Bash'})
+  assert.match(text(await h.render()),/Current: إضافة فرد إلى العائلة/)
+  assert.doesNotMatch(text(await h.render()),/internal-42|Bash|%/)
+  await h.fire('tool.call',{tool:'TaskUpdate',taskId:'internal-42',status:'blocked'})
+  await h.fire('turn.complete')
+  const rendered = text(await h.render())
+  assert.match(rendered,/Needs attention/)
+  assert.match(rendered,/! Waiting: إضافة فرد إلى العائلة/)
+  assert.doesNotMatch(rendered,/Ready|waiting for you/i)
 })
 test('extraction supports structured and legacy task result', () => {
   assert.equal(taskIdFromResult({result:{taskId:'11'}}),'11')

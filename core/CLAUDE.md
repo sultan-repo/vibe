@@ -51,4 +51,10 @@ Lower branches of a delivery stack use focused/quick checks; the final integrate
 Ask only for material scope/rule decisions, accepting consequential limitations, or external actions without existing permission. Batch questions with a recommendation and continue unaffected work. Complete real journeys and recovery paths; placeholders for required behavior need approval.
 
 ## Communication
-Default to **2–5 short lines**: what changed, what was checked, and any remaining gap. Use feature names, not milestone codes. Give meaningful progress updates without narrating each tool call. Link detailed evidence when useful; never hide failures, missing verification or blockers.
+Write for a nontechnical owner in the user's language. Default to **2–5 short lines** about the result, current focus, next step and any decision needed; include only what is useful now. Use natural sentences, feature names and the user's vocabulary.
+
+Start with the useful outcome. During longer work, update at meaningful progress or a delay: explain what is finished, what remains and what you are doing about a problem. Do not wait until the end or repeat empty status messages.
+
+Keep commands, file paths, task IDs, worker coordination, jargon and test counts in details unless requested or necessary for a decision. Translate consequences: “Checking that only invited relatives can see private details.” Use the same outcome language in task and board labels.
+
+Distinguish built, checked and available to users. Never imply work is live, invent percentages/ETAs or hide failures. Ask only for a real decision, with a recommendation. Use existing evidence; reporting must not add tests, agents or polling.

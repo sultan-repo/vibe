@@ -78,7 +78,23 @@ When native delegation is unavailable, Vibe proceeds sequentially without asking
 | **Standard** | Features and multi-step work with understood scope | Brief internal plan, build continuously, verify at the end |
 | **Critical** | Security, personal data, payments, migrations, destructive or other high-risk work | Clarify material risks, test invariants, preserve required review gates |
 
-User updates default to **2–5 plain-language lines**: delivered, verified and remaining. Technical IDs such as M1 and R-01 stay in the project records, not the user-facing narrative. Full evidence remains available on request.
+### Progress anyone can follow
+
+User updates default to **2–5 plain-language lines**, like a colleague updating a nontechnical owner. Vibe uses the user's language and explains the useful result, what it is working on, what comes next and any decision needed. It reports meaningful progress and delays without narrating every action or asking the owner to manage the work.
+
+For example:
+
+> The family search now finds people by name. I'm checking that it also works well with larger family trees. Next, I'll finish the phone layout.
+
+When a decision matters:
+
+> I need your choice on who can see phone numbers. I recommend keeping them private unless the person agrees to share them.
+
+When work is finished but not yet published:
+
+> The update is finished and the main journeys have been checked. It's ready to publish, but people using the site won't see it yet.
+
+These examples describe only outcomes actually established by the available evidence. Task and board labels use the same everyday language. Commands, file paths, worker coordination, test counts and technical IDs such as M1 and R-01 stay in details unless requested or needed for a decision. Vibe explains problems by their impact, keeps uncertain results explicit and does not invent percentages or completion times. Progress reporting adds no agents, tests or continuous polling.
 
 GitHub gets the same treatment. Commit and PR titles describe the actual change (`Improve Premium subscription page`), not `R-73 R-74: M7`. Keep requirement IDs in commit bodies and PR descriptions for traceability. Branch names describe their purpose (`feature/premium-page`). These defaults apply to new work and do not rename existing commits.
 
@@ -88,6 +104,7 @@ The plugin includes a native Claude Code Mod for interactive terminal sessions a
 
 - Prefers existing `TodoWrite` or `TaskCreate`/`TaskUpdate`/`TaskList` task events. The coordinator owns shared progress updates. A small deferred `mcp__vibe__progress` tool can supply a plan in sessions without those tools, for Standard/Critical multi-step work only.
 - Fast fixes do not generate extra progress reports. The mod observes tool activity without changing permission decisions, model prompts, or tool results.
+- The default view uses simple progress wording and factual step counts. Technical activity stays in Details, and finishing planned steps does not claim the result is checked or available to users.
 - Requires Claude Code 2.1.287+ for Mods. Panes work in compatible terminal, Desktop Code tab, and supported newer VS Code extension builds; non-visual sessions simply don't show the pane.
 - The alternate `install.sh` path installs skills and hooks, **not** Mods; install Vibe as a Claude Code plugin for the board.
 - For local testing: `node --test tests/mod-board.test.mjs`.
