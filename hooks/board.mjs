@@ -49,9 +49,9 @@ function redraw($, state) {
   if (state.isOpen) void $.ui.invalidate('ui.render')
 }
 
-async function setPlan($, state, name, rows, origin) {
+async function setPlan($, state, name, rows, origin, allowEmpty = false) {
   const normalized = normalizeSteps(rows)
-  if (!normalized.length) return false
+  if (!normalized.length && !(allowEmpty && Array.isArray(rows) && rows.length === 0)) return false
   state.goal = clean(name, 100) || state.goal
   state.steps = normalized
   state.source = origin
@@ -70,7 +70,7 @@ export function register(on) {
   let synthetic = 0
   const eventInput = e => e.input && typeof e.input === 'object' ? { ...e.input, ...e } : e
   const succeeded = result => !result?.deny && !result?.isError && result?.success !== false &&
-    result?.result?.success !== false
+    !result?.result?.deny && !result?.result?.isError && result?.result?.success !== false
 
   on('session.start', async ($, e, next) => {
     // Register tools first so the UI command works even when a tool isn't supported.
@@ -149,10 +149,10 @@ export function register(on) {
     const result = await next(event)
     if (succeeded(result)) {
       if (event.tool === 'TodoWrite') {
-        await setPlan($, state, state.goal, e.todos, 'Native task list')
+        await setPlan($, state, state.goal, e.todos, 'Native task list', true)
       } else if (event.tool === 'TaskList') {
         const tasks = result?.result?.tasks ?? result?.tasks
-        if (Array.isArray(tasks) && tasks.length) await setPlan($, state, goal, tasks, 'Native task list')
+        if (Array.isArray(tasks)) await setPlan($, state, state.goal, tasks, 'Native task list', true)
       } else if (event.tool === 'TaskCreate') {
         const label = clean(e.subject)
         if (label) {
@@ -190,6 +190,7 @@ export function register(on) {
     if (e.requestId !== PANE) return next(e)
     const { Box, Text, Button } = $.ui.resolve(e)
     const { done, total, percent } = progressOf(state.steps)
+    const tasksInProgress = state.steps.some(s => s.status === 'in_progress')
     const width = 22
     const filled = percent === null ? 0 : Math.round(width * percent / 100)
     const text = value => Text({ children: [value] })
@@ -205,14 +206,14 @@ export function register(on) {
       return text(symbol + ' ' + s.label)
     })
     return Box({ flexDirection: 'column', children: [
-      text('VIBE  ·  ' + (working ? 'Working' : 'Ready')),
+      text('VIBE  ·  ' + (working ? 'Working' : tasksInProgress ? 'Tasks in progress' : 'Ready')),
       text(state.goal || 'Current session'),
       text(total ? done + '/' + total + ' steps reported complete · ' + percent + '%' : 'No tracked plan yet'),
-      text(total ? '▰'.repeat(filled) + '▱'.repeat(width - filled) : 'Run /build or report a plan to see steps'),
+      text(total ? '▰'.repeat(filled) + '▱'.repeat(width - filled) : 'Describe a task to see progress'),
       ...items,
       ...(details ? [
         text('Source: ' + (state.source || 'No task source')),
-        text('Activity: ' + (working ? (action || 'Working') : 'Not running')),
+        text('Activity: ' + (working ? (action || 'Working') : tasksInProgress ? 'Tasks reported in progress' : 'Not running')),
         text('Observed calls while open: ' + calls),
         text('Task status is not test or acceptance evidence.')
       ] : []),
