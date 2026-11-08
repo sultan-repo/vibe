@@ -62,7 +62,7 @@ Finalize tracked changes before the full gate and store its evidence outside tra
 
 ### Automatic parallel work
 
-For substantial work, Vibe chooses the number of workers from the ready independent tasks and available capacity. One to three is a starting point when the benefit is uncertain, not a hard limit. It can assign ten or more at once when the work, resources, usage budget and Claude environment support it, without an artificial ramp-up or a user command. Small fixes and tightly coupled work stay with the coordinator. Shared API/schema decisions, conflicting edits and shared-resource mutations remain sequential.
+For substantial work, Vibe decides which agents the task needs, gives each a suitable role, scope and effort, and launches as many ready independent assignments as are useful. There is no preset team size, starting count or Vibe-imposed numeric ceiling. The task, available resources, existing usage constraints and Claude environment determine the group, without an artificial ramp-up or a user command. Small fixes and tightly coupled work stay with the coordinator. Shared API/schema decisions, conflicting edits and shared-resource mutations remain sequential.
 
 All active workers share one coordinator-managed budget, including any nested workers. Vibe adjusts assignments as tasks finish or become ready, and scales back when shared-resource waits or coordination outweigh the benefit. It uses existing progress reports instead of extra monitoring agents or polling. Host limits still apply; more workers do not mean more review or full-check cycles.
 
