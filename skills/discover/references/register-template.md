@@ -23,7 +23,7 @@ Field rules:
 - **Status**: `proposed` → `approved` → `in-progress` → `implemented` → `verified`; or `blocked`, `deferred`, `superseded`. Only `verified` means acceptance was observed to pass on the current code. Record the reason when something becomes `deferred` or `superseded`.
 - **Evidence**: the test or check and when it ran, or a short observation. Write `unverified` rather than leaving it blank.
 
-Coverage check (run at milestones, by `/reassess`): every `approved` row has implementation or a disposition; every `implemented` row has acceptance checks; nothing approved disappeared; nothing unapproved was built.
+Coverage check (run internally during milestone reassessment): every `approved` row has implementation or a disposition; every `implemented` row has acceptance checks; nothing approved disappeared; nothing unapproved was built.
 
 ## docs/DECISIONS.md
 

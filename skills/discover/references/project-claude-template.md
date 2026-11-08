@@ -1,7 +1,7 @@
 # <Project name>
 
 ## Objective
-<One paragraph: the problem, who it is for, the outcome that matters, and how success is measured. This is the sentence `/discover` and `/reassess` measure against.>
+<One paragraph: the problem, who it is for, the outcome that matters, and how success is measured. Discovery and reassessment measure against this objective.>
 
 ## Non-goals
 - <What this project deliberately does not do.>
@@ -23,5 +23,6 @@
 ## Delivery
 - Standing permissions: <none, or precise branch/repo + checks + exclusions explicitly approved by owner>
 This project follows Vibe v4.5, an outcome-driven delivery standard (`~/.claude/vibe.md`, source: github.com/sultan-repo/vibe).
+Vibe selects workflows from normal requests and delegates useful independent work automatically.
 Register: `docs/REQUIREMENTS.md` · Decisions: `docs/DECISIONS.md` · Status: `docs/STATUS.md`
 <If this repo tracks requirements elsewhere (GitHub issues, ADRs, a tasks file), say so here and Claude will use that instead.>

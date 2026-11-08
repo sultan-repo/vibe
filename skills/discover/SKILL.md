@@ -1,6 +1,6 @@
 ---
 name: discover
-description: Explore product intent and resolve material uncertainty before implementation. Use on explicit discovery or planning requests, or when an important product or architecture decision is unresolved. For clear approved implementation tasks, Build proceeds without a mandatory checkpoint.
+description: Automatically explore product intent and resolve material uncertainty from normal conversation. Use for brainstorming, discovery or planning requests, or an unresolved product or architecture decision. No slash command is required. Clear approved implementation proceeds through Build without a mandatory checkpoint; discovery-only requests do not authorize project edits.
 ---
 
 # Discover → Challenge → Enrich → Approve
@@ -8,6 +8,8 @@ description: Explore product intent and resolve material uncertainty before impl
 Goal: improve the product direction without blocking clear implementation. Explicit Discover requests produce analysis and a concise decision checkpoint, not application code. Ordinary Build requests with an understood objective and approved decisions skip this skill entirely.
 
 Input: `$ARGUMENTS` is the idea or feature. If empty, use the request already in the conversation.
+
+Select this workflow internally from intent; never ask the user to run a command to start it or continue to Build. For discovery-only requests, report proposed file changes in the answer. Instructions below to create or update project files apply only to authorized implementation or explicitly requested document work.
 
 ## 1. Discover (facts before questions)
 
@@ -60,9 +62,9 @@ Use existing project tracking. For long-running projects that need it, create or
 When material decisions remain, stop for the owner's answer. If the user already gave approval or clear defaults, record them and proceed to `build` in the same conversation when implementation was requested. An explicit request for discovery alone ends with the checkpoint and does not change application code.
 
 - If the user replies with changes or questions: address them concisely; only stop again if an important decision remains. Do not default to multiple rounds.
-- If the user approves (a clear yes, "go", "go with your recommendations", or answers to the decisions): record the answers in the register and DECISIONS.md, then invoke the `build` skill (`/build`, or `/vibe:build` as a plugin) so the first increment starts in the same conversation.
+- If the user approves (a clear yes, "go", "go with your recommendations", or answers to the decisions) and implementation was requested: record material decisions in existing tracking, then invoke the installed `build` skill internally and continue the approved outcome in the same conversation. Approval of a design during discovery-only work does not itself request implementation.
 
-Proposed items stay proposed until the user says yes. In plan mode, present the checkpoint and seed the files once the user leaves plan mode.
+Proposed items stay proposed until the user says yes. In plan mode, present the checkpoint; create project files only after leaving plan mode and when the requested work authorizes those edits.
 
 ## Proportionality
 
