@@ -1,8 +1,8 @@
 # Vibe
 
-**v4.6.0:** automatic workflows, parallel subagents, and progress without workflow commands.
+**v4.7.0:** focused checks during development, full verification at major milestones, and less review and context overhead.
 
-An outcome-driven software delivery standard for [Claude Code](https://code.claude.com). Vibe challenges unclear requirements, implements approved work continuously, verifies observable outcomes and reassesses when useful or required.
+A lightweight delivery layer for [Claude Code](https://code.claude.com). Vibe coordinates approved work, uses focused evidence while building, and checks the complete result at the agreed milestone.
 
 Default: **understand → build → verify → deliver**. Discover and Reassess are invoked when needed, not for every change.
 
@@ -14,31 +14,44 @@ Vibe uses **Claude only**. There are no external reviewer CLIs, sign-in requirem
 
 - **Always-on core** (`core/CLAUDE.md`): automatic workflow selection, Fast / Standard / Critical routing, concise communication, appropriate evidence and git safety.
 - **`discover`**: explore unresolved product decisions or an explicitly requested design; skip it when implementation is already clear.
-- **`build`**: complete the requested feature or milestone in one continuous run, with focused tests and minimal documentation. Independent review is selective, not automatic per increment.
-- **`reassess`**: check product alignment when requested or consequential. Keep the consolidated independent **Claude reviewer** gate before high-risk merges and release readiness.
+- **`build`**: complete approved work continuously with affected tests and minimal documentation. Full suites, production builds and browser matrices are not repeated after every edit, worker or ordinary push.
+- **`reassess`**: validate the integrated outcome at a major milestone or delivery boundary, reusing current evidence. Independent **Claude review** is reserved for affected high-risk behavior or an explicit request.
 - **Parallel work**: the coordinator assigns ready, independent tasks to native Claude subagents and verifies the combined result. No separate parallel command or agent-team setup is required.
 - **Safety**: the force-push hook denies shared-history rewrites and fails closed when validation is unavailable.
 - **Optional visual board**: a Claude Code Mod shows the plan, reported task completion and current activity in a native pane. No separate server or continuous model polling.
 
-### Review cadence
+### Verification and review cadence
 
 | Event | What happens |
 | --- | --- |
-| Small fix | Claude implements and runs relevant tests; no mandatory reviewer |
-| Normal approved increment | Tests, lint/typecheck and end-to-end checks; focused fresh-context Claude reviewer only when useful |
-| Ordinary milestone | Reassess requirements, actual behavior and evidence; no automatic code-review cycle |
+| Small fix | Focused evidence for the changed behavior; no mandatory plan or reviewer |
+| Normal approved increment | Affected tests and useful lint/type checks; targeted browser/build checks only when the change needs them |
+| Major milestone | Full relevant checks and end-to-end journeys once on the final integrated candidate; no automatic reviewer for low-risk work |
 | High-risk PR before merge | One consolidated fresh-context Claude review of the final commit and applicable invariants |
-| Release readiness / explicit independent review request | One consolidated review of changed behavior and acceptance evidence |
+| Release/deployment | Require full evidence, reuse a valid milestone run; independent review only for affected high-risk behavior |
+| Explicit independent review request | One review of the requested scope |
 
 A final gate allows **one full review and at most one targeted recheck** of required fixes. If issues remain, Vibe stops and reports the blocker or required decision instead of launching an endless loop. A passing review on the exact same HEAD and unchanged scope can be reused. An unverified acceptance criterion or a required security/data defect still blocks release or high-risk merge approval.
 
-High-risk logic requires clarified invariants, permission boundaries, retries/races and acceptance tests before building. Stateful rules use sequence/property tests when appropriate.
+High-risk means the actual changed behavior: auth/authorization, identity/security verification, consent, personal data, privacy/deletion, payments, migrations, destructive actions, production configuration, delivery controls or consequential concurrency. A performance/refactor label does not exempt these risks. Test relevant invariants early; do not postpone them to an unrelated milestone.
+
+A major milestone is an agreed usable feature or delivery boundary, not every task or branch. The coordinator defines it in the existing plan. Intermediate work can be implemented with focused checks while milestone E2E remains explicitly pending. Existing project and required CI rules still take precedence.
+
+### Reuse checks, avoid ceremony
+
+Fast work uses the core directly. Larger work loads only relevant references and changed sections, shares concise worker briefs and updates existing records at meaningful boundaries. No new scheduler, mandatory register or continuous model polling is added.
+
+For projects already repeating a gate in verification, push and release scripts, Vibe ships an optional [verification cache and pre-push pattern](hooks/verification-cache.md). The coordinator adapts it to existing project hooks and declared inputs. It matches the actual pushed trees and full/quick mode, requires clean stable inputs, and keeps full evidence from being replaced by a later quick pass. It does not bypass CI or independent-review approval. The helper is not an always-on Claude hook and adds no work to ordinary sessions.
+
+Finalize tracked changes before the full gate and store its evidence outside tracked files. A stack gets one final integration gate only when lower branches cannot deploy independently; use a separate release promotion or one integrated delivery. Merging in quick succession does not create that guarantee.
 
 ### Automatic parallel work
 
-For substantial work, Vibe starts with two or three workers when tasks are ready and independent, within the runtime's capacity. Small fixes and tightly coupled work usually stay with the coordinator. Shared API/schema decisions, conflicting edits and shared-resource mutations remain sequential.
+For substantial work, Vibe uses up to three workers when ready independent tasks save enough time to justify their context cost. Small fixes and tightly coupled work stay with the coordinator. Shared API/schema decisions, conflicting edits and shared-resource mutations remain sequential.
 
-Each worker gets an objective, file ownership, agreed interfaces and acceptance checks. Substantial parallel edits use separate worktrees from the intended committed version; worktrees do not include uncommitted parent changes or isolate shared databases. The coordinator owns shared progress, integration and combined verification. Required final review still happens once on the integrated code, with the existing bounded recheck.
+Each worker gets a concise objective, file ownership, interfaces and focused checks. Before assignment, the coordinator checks whether worktrees can actually build and run browser checks, then budgets shared checkout/port/database capacity. Install dependencies per worktree or use another complete checkout when needed; serialize only constrained stages. Workers return results and decision text; the coordinator owns shared logs, integration and milestone verification.
+
+Performance work gets a fixture, target device profiles, success threshold, cycle/time budget and a stop condition. Reuse each candidate's production build across measurements. Iterate on a representative profile and validate the target profiles at the end; mobile-specific problems need mobile evidence early. Report and replan when the budget is exceeded.
 
 When native delegation is unavailable, Vibe proceeds sequentially without asking you to configure agents. Parallel work can consume more Claude usage; speed improvements are not claimed without a representative runtime measurement. Detailed execution rules live in [Build's parallel-work reference](skills/build/references/parallel-work.md).
 
@@ -66,14 +79,14 @@ The plugin includes a native Claude Code Mod for interactive terminal sessions a
 
 ## Release verification
 
-Release verification and disclosed limits: [v4.6 verification](docs/RELEASE-4.6.md).
+Release verification and disclosed limits: [v4.7 verification](docs/RELEASE-4.7.md).
 
 - GitHub Actions runs Node and Python policy tests, mod-unit tests, installer smoke tests and hook safeguards.
 - Native validation: `claude plugin validate --strict .`; `claude plugin test .` where supported.
 - UI smoke: use `claude --plugin-dir .` in a real interactive Claude Code session and test the board. This cannot be confirmed by headless CI.
 - Performance: `node scripts/compare-performance.mjs --dry-run` previews matched tasks. `node scripts/compare-performance.mjs --model sonnet --rounds 3` runs real model comparisons (subscription usage applies).
 
-The v4.6 publisher requires successful checks on the tested main commit. Live Claude execution, interactive UI observations and comparative performance remain explicitly unverified in the [release notes](docs/RELEASE_NOTES_4.6.md). Rejected PR #6 remains excluded.
+The v4.7 publisher requires successful checks on the tested main commit. Live Claude execution, interactive UI observations and comparative performance remain explicitly unverified in the [release notes](docs/RELEASE_NOTES_4.7.md). Shorter instructions and fewer default gates are not a measured runtime speedup. Rejected PR #6 remains excluded.
 
 ## Install
 
@@ -131,7 +144,7 @@ skills/build/                      build and local verification
 skills/build/references/           parallel work, high-risk rules and Claude review guidance
 skills/reassess/                   alignment and conditional final review gates
 agents/reviewer.md                 fresh-context Claude reviewer
-hooks/                             fail-closed force-push protection and tests
+hooks/                             force-push protection; optional verification reuse pattern
 .claude-plugin/                    plugin metadata
 install.sh / uninstall.sh          alternative installer and cleanup
 CHANGES.md                         version history

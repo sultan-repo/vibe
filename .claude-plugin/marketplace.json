@@ -8,7 +8,7 @@
     {
       "name": "vibe",
       "source": "./",
-      "description": "Vibe v4.6: automatic workflows from normal requests, parallel Claude subagents, continuous delivery, native progress, and risk-aware review."
+      "description": "Vibe v4.7: focused checks, one integrated milestone gate, selective review, reusable verification and cost-aware parallel work."
     }
   ],
   "description": "Sultan Alsubaie's Claude Code plugins. Currently: vibe, an outcome-driven software delivery standard."

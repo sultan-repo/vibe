@@ -3,7 +3,7 @@
 # Safe to re-run after editing the bundle: copies are refreshed, your own ~/.claude/CLAUDE.md is kept.
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
-CL="$HOME/.claude"
+CL="${VIBE_CLAUDE_HOME:-$HOME/.claude}"
 mkdir -p "$CL/skills" "$CL/agents" "$CL/hooks"
 
 # 1. Core rules: installed as their own file and imported, so personal notes in CLAUDE.md survive re-installs.
@@ -20,6 +20,10 @@ cp "$HERE/agents/reviewer.md" "$CL/agents/reviewer.md"
 # Remove legacy external reviewer artifacts from earlier installations, leaving other files alone.
 rm -f "$CL/vibe-tools/codex-review.py" "$CL/vibe-tools/review-result.schema.json"
 rmdir "$CL/vibe-tools" 2>/dev/null || true
+
+# Optional project verification templates; never register a global verification gate.
+mkdir -p "$CL/vibe-tools"
+cp "$HERE/hooks/verification-cache.py" "$HERE/hooks/pre-push.template" "$HERE/hooks/verification-cache.md" "$CL/vibe-tools/"
 
 # 3. Hook that denies force-pushes, registered in settings.json without touching other settings.
 cp "$HERE/hooks/block-force-push.sh" "$HERE/hooks/check-force-push.py" "$CL/hooks/"
@@ -44,5 +48,6 @@ echo "Installed into $CL:"
 echo "  vibe.md   (imported by $CL/CLAUDE.md)"
 echo "  skills/discover, skills/build, skills/reassess"
 echo "  agents/reviewer.md"
+echo "  vibe-tools/ (optional project verification reuse; not enabled globally)"
 echo "  hooks/block-force-push.sh + check-force-push.py (PreToolUse hook in settings.json)"
 echo "Open a new Claude Code session to pick it up."

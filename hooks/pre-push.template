@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# Optional PROJECT template, configured by the coordinator, never a global Vibe hook.
+# This example assumes only `release` deploys. Set the actual deployment refs before adoption.
+# The project adapter receives quick/full and runs its existing checks; context prints a nonsecret
+# fingerprint of relevant runtime, ignored config and stable fixtures. Do not cache live checks.
+set -euo pipefail
+cd "$(git rev-parse --show-toplevel)"
+updates=$(mktemp "$(git rev-parse --path-format=absolute --git-path vibe-pre-push.XXXXXX)")
+trap 'rm -f "$updates" "$updates.quick" "$updates.full"' EXIT
+cat > "$updates"
+
+# Preserve existing unrelated guards and forward their original arguments AND stdin.
+# When adopting, put those guards here or keep them in this executable, without its old duplicate gate.
+if [[ -x .githooks/pre-push.project ]]; then
+  .githooks/pre-push.project "$@" < "$updates"
+fi
+
+: > "$updates.quick"
+: > "$updates.full"
+while IFS= read -r update || [[ -n "$update" ]]; do
+  read -r local_ref local_oid remote_ref remote_oid <<< "$update" || true
+  case "$remote_ref" in
+    refs/heads/release) mode=full ;;
+    *) mode=quick ;;
+  esac
+  printf '%s\n' "$update" >> "$updates.$mode"
+done < "$updates"
+
+# Each pushed ref gets its own required level; a release in the same push does not
+# impose a full gate on every lower branch in its stack.
+for mode in quick full; do
+  if [[ -s "$updates.$mode" ]]; then
+    python3 .githooks/verification-cache.py pre-push \
+      --mode "$mode" --context-command scripts/verification-context --full-includes-quick \
+      -- scripts/verify.sh < "$updates.$mode"
+  fi
+done

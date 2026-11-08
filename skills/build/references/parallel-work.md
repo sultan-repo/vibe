@@ -1,27 +1,30 @@
 # Automatic parallel work
 
-Use native Claude subagents for substantial independent tasks. Keep one coordinator responsible for the outcome. Do not add a scheduler, mandatory agent team, approval step or separate task register.
+Delegate substantial independent work only when the saved time warrants the extra context and coordination. Keep one coordinator; do not add a scheduler, mandatory team or task register.
 
-## Dispatch ready work
+## Plan capacity, then assign
 
-- Start with at most three concurrent workers, or fewer if the runtime permits fewer. The coordinator controls the total; workers do not recursively delegate without an allocated slot and an explicit assignment from the coordinator.
-- Dispatch tasks whose inputs are ready and whose outputs can be combined without conflicting ownership. Research, separate modules and independent test commands can overlap. Establish shared API/schema decisions before dependent implementation. Different filenames alone do not prove independence.
-- Give each worker the objective, relevant user/project constraints, agreed interfaces, owned files, starting commit and acceptance checks. Pass the same scope and permission boundaries as the coordinator. Workers do not expand scope, publish, merge or deploy on their own.
-- Keep the coordinator working on an independent task while workers run. Release dependent work as its prerequisites become available; do not wait for unrelated workers or impose artificial rounds.
-- If delegation is unsupported, the task is too small, or safe ownership cannot be established, work sequentially without asking the user to run commands or change settings.
+- Use at most three concurrent workers within runtime limits. Workers may not delegate further without a coordinator-assigned slot. Keep small or tightly coupled tasks local.
+- Assign only ready inputs and compatible ownership. Establish shared API/schema decisions first; different filenames alone do not establish independence. Release dependent tasks as their inputs become ready, without artificial rounds.
+- Before assigning build/browser-dependent work, verify that the intended worktree can run the project's production build and browser checks. Reuse a proven setup until relevant tooling or environment changes; otherwise perform one bounded preflight during planning, not when a final gate hangs.
+- If dependency symlinks fail, use real dependencies per worktree or a second full checkout when resources permit. With only one usable checkout, reserve one build/browser slot at a time with a time budget. Other workers continue coding or unit/integration work; do not serialize all engineering around that slot.
+- Give each worker a short brief: objective, relevant constraints, source paths, interfaces, owned files, starting SHA, focused checks and any time/resource budget. Avoid copying whole histories or unrelated documents. Workers keep the coordinator's scope and permission limits and never publish, merge or deploy independently.
+- Keep the coordinator productively occupied. If delegation is unavailable or adds overhead, proceed locally without user setup or commands.
 
-## Isolate changes and shared resources
+## Protect shared resources
 
-- Prefer separate Git worktrees for substantial parallel editing, each based on the same intended committed version. Verify each worker's starting SHA. Native worktrees can start from the default branch; use a supported current-HEAD base or create them explicitly from the chosen commit.
-- A worktree does not include uncommitted parent changes. Preserve user edits. Finish and commit only authorized prerequisite changes, deliberately supply the required patch, or keep dependent work in the coordinator until its inputs can be shared safely.
-- A shared workspace is acceptable for narrowly scoped, disjoint edits with explicit file ownership. Neither the coordinator nor another worker edits owned files until the assignment is returned or stopped. Serialize overlapping changes even across separate worktrees.
-- Worktrees isolate files, not databases, ports or external services. Isolate test resources or serialize commands that mutate the same resource. The coordinator owns shared lockfile changes, shared branch operations and integration; workers may commit only their assigned work in their own worktree.
-- Keep shared progress and continuity files under the coordinator's ownership. Workers report progress and blockers to it rather than replacing the board's full plan.
+- Prefer worktrees for substantial edits, verifying each starting SHA against the intended committed base. Uncommitted parent edits are absent; preserve them and deliberately supply authorized prerequisites or keep dependent work local.
+- A shared checkout is suitable only for disjoint edits with exclusive ownership. Stop a worker before transferring its files. Worktrees do not isolate ports, databases or services; isolate those resources or reserve their use.
+- The coordinator owns shared lockfiles, branch operations, integration, decision logs, status files and the board. Workers return proposed decision/status text in their reports; the coordinator batches updates. Delimited blocks in the same shared file do not prevent conflicts.
 
-## Integrate and verify
+## Budget performance work
 
-Workers return the patch or branch/commit, changed files, exact checks and results, and unresolved dependencies or blockers. A completion notification is not acceptance evidence.
+Set the fixture, success threshold, device profiles, maximum candidate cycles and time budget in the brief. Build once per candidate and reuse that artifact across measurements. Iterate on the cheapest representative profile; capture a baseline and a bounded final measurement session on target devices. Desktop-first suits general desktop work; mobile-specific problems need mobile evidence early. Stop at the agreed target. If the budget is exceeded, report results and replan before more experiments; do not hold the shared checkout indefinitely or claim an unmet target passed.
 
-The coordinator inspects and integrates the results, resolves conflicts, and runs the affected checks on the combined code. Reassign or finish failed work within the approved scope; stop the previous worker before transferring file ownership. Preserve useful partial work and report genuine blockers instead of repeatedly respawning workers.
+## Integrate once, verify at the right boundary
 
-Before a required final review, finish integration and tests, stop outstanding writes to the reviewed code, and commit the final state. Use the existing single consolidated Claude review and bounded targeted recheck on that exact HEAD. Do not review every worker separately or reuse approval after a new code commit. External actions still require the existing authorization.
+- Workers return their branch/patch, changed files, exact focused checks/results and blockers. Completion is not acceptance evidence. Inspect and integrate their work, resolving failed assignments within scope rather than repeatedly respawning workers.
+- Use focused checks during increments. Run the full integrated gate once at the agreed major milestone or release, including the current target-branch base. Earlier broad checks need a concrete risk or an applicable project requirement; a worker finishing or a branch push is not itself a milestone.
+- For a declared dependent stack, lower branches get the required quick checks; the merged top gets the full gate. Those lower branches must not deploy independently. Use one integrated deployment update or explicit release promotion; merging quickly does not establish this guarantee. Work shipped independently needs its own applicable delivery gate.
+- Finalize tracked edits, stop concurrent writes and commit the candidate before the full gate. Keep verification evidence in Git-private storage or CI/PR records so recording results does not change the tested tree. Never pre-mark an unobserved outcome verified. Reuse valid evidence for unchanged inputs; integration changes invalidate the affected evidence.
+- When high-risk behavior or an explicit request requires review, use one consolidated fresh-context Claude review of the final HEAD and the bounded targeted recheck in `review-loop.md`. Do not review each worker. Test reuse does not broaden review approval or bypass required CI. External actions retain their existing authorization requirements.

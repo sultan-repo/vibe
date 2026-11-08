@@ -15,7 +15,7 @@ Select this workflow internally from intent; never ask the user to run a command
 
 Establish from evidence:
 - The problem, intended users, desired outcome, and how success will be measured.
-- Current state. For an existing repo, read the code, tests, config, CI, recent git log, and any `docs/REQUIREMENTS.md`, `docs/STATUS.md`, `docs/DECISIONS.md`. Trust code over docs.
+- Current state. Read relevant code/tests, config and recent changes; search existing records for the decisions that affect this work. Reuse context rather than rereading whole logs. Trust code over docs.
 - Constraints, non-goals, operating environment, dependencies, integrations.
 - Risks and unknowns. Classify high-risk by impact, including consent, auth, deletion, payments, permissions, concurrency and data integrity; do not equate a small diff with low risk.
 
@@ -37,7 +37,7 @@ Classify every meaningful finding:
 - **Optional**: future enhancement. Goes to the deferred list in STATUS.md only if worth remembering.
 - **Not applicable**: dropped without mention.
 
-For high-risk increments, read `../build/references/review-loop.md` (or resolve it through the installed build skill). Draft a concise rules contract defining invariants, equivalence, action scope, transitions, race/retry behavior and non-goals; ask the owner to approve material choices before coding. Use `docs/RULES.md` or the project's existing equivalent. Require state-machine/property tests when the rules are stateful and sequences matter.
+For high-risk changes, read `../build/references/review-loop.md` (or the installed build skill). Reuse or draft concise invariants and recovery rules; ask only about unresolved material choices. Use sequence/property tests where they add evidence, otherwise use adequate focused examples.
 
 Five strong recommendations beat twenty weak ones. Include only findings that would change the outcome if omitted.
 
@@ -55,7 +55,7 @@ Present one checkpoint, ideally 5–10 short lines, only when a material decisio
 
 If the repository has no `CLAUDE.md`, create one from `references/project-claude-template.md` with the objective, non-goals, and constraints agreed in the checkpoint; fill the Commands section once the stack is decided.
 
-Record any owner-approved rules contract, the required acceptance tests, and whether a high-risk pre-merge/release gate will apply. No external reviewer configuration or authentication is required.
+Record material approved rules, focused checks, the major milestone where full E2E is due, and any high-risk review requirement. No external reviewer configuration or authentication is required.
 
 Use existing project tracking. For long-running projects that need it, create or update relevant continuity files using `references/register-template.md`; do not require all three files or update them when no material state changed.
 

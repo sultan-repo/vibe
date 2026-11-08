@@ -1,30 +1,29 @@
 # High-risk rules and bounded Claude review
 
-Load this reference when preparing high-risk behavior or when Reassess requires a final review. Small changes do not need review ceremony.
+Load only for high-risk behavior or a required independent review. Routine implementation uses focused checks; full end-to-end verification belongs at the major milestone or release boundary.
 
 ## Before building high-risk behavior
 
-1. Classify by consequences, not diff size. Auth, consent, permissions, personal data, privacy/deletion, money, migrations, destructive actions, production config and consequential concurrency are high-risk.
-2. Write a concise rules contract (docs/RULES.md or existing equivalent), linked to requirement IDs: actors, permissions, invariants, equivalence/identity, transitions and action scope, retries, races, recovery and non-goals. Ask the owner to confirm only material ambiguities.
-3. Add acceptance examples. For stateful high-risk rules, use randomized/property/state-machine sequences against a reference model when useful, otherwise explain equivalent deterministic coverage.
-4. Keep each increment coherent. Fix defects in approved scope without smuggling new features into a fix loop.
+Classify the actual changes: authentication, authorization, identity/security verification, consent, personal data, privacy/deletion, payments, migrations, destructive operations, production configuration, delivery controls and consequential concurrency require appropriate invariants and review. Merely running verification is not high-risk work. A performance or refactoring label does not exempt a migration or permission change.
+
+Reuse existing rules and acceptance criteria. Write only missing consequential invariants, boundaries, retries/races and recovery behavior in the existing rules record. Ask the owner only about material ambiguity. Add focused acceptance/regression tests; use sequence/property tests when stateful risks justify them. Do not defer checks needed to protect data or an irreversible action until the milestone.
 
 ## Review tiers
 
-- **Build:** Implement, test, lint/typecheck and exercise the actual user journey. Claude may invoke its fresh-context `reviewer` subagent for a focused check of a meaningful substantial increment. Do **not** automatically review trivial changes or launch multiple independent reviews for each intermediate commit.
-- **Reassess:** Review product alignment at ordinary milestones without an automatic code-review round. At a **high-risk pre-merge gate**, **release-readiness gate**, or **explicit review request**, use the fresh-context Claude `reviewer` subagent for a consolidated, independent check of relevant changes. A new material risk may justify an earlier review when necessary for an irreversible action.
-- **Reuse:** If a successful independent review already covers the same exact full HEAD SHA, requirements, rules and scope, with valid test/CI evidence and no unresolved required findings, record and reuse it. Do not review unchanged code again unless the user explicitly requests a fresh pass.
+- **Build:** No independent reviewer by default, including substantial low-risk performance, documentation or refactoring work. Run focused checks as changes warrant. Do not review per worker, increment or commit.
+- **Reassess:** Use the fresh-context Claude `reviewer` once at a major milestone, merge or release boundary that includes high-risk changes, or on an explicit independent-review request. A concrete newly discovered high risk may require earlier review before an irreversible action. Ordinary low-risk milestones and releases do not require a reviewer; their applicable verification still runs.
+- **Reuse:** Reuse a clean approval covering the exact full HEAD SHA, requirements, rules and scope, with current test/CI evidence and no unresolved required findings. A tree-based test cache is not independent-review approval.
 
 ## Reassess gate procedure
 
-1. Run project checks *before review* in a suitable writable environment (or CI); record commands, outcomes and evidence tied to the full commit SHA. The reviewer can accept trustworthy CI/test evidence without personally repeating every command. Distinguish unproven acceptance from a reviewer execution limitation; never call an unverified acceptance criterion passed.
-2. Commit the final code and prepare a reviewer brief outside the repo using `reviewer-brief.md`. Include the base and full HEAD SHA, cumulative diff, applicable invariants, requirement IDs, test/CI output, known uncertainties and previously reported findings.
-3. Invoke the fresh-context `reviewer` subagent with the brief. It reads code and available evidence and runs checks where possible, but **never edits**. Classify each finding as `bug`, `spec_question`, or `out_of_scope`, with severity blocker/required/minor, stable ID and evidence.
-4. Fix real bugs in scope and add regression tests. Refer material specification questions to the owner and record decisions; defer unrelated improvements under a requirement ID. Never defer an approved security/data invariant just because its fix is nontrivial.
-5. **Stop automatic loops:** Allow at most **one full reviewer pass and one targeted recheck** of required fixes or missing evidence for the current gate. Do not launch a new full sweep in the recheck. If blockers remain or a previously reviewed blocker recurs, stop, report the exact issue and return to design/scope decision. Do not approve or merge high-risk work while required findings remain; a new review cycle requires a material changed plan and explicit authorization.
-6. Approval is valid only for the reviewed final HEAD/scope and must be accompanied by passing relevant acceptance checks and CI. New code commits invalidate that approval; record the gate as pending until it passes again. A pending gate does not erase valid local test evidence.
-7. Track the review status (pending/approved full SHA, covered scope, outstanding severity and next step) concisely in STATUS.md. Inform the owner on gate start, stop or finish, and immediately for urgent risk, not for each review comment.
+1. Integrate and commit the candidate, then obtain the applicable checks once in a suitable environment or CI. Keep evidence tied to its full SHA outside tracked files. Reuse trustworthy results; reviewers do not rerun broad suites just to reproduce them.
+2. Prepare a short brief using `reviewer-brief.md`: base/head, cumulative affected diff, applicable rules/acceptance, test evidence, uncertainties and prior findings. Pass paths and evidence, not the full conversation.
+3. Invoke the reviewer. It inspects evidence and affected integration, runs only checks that resolve a specific evidence gap, and **never edits**. Classify findings as `bug`, `spec_question` or `out_of_scope`, with severity and concrete evidence.
+4. Fix required defects in scope with focused regression checks. Ask about material specification questions; keep unrelated improvements out of the loop. Required security/data failures still block readiness.
+5. Allow at most **one full review and one targeted recheck** of required fixes or missing evidence. No new full sweep during recheck. If blockers remain or recur, report the exact issue and return to a design/scope decision; another cycle requires a materially changed plan and explicit authorization.
+6. Approval applies only to the reviewed final HEAD/scope. If only commit identity changed, use targeted confirmation of the final SHA and unchanged covered code, base integration, rules and scope, within the recheck budget. Keep the gate pending until the final HEAD is approved; valid test evidence remains reusable separately. Never approve unobserved acceptance or unresolved required findings.
+7. Record the approved SHA/scope and remaining blockers in existing evidence or tracking, without creating a bookkeeping commit that invalidates the gate. Report meaningful results and urgent risks, not every review exchange.
 
 ## Standing permissions
 
-Any owner-granted permission to merge requires exact conditions and repo/branch targets, plus current acceptance tests, CI and a required review approval. Never infer merge permission or extend it to deployment, release, secrets, paid services or destructive production actions.
+Follow owner-granted targets and conditions, required checks/CI and review when applicable. Do not infer merge permission or extend it to deployment, release, secrets, paid services or destructive production actions.
