@@ -17,6 +17,7 @@ This project follows Vibe v4.7. Normal requests select the workflow; the user do
 - During implementation: focused checks, no automatic full suite or independent reviewer per package/commit/push.
 - At a major milestone: full checks and E2E once on the integrated candidate; reuse valid evidence at release. Run relevant high-risk checks before affected work merges.
 - Independent review: affected high-risk behavior or an explicit owner request; low-risk documentation, performance and refactoring do not require it.
+- Model effort: Vibe selects native low/medium/high effort by the current work; honor explicit owner choices and host limits. Confirm effective settings from available runtime evidence when adopting, without user commands or global settings changes.
 - Deployment boundary: <integrated delivery or separate release promotion; intermediate stack branches must not deploy alone with reduced checks>
 - Standing permissions: <none, or exact authorized repository/branches/actions/checks/exclusions>
 - Existing hooks/CI: <applicable project requirements; preserve them when adapting Vibe>

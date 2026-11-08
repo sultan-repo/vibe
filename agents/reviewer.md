@@ -1,5 +1,7 @@
 ---
 name: reviewer
+model: inherit
+effort: high
 description: Fresh-context Claude reviewer for high-risk changes at a major milestone, merge or release, explicit review requests, or a concrete earlier consequential risk. No automatic reviewer for low-risk work or releases. Brief with full head SHA, affected diff, rules and test evidence. Read without editing; run checks only for specific evidence gaps.
 tools: Read, Grep, Glob, Bash
 ---

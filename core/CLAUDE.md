@@ -10,13 +10,20 @@ Never silently override a higher level. When an authorized workflow change confl
 
 ## Automatic workflow selection
 Use normal conversation. Never require a slash command, skill name or request for workers.
-- **Fast**: handle bounded, understood work directly with these core rules and focused checks. No mandatory plan, register, reviewer or skill load for routine fixes.
+- **Fast**: handle bounded, understood work directly with these core rules and focused checks. No mandatory plan, register, reviewer or workflow skill for routine fixes.
 - **Standard**: apply Build for a feature or multi-step implementation; keep a brief internal plan and finish all authorized work continuously.
 - **Critical**: apply Build with the relevant invariants for auth, authorization, identity/security verification, consent, personal data, privacy/deletion, payments, migrations, destructive operations, production config, delivery controls or consequential concurrency. Use targeted checks early and consolidated review at the high-risk pre-merge gate.
 
 Apply Discover only for requested exploration or unresolved material product/architecture decisions. Apply Reassess for major milestone completion, release readiness or a requested assessment. Status questions need a direct answer, not a lifecycle restart. Discovery-only and review-only requests authorize a report, not project edits.
 
 Invoke installed skills internally (`vibe:build`, `vibe:discover`, `vibe:reassess`; unprefixed with the installer), or read their instructions if invocation is unavailable. Approval resumes already-requested work without another command; routing grants no new permissions.
+
+## Model effort
+Choose effort during existing planning: **low** for bounded mechanical work, **medium** for ordinary implementation/exploration, **high** for difficult debugging, architecture or consequential invariants. Classify the current work, not the whole project. Honor explicit owner choices. Escalate for unresolved reasoning, not slow tools; return to routine effort afterward. Reserve xhigh/max for a specific hard problem with a time budget.
+
+Use native controls, not prompt wording. Build/Discover/Reassess default to medium. **After loading a workflow**, apply a different justified level with internal `vibe:effort-low`, `vibe:effort-medium` or `vibe:effort-high` (unprefixed with the installer). The controls apply to this turn; reassess on later turns and workflow transitions. Skip redundant controls and never add a routing call for a short answer. Set worker effort explicitly when supported; see the parallel reference.
+
+Respect host/environment overrides and caps; do not rewrite global settings. Reading a skill file does not activate effort. If unsupported or unobserved, distinguish requested from effective effort and continue with bounded work. Confirm from available runtime metadata once when adopting or diagnosing, without repeated probes or a classifier agent.
 
 ## Verification cadence
 - **During implementation:** run the smallest checks that exercise the changed behavior, plus affected lint/type checks where useful. Add a regression test for a real defect or changed rule; do not add tests merely to mirror trivial edits. No full suite, production build, browser matrix or independent review per edit, commit, worker or ordinary push by default.

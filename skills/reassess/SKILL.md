@@ -1,11 +1,14 @@
 ---
 name: reassess
+effort: medium
 description: 'Assess the delivered outcome at a major milestone, release readiness or an explicit review request. Reuse current evidence, check real user journeys and identify material gaps. Invoke independent review only for affected high-risk behavior or an explicit request. Ordinary progress questions do not require a full reassessment.'
 ---
 
 # Reassess: confirm the outcome
 
 Use this at the agreed major milestone or delivery boundary, not after every package or commit. An ordinary milestone needs outcome validation, not an automatic independent review. Select this skill internally; no user command is needed.
+
+After loading this workflow, apply the core's effort selection if this work needs a level other than medium. Keep high effort for consequential reasoning, not routine evidence collection.
 
 A standalone assessment authorizes inspection and a report. Edit code or records only when implementation or document maintenance is already authorized.
 

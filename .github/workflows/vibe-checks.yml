@@ -41,12 +41,20 @@ jobs:
           trap 'rm -rf "$VIBE_SMOKE_ROOT"' EXIT
           bash ./install.sh
           test -f "$VIBE_CLAUDE_HOME/agents/reviewer.md"
+          test -f "$VIBE_CLAUDE_HOME/agents/worker.md"
+          for level in low medium high; do
+            test -f "$VIBE_CLAUDE_HOME/skills/effort-$level/SKILL.md"
+          done
           test -f "$VIBE_CLAUDE_HOME/hooks/check-force-push.py"
           test -f "$VIBE_CLAUDE_HOME/vibe-tools/verification-cache.py"
           test -f "$VIBE_CLAUDE_HOME/vibe-tools/pre-push.template"
           test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/review-result.schema.json"
           bash ./uninstall.sh
           test ! -f "$VIBE_CLAUDE_HOME/agents/reviewer.md"
+          test ! -f "$VIBE_CLAUDE_HOME/agents/worker.md"
+          for level in low medium high; do
+            test ! -d "$VIBE_CLAUDE_HOME/skills/effort-$level"
+          done
           test ! -f "$VIBE_CLAUDE_HOME/hooks/check-force-push.py"
           test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/verification-cache.py"
 

@@ -10,9 +10,11 @@ if [ -f "$CL/CLAUDE.md" ]; then
 fi
 rm -f "$CL/vibe.md"
 
-# 2. Skills and agent.
-rm -rf "$CL/skills/discover" "$CL/skills/build" "$CL/skills/reassess"
-rm -f "$CL/agents/reviewer.md"
+# 2. Workflow/effort skills and agents.
+for skill in discover build reassess effort-low effort-medium effort-high; do
+  rm -rf "$CL/skills/$skill"
+done
+rm -f "$CL/agents/reviewer.md" "$CL/agents/worker.md"
 rm -f "$CL/vibe-tools/codex-review.py" "$CL/vibe-tools/review-result.schema.json" # legacy upgrade cleanup
 rm -f "$CL/vibe-tools/verification-cache.py" "$CL/vibe-tools/pre-push.template" "$CL/vibe-tools/verification-cache.md"
 rmdir "$CL/vibe-tools" 2>/dev/null || true

@@ -1,6 +1,6 @@
 # Vibe
 
-**v4.7.0:** focused checks during development, full verification at major milestones, and less review and context overhead.
+**v4.7.0:** focused checks during development, full verification at major milestones, automatic model effort selection, and less review and context overhead.
 
 A lightweight delivery layer for [Claude Code](https://code.claude.com). Vibe coordinates approved work, uses focused evidence while building, and checks the complete result at the agreed milestone.
 
@@ -17,8 +17,23 @@ Vibe uses **Claude only**. There are no external reviewer CLIs, sign-in requirem
 - **`build`**: complete approved work continuously with affected tests and minimal documentation. Full suites, production builds and browser matrices are not repeated after every edit, worker or ordinary push.
 - **`reassess`**: validate the integrated outcome at a major milestone or delivery boundary, reusing current evidence. Independent **Claude review** is reserved for affected high-risk behavior or an explicit request.
 - **Parallel work**: the coordinator assigns ready, independent tasks to native Claude subagents and verifies the combined result. No separate parallel command or agent-team setup is required.
+- **Model effort**: native low/medium/high controls match the current work. Routine workers default to medium; consequential reviews default to high. No separate classifier agent or global settings rewrite.
 - **Safety**: the force-push hook denies shared-history rewrites and fails closed when validation is unavailable.
 - **Optional visual board**: a Claude Code Mod shows the plan, reported task completion and current activity in a native pane. No separate server or continuous model polling.
+
+### Automatic effort selection
+
+| Current work | Requested effort |
+| --- | --- |
+| Bounded mechanical edits | Low |
+| Routine implementation and exploration | Medium |
+| Difficult debugging, architecture and consequential invariants | High |
+
+Build, Discover and Reassess use native `effort: medium` frontmatter. After loading a workflow, the coordinator can select a different level through three tiny internal skills, hidden from the user command menu. The medium control also lets it return from harder reasoning without reloading a workflow. Short answers do not incur an extra routing call. A problem that remains unresolved can justify escalation; a slow build alone cannot.
+
+The scoped worker inherits the model and defaults to medium. Supported non-fork invocations can override effort per assignment (Claude Code 2.1.292+). The reviewer defaults to high for consequential work. Explicit owner choices and host/environment limits still apply; Vibe does not change the model or saved global settings just to lower effort.
+
+These are [native skill controls](https://code.claude.com/docs/en/model-config#adjust-effort-level) and [subagent controls](https://code.claude.com/docs/en/sub-agents#choose-an-effort-level), not instructions to merely think less. Skill overrides last for the current turn. Reading the files as a fallback does not activate them. The coordinator confirms effective settings from available runtime metadata when adopting or diagnosing; unsupported or forced settings remain a disclosed limitation. Effective effort in the owner's cloud host and resulting speed/quality still need observation in a real run.
 
 ### Verification and review cadence
 
@@ -143,6 +158,8 @@ skills/discover/                   discover, challenge, enrich, approve
 skills/build/                      build and local verification
 skills/build/references/           parallel work, high-risk rules and Claude review guidance
 skills/reassess/                   alignment and conditional final review gates
+skills/effort-{low,medium,high}/    internal native effort controls
+agents/worker.md                   scoped worker with medium effort by default
 agents/reviewer.md                 fresh-context Claude reviewer
 hooks/                             force-push protection; optional verification reuse pattern
 .claude-plugin/                    plugin metadata

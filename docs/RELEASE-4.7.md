@@ -2,13 +2,13 @@
 
 ## Scope
 
-This candidate implements lighter milestone delivery, selective review, bounded parallel resource use and optional reuse of project verification. It changes Vibe only; it does not modify family-network or its deployment settings. Merge and publication have not been performed for this candidate.
+This candidate implements lighter milestone delivery, automatic native effort selection, selective review, bounded parallel resource use and optional reuse of project verification. It changes Vibe only; it does not modify family-network or its deployment settings. Merge and publication have not been performed for this candidate.
 
 ## Evidence
 
 Local candidate checks passed:
 
-- `python3 -m unittest discover -s tests -v`: 30 tests, including 19 verification-cache regressions.
+- `python3 -m unittest discover -s tests -v`: 32 tests, including 19 verification-cache regressions and native effort metadata contracts.
 - `node --test tests/*.mjs`: 15 board/benchmark tests.
 - `python3 hooks/test-force-push-hook.py`: all 28 safeguards.
 - Shell/JSON/YAML syntax, matching project templates and exact startup-hook injection.
@@ -20,11 +20,13 @@ The cache tests exercise real temporary Git repositories, including actual pre-p
 
 A fresh-context read-only exercise covered an interim UI fix, constrained parallel workers, same-tree release, performance work with a migration, a progress question and a documentation-only release. It identified two wording gaps, resolved by making document-only E2E applicability explicit and using a bounded targeted confirmation for a changed commit identity with otherwise unchanged reviewed scope.
 
-The core, Build and Reassess sources together changed from 3,409 to 2,291 whitespace-delimited words (about 33% less); the always-loaded core changed from 1,333 to 951 words (about 29% less). Word counts measure source size, not model billing tokens or runtime performance.
+The core, Build and Reassess sources together changed from 3,409 to 2,524 whitespace-delimited words (about 26% less); the always-loaded core changed from 1,333 to 1,125 words (about 16% less). These counts include the new effort policy in those three files and exclude separately loaded skills/references and their discovery metadata. Word counts measure source size, not model billing tokens or runtime performance; the earlier 33% figure applied before effort routing was added.
+
+Native effort controls use medium workflow/worker defaults, a high reviewer default and three inline internal low/medium/high skills. Metadata tests establish the requested settings, inline model invocation and absence of additional tool grants or model changes. Installation checks cover their presence and cleanup. Workflow transitions apply the chosen effort after loading, while short answers avoid extra routing calls. Non-fork per-invocation worker overrides require a supported runtime; conversation forks are not promised independent control.
 
 ## Disclosed limits
 
-Authenticated Claude execution and comparative elapsed-time/token measurements have not been run. A read-only scenario exercise checks policy consistency; it does not establish that live Claude always follows the policy. Interactive UI behavior remains unobserved for this version. The optional cache is not enabled in projects automatically and cannot infer every external verification input.
+Authenticated Claude execution and comparative elapsed-time/token measurements have not been run. A read-only scenario exercise checks policy consistency; it does not establish that live Claude always follows the policy. In particular, effective effort under the owner's host is unverified: native configuration can be superseded by environment/host controls or caps, and reading a skill as a fallback cannot activate its metadata. Adoption should confirm effective settings from available runtime evidence once and compare completed work including repairs, without adding per-task benchmarks. Interactive UI behavior remains unobserved for this version. The optional cache is not enabled in projects automatically and cannot infer every external verification input.
 
 ## Publication
 
