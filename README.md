@@ -1,6 +1,6 @@
 # Vibe
 
-**v4.7.0:** focused checks during development, full verification at major milestones, automatic model effort selection, and less review and context overhead.
+**v4.8.0:** durable session handoffs and automatic startup context, with focused checks, automatic model effort and useful parallel work.
 
 A lightweight delivery layer for [Claude Code](https://code.claude.com). Vibe coordinates approved work, uses focused evidence while building, and checks the complete result at the agreed milestone.
 
@@ -113,14 +113,14 @@ The plugin includes a native Claude Code Mod for interactive terminal sessions a
 
 ## Release verification
 
-Release verification and disclosed limits: [v4.7 verification](docs/RELEASE-4.7.md).
+Release verification and disclosed limits: [v4.8 verification](docs/RELEASE-4.8.md).
 
 - GitHub Actions runs Node and Python policy tests, mod-unit tests, installer smoke tests and hook safeguards.
 - Native validation: `claude plugin validate --strict .`; `claude plugin test .` where supported.
 - UI smoke: use `claude --plugin-dir .` in a real interactive Claude Code session and test the board. This cannot be confirmed by headless CI.
 - Performance: `node scripts/compare-performance.mjs --dry-run` previews matched tasks. `node scripts/compare-performance.mjs --model sonnet --rounds 3` runs real model comparisons (subscription usage applies).
 
-The v4.7 publisher requires successful checks on the tested main commit. Live Claude execution, interactive UI observations and comparative performance remain explicitly unverified in the [release notes](docs/RELEASE_NOTES_4.7.md). Shorter instructions and fewer default gates are not a measured runtime speedup. Rejected PR #6 remains excluded.
+The v4.8 publisher requires successful checks on the tested main commit. Live Claude execution, interactive UI observations and comparative performance remain explicitly unverified in the [release notes](docs/RELEASE_NOTES_4.8.md). Shorter instructions and fewer default gates are not a measured runtime speedup. Rejected PR #6 remains excluded.
 
 ## Install
 
@@ -167,6 +167,8 @@ Vibe completes approved implementation continuously by default. Discovery-only a
 Optional shortcuts remain available: `/vibe:discover`, `/vibe:build`, `/vibe:reassess` with the plugin, or `/discover`, `/build`, `/reassess` with the installer. They select the same workflows used by normal conversation.
 
 For ongoing projects, existing issues, documents or optional `docs/REQUIREMENTS.md`, `docs/DECISIONS.md` and `docs/STATUS.md` preserve useful decisions. They are not prerequisites for small work.
+
+**Pick up where you left off.** The coordinator saves the active work, branches, next step and any decision needed in the project's shared status record. It updates when work changes or you mention leaving or starting another session. At startup, Vibe loads the short Now summary automatically and flags possible gaps using local Git information. Both installation methods include this; unchanged conversation turns add no checkpoint work. See the [continuity template](skills/discover/references/register-template.md#docsstatusmd) and [startup behavior](hooks/session-start.md).
 
 ## Repository layout
 

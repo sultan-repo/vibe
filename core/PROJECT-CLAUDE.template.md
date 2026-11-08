@@ -12,7 +12,7 @@
 - Full milestone gate: `<project checks and end-to-end journeys>`
 
 ## Delivery
-This project follows Vibe v4.7. Normal requests select the workflow; the user does not run workflow commands.
+This project follows Vibe v4.8. Normal requests select the workflow; the user does not run workflow commands.
 - Progress: short, natural updates for a nontechnical owner in their language. Explain the useful result, current focus, next step and any real decision. Keep engineering details in records; distinguish work finished from checked and available to users.
 - Milestones: <usable features or delivery boundaries; do not make each task a milestone>
 - During implementation: focused checks, no automatic full suite or independent reviewer per package/commit/push.
@@ -27,4 +27,6 @@ For duplicate verification, the coordinator may adapt Vibe's optional verificati
 
 ## Conventions and continuity
 <Only conventions that cannot be inferred from code. Use existing issues/ADRs/tasks; create extra records only when needed.>
-The coordinator owns shared decision/status files and collects worker text through reports. Batch tracked edits before the full gate; record its final evidence outside tracked files.
+Continuity source: <canonical docs/STATUS.md on the shared branch, or the existing authoritative issue/tracker link; omit for one-off work that needs no record>.
+The coordinator owns shared decision/status files; workers return their text in reports. Follow the core's start, state-change and handoff triggers, not merges alone. Keep a ten-line Now summary with Updated (date and code baseline), Position, In progress (branches), Next task and Waiting on owner; resume details/history stay below it. Save the record and referenced unfinished work remotely under existing permissions; disclose any gap. A new session must be able to resume from the declared source alone.
+Batch simultaneous changes. Finalize tracked edits before the full gate and keep its evidence outside tracked files; later status-only edits need applicable document checks, preserving required hooks/CI. Startup automatically loads docs/STATUS.md's Now block when present and may warn using local Git information; it performs no network lookup. No owner command is needed.

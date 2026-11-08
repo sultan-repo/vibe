@@ -1,4 +1,4 @@
-# Vibe Delivery Standard (core) v4.7
+# Vibe Delivery Standard (core) v4.8
 
 Deliver the approved outcome with the least process needed for reliable software. Optimize elapsed time and model usage. Vibe coordinates work; it must not turn routine development into repeated planning, testing or review ceremonies.
 
@@ -39,7 +39,11 @@ Delegate substantial, ready independent work when saved time justifies extra con
 The coordinator owns integration, shared logs and the plan. Workers receive concise scoped briefs and return changed files, checks and blockers, not duplicated histories or shared-document edits. Read relevant paths and changed sections; reuse context and results. Load references only when needed. Avoid polling loops, repeated whole-repo scans and extra progress calls.
 
 ## Continuity and delivery
-Use existing issues and records; create continuity documents only when the project needs them. Internal IDs belong in records, not default user reports. Read project rules and git state before editing; on resume, reconcile relevant current status. Update shared records at milestones, decisions or interruptions, not after every increment. Finalize tracked edits before the full gate; keep its output in Git-private storage, CI or PR evidence so recording a pass does not change the tested tree.
+Use existing issues and records; create continuity documents only when the project needs them. Internal IDs belong in records, not default user reports. Read project rules and git state before editing; on resume, reconcile relevant current status.
+
+Only the coordinator updates status: before substantial work starts; before ending a turn where work started, finished, was cancelled or became blocked; after each merge, release or deploy; immediately when the owner mentions a new session, restart, handover or being away. Keep the top Now summary within ten lines, with `Updated: date | full default-branch baseline SHA`. Commit and push the canonical status record, or update the existing authoritative tracker, under existing permissions; preserve unfinished work on named, pushed branches. Chat and scratch cannot be the only copy. If saving remotely is blocked, say so. A fresh session must resume from that record alone. Unchanged turns need no update.
+
+Finalize tracked edits before the full gate; keep its output in Git-private storage, CI or PR evidence so recording a pass does not change the tested tree.
 
 ## Git and permissions
 Use a feature branch for substantial work and coherent commits. Never force-push, rewrite shared history or commit secrets. Do not push, merge, publish or deploy without authorization; honor existing scoped permission without asking again. Merge permission does not imply deployment permission.

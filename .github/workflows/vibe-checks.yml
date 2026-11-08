@@ -18,9 +18,11 @@ jobs:
           python-version: "3.11"
       - name: Static file validation
         run: |
-          bash -n install.sh uninstall.sh hooks/*.sh hooks/pre-push.template
+          for script in install.sh uninstall.sh hooks/*.sh hooks/pre-push.template; do
+            bash -n "$script"
+          done
           python3 -m json.tool .claude-plugin/plugin.json >/dev/null
-          python3 -c 'import json; assert json.load(open(".claude-plugin/plugin.json"))["version"] == "4.7.0"'
+          python3 -c 'import json; assert json.load(open(".claude-plugin/plugin.json"))["version"] == "4.8.0"'
           python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
           python3 -m json.tool hooks/hooks.json >/dev/null
           node --check hooks/board.mjs
@@ -46,6 +48,8 @@ jobs:
             test -f "$VIBE_CLAUDE_HOME/skills/effort-$level/SKILL.md"
           done
           test -f "$VIBE_CLAUDE_HOME/hooks/check-force-push.py"
+          test -f "$VIBE_CLAUDE_HOME/hooks/session-start.sh"
+          test -f "$VIBE_CLAUDE_HOME/hooks/session-start.py"
           test -f "$VIBE_CLAUDE_HOME/vibe-tools/verification-cache.py"
           test -f "$VIBE_CLAUDE_HOME/vibe-tools/pre-push.template"
           test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/review-result.schema.json"
@@ -56,6 +60,8 @@ jobs:
             test ! -d "$VIBE_CLAUDE_HOME/skills/effort-$level"
           done
           test ! -f "$VIBE_CLAUDE_HOME/hooks/check-force-push.py"
+          test ! -f "$VIBE_CLAUDE_HOME/hooks/session-start.sh"
+          test ! -f "$VIBE_CLAUDE_HOME/hooks/session-start.py"
           test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/verification-cache.py"
 
   native-mod-render:
