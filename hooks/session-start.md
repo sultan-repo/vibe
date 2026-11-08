@@ -1,6 +1,6 @@
 # Session continuity at startup
 
-The plugin's existing SessionStart hook adds the core and the project's `docs/STATUS.md` **Now** summary to one `additionalContext` JSON response. It reads at most ten summary lines, never history. If no status file exists, core injection is unchanged. The manual installer registers the same hook with `--status-only`, since its core is already imported.
+The plugin's existing SessionStart hook adds the core and the project's `docs/STATUS.md` **Now** summary to one `additionalContext` JSON response. It reads at most ten summary lines, never history. If no status file exists, core injection is unchanged. The manual installer registers the same hook with `--status-only`, since its core is already imported. Its startup scripts live in Vibe's own `~/.claude/vibe-tools/` directory, preserving personal scripts and registrations in the shared hooks folder.
 
 Use `## Now` followed by `Updated`, `Position`, `In progress`, `Next task` and `Waiting on owner` fields. `Updated` ends with `| <full default-branch baseline SHA>`. The baseline describes integrated work, not the commit containing the status update. Descendant commits changing only `docs/STATUS.md` do not make the record stale; changes to other documents do.
 

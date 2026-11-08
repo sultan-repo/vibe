@@ -17,12 +17,12 @@ done
 rm -f "$CL/agents/reviewer.md" "$CL/agents/worker.md"
 rm -f "$CL/vibe-tools/codex-review.py" "$CL/vibe-tools/review-result.schema.json" # legacy upgrade cleanup
 rm -f "$CL/vibe-tools/verification-cache.py" "$CL/vibe-tools/pre-push.template" "$CL/vibe-tools/verification-cache.md"
-rmdir "$CL/vibe-tools" 2>/dev/null || true
 
 # 3. Owned hook scripts and settings entries; preserve other hooks in the same entry.
 HOOK="$CL/hooks/block-force-push.sh"
-STARTUP="$CL/hooks/session-start.sh"
-rm -f "$HOOK" "$CL/hooks/check-force-push.py" "$STARTUP" "$CL/hooks/session-start.py"
+STARTUP="$CL/vibe-tools/session-start.sh"
+rm -f "$HOOK" "$CL/hooks/check-force-push.py" "$STARTUP" "$CL/vibe-tools/session-start.py"
+rmdir "$CL/vibe-tools" 2>/dev/null || true
 if [ -f "$CL/settings.json" ]; then
 python3 - "$CL/settings.json" "$HOOK" "$STARTUP" <<'PY'
 import json, shlex, sys

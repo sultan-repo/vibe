@@ -52,10 +52,11 @@ class InstallationTest(unittest.TestCase):
                               env=self.env, check=True, capture_output=True, text=True)
 
     def startup_command(self):
+        expected = [str(self.home / "vibe-tools" / "session-start.sh"), "--status-only"]
         commands = [hook["command"]
                     for entry in self.read_settings()["hooks"]["SessionStart"]
                     for hook in entry["hooks"]
-                    if "--status-only" in hook.get("command", "")]
+                    if shlex.split(hook.get("command", "")) == expected]
         self.assertEqual(len(commands), 1)
         return commands[0]
 
@@ -71,12 +72,12 @@ class InstallationTest(unittest.TestCase):
         self.assertEqual(len(first["hooks"]["SessionStart"]), 2)
         self.assertEqual(len(first["hooks"]["PreToolUse"]), 2)
         self.assertEqual(shlex.split(self.startup_command()),
-                         [str(self.home / "hooks" / "session-start.sh"), "--status-only"])
+                         [str(self.home / "vibe-tools" / "session-start.sh"), "--status-only"])
         personal = (self.home / "CLAUDE.md").read_text(encoding="utf-8")
         self.assertTrue(personal.startswith(self.personal))
         self.assertEqual(personal.count("@~/.claude/vibe.md"), 1)
-        self.assertTrue(os.access(self.home / "hooks" / "session-start.sh", os.X_OK))
-        self.assertTrue((self.home / "hooks" / "session-start.py").is_file())
+        self.assertTrue(os.access(self.home / "vibe-tools" / "session-start.sh", os.X_OK))
+        self.assertTrue((self.home / "vibe-tools" / "session-start.py").is_file())
 
     def test_uninstall_removes_only_owned_hooks_and_files(self):
         self.run_script("install.sh")
@@ -92,13 +93,39 @@ class InstallationTest(unittest.TestCase):
         self.assertEqual(self.read_settings(), expected)
         self.run_script("uninstall.sh")
         self.assertEqual(self.read_settings(), expected)
-        for filename in ("session-start.sh", "session-start.py", "block-force-push.sh", "check-force-push.py"):
+        for filename in ("block-force-push.sh", "check-force-push.py"):
             self.assertFalse((self.home / "hooks" / filename).exists())
+        for filename in ("session-start.sh", "session-start.py"):
+            self.assertFalse((self.home / "vibe-tools" / filename).exists())
         self.assertEqual((self.home / "hooks" / "personal.sh").read_text(encoding="utf-8"),
                          "personal hook\n")
         personal = (self.home / "CLAUDE.md").read_text(encoding="utf-8")
         self.assertIn(self.personal, personal)
         self.assertNotIn("@~/.claude/vibe.md", personal)
+
+    def test_generic_startup_scripts_and_registrations_survive_install_and_removal(self):
+        personal_files = {
+            self.home / "hooks" / "session-start.sh": "#!/bin/sh\necho personal startup\n",
+            self.home / "hooks" / "session-start.py": "print('personal startup helper')\n",
+        }
+        for path, contents in personal_files.items():
+            path.write_text(contents, encoding="utf-8")
+        personal_start = shlex.quote(str(self.home / "hooks" / "session-start.sh"))
+        personal_helper = shlex.quote(str(self.home / "hooks" / "session-start.py"))
+        self.settings["hooks"]["SessionStart"].append({"hooks": [
+            {"type": "command", "command": personal_start + " --status-only"},
+            {"type": "command", "command": "python3 " + personal_helper},
+        ]})
+        self.write_settings(self.settings)
+        for action in ("install.sh", "install.sh", "uninstall.sh"):
+            self.run_script(action)
+            for path, contents in personal_files.items():
+                self.assertEqual(path.read_text(encoding="utf-8"), contents)
+            if action == "install.sh":
+                self.assertEqual(self.read_settings()["hooks"]["SessionStart"][:2],
+                                 self.settings["hooks"]["SessionStart"])
+                self.startup_command()
+        self.assertEqual(self.read_settings(), self.settings)
 
     def test_registered_startup_reads_project_without_duplicating_core(self):
         self.run_script("install.sh")

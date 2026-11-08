@@ -28,10 +28,10 @@ mkdir -p "$CL/vibe-tools"
 cp "$HERE/hooks/verification-cache.py" "$HERE/hooks/pre-push.template" "$HERE/hooks/verification-cache.md" "$CL/vibe-tools/"
 
 # 3. Force-push protection and startup continuity, preserving unrelated settings.
-cp "$HERE/hooks/block-force-push.sh" "$HERE/hooks/check-force-push.py" \
-   "$HERE/hooks/session-start.sh" "$HERE/hooks/session-start.py" "$CL/hooks/"
-chmod +x "$CL/hooks/block-force-push.sh" "$CL/hooks/session-start.sh"
-python3 - "$CL/settings.json" "$CL/hooks/block-force-push.sh" "$CL/hooks/session-start.sh" <<'PY'
+cp "$HERE/hooks/block-force-push.sh" "$HERE/hooks/check-force-push.py" "$CL/hooks/"
+cp "$HERE/hooks/session-start.sh" "$HERE/hooks/session-start.py" "$CL/vibe-tools/"
+chmod +x "$CL/hooks/block-force-push.sh" "$CL/vibe-tools/session-start.sh"
+python3 - "$CL/settings.json" "$CL/hooks/block-force-push.sh" "$CL/vibe-tools/session-start.sh" <<'PY'
 import json, os, shlex, sys
 path, cmd, startup_path = sys.argv[1:]
 data = {}
@@ -60,5 +60,5 @@ echo "  skills/effort-low, skills/effort-medium, skills/effort-high (internal co
 echo "  agents/reviewer.md, agents/worker.md"
 echo "  vibe-tools/ (optional project verification reuse; not enabled globally)"
 echo "  hooks/block-force-push.sh + check-force-push.py (PreToolUse hook in settings.json)"
-echo "  hooks/session-start.sh + session-start.py (project status at session start)"
+echo "  vibe-tools/session-start.sh + session-start.py (project status at session start)"
 echo "Open a new Claude Code session to pick it up."

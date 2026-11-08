@@ -8,14 +8,14 @@ This release adds explicit continuity checkpoints, a compact status template, st
 
 Local checks passed:
 
-- `python3 -m unittest discover -s tests -v`: 51 tests, including 16 startup-hook regressions and three isolated installer tests.
+- `python3 -m unittest discover -s tests -v`: 52 tests, including 16 startup-hook regressions and four isolated installer tests.
 - `node --test tests/*.mjs`: 17 board and benchmark-harness tests, without model calls.
 - `python3 hooks/test-force-push-hook.py`: all 28 safeguards.
 - Shell syntax for every script, JSON/YAML parsing, matching project templates and `git diff --check`.
 
 Hook tests use real local Git repositories for current, stale, missing and malformed status; status-only descendants; other-document changes; mentioned/unmentioned and merged branches; missing default references; nested paths and worktrees. A fresh clone finds the active branch, next task and remotely preserved partial work without earlier conversation or scratch files. A Git shim restricts the executed commands to local reads and verifies that transport protocols and lazy fetching are disabled.
 
-Installer tests exercise install, reinstall and repeated uninstall, preserving personal instructions/settings and unrelated hooks. They execute the installed startup command from a path containing spaces, an apostrophe and `$`, confirming that status is added once and the already imported core is not duplicated.
+Installer tests exercise install, reinstall and repeated uninstall, preserving personal instructions/settings and unrelated hooks, including pre-existing generic `session-start.sh` and `session-start.py` scripts. Vibe's startup scripts are isolated in its own tools directory. Tests execute the installed startup command from a path containing spaces, an apostrophe and `$`, confirming that status is added once and the already imported core is not duplicated.
 
 A fresh-context worker also continued a small synthetic Python task from a fresh clone and its committed status alone. It found the saved feature branch, completed the pending duplicate-removal behavior, passed three focused tests and pushed both the feature and canonical handoff to a local bare origin without merging. The exercise exposed an ambiguity about Updated's baseline; the core and Build guidance now explicitly preserve the default-branch baseline. One bounded follow-up corrected that field and confirmed warning-free startup without rerunning product tests. This is a controlled continuation exercise, not an observation of the owner's live Claude session.
 

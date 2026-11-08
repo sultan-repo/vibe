@@ -48,8 +48,8 @@ jobs:
             test -f "$VIBE_CLAUDE_HOME/skills/effort-$level/SKILL.md"
           done
           test -f "$VIBE_CLAUDE_HOME/hooks/check-force-push.py"
-          test -f "$VIBE_CLAUDE_HOME/hooks/session-start.sh"
-          test -f "$VIBE_CLAUDE_HOME/hooks/session-start.py"
+          test -f "$VIBE_CLAUDE_HOME/vibe-tools/session-start.sh"
+          test -f "$VIBE_CLAUDE_HOME/vibe-tools/session-start.py"
           test -f "$VIBE_CLAUDE_HOME/vibe-tools/verification-cache.py"
           test -f "$VIBE_CLAUDE_HOME/vibe-tools/pre-push.template"
           test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/review-result.schema.json"
@@ -60,8 +60,8 @@ jobs:
             test ! -d "$VIBE_CLAUDE_HOME/skills/effort-$level"
           done
           test ! -f "$VIBE_CLAUDE_HOME/hooks/check-force-push.py"
-          test ! -f "$VIBE_CLAUDE_HOME/hooks/session-start.sh"
-          test ! -f "$VIBE_CLAUDE_HOME/hooks/session-start.py"
+          test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/session-start.sh"
+          test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/session-start.py"
           test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/verification-cache.py"
 
   native-mod-render:
