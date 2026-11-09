@@ -58,7 +58,7 @@ Present one checkpoint, ideally 5–10 short lines, only when a material decisio
 
 If the repository has no `CLAUDE.md`, create one from `references/project-claude-template.md` with the objective, non-goals, and constraints agreed in the checkpoint; fill the Commands section once the stack is decided.
 
-Record material approved rules, focused checks, the major milestone where full E2E is due, and any high-risk review requirement. No external reviewer configuration or authentication is required.
+Record material approved rules, affected/expanded checks and the actual production delivery boundary where full E2E is due. Feature milestones do not automatically require a full suite; use `../build/references/testing-policy.md` when coverage needs clarification. Preserve any explicit project integration gate and high-risk review requirement. No external reviewer configuration or authentication is required.
 
 Use existing project tracking. For long-running projects that need it, create or update relevant continuity files using `references/register-template.md`; do not require all three files or update them when no material state changed.
 

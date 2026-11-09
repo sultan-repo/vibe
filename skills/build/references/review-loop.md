@@ -1,6 +1,6 @@
 # High-risk rules and bounded Claude review
 
-Load only for high-risk behavior or a required independent review. Routine implementation uses focused checks; full end-to-end verification belongs at the major milestone or release boundary.
+Load only for high-risk behavior or a required independent review. Use affected/expanded verification during development under `testing-policy.md`; full end-to-end verification is required before production delivery, for unbounded impact or by an explicit project integration gate, not merely because a feature milestone ended.
 
 ## Before building high-risk behavior
 

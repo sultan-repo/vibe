@@ -46,22 +46,26 @@ class LeanWorkflowTest(unittest.TestCase):
     def test_human_readable_github_titles(self):
         core = read("core/CLAUDE.md")
         build = read("skills/build/SKILL.md")
-        readme = read("README.md")
+        # Implementation rules live in the core, not the simplified user README.
         for rule in ("commit titles:", "commit body", "pr titles:", "branch names:",
                      "do not rewrite existing history"):
             with self.subTest(rule=rule):
                 self.assertIn(rule, core)
         self.assertIn("human-readable, action-first commit titles", build)
         self.assertIn("commit body, not the title", build)
-        self.assertIn("commit and pr titles", readme)
-        self.assertIn("do not rename existing commits", readme)
 
     def test_readme_describes_new_defaults(self):
         readme = read("README.md")
-        for term in ("fast", "standard", "critical", "continuously by default",
-                     "2–5 plain-language lines"):
+        for term in ("plain language", "no special commands required", "focused tests",
+                     "clear progress", "session continuity"):
             with self.subTest(term=term):
                 self.assertIn(term, readme)
+        # Keep operational requirements checked where they are actually enforced.
+        core = read("core/CLAUDE.md")
+        for term in ("**fast**", "**standard**", "**critical**", "2–5 short lines"):
+            with self.subTest(term=term):
+                self.assertIn(term, core)
+        self.assertIn("continuous delivery is the default", read("skills/build/SKILL.md"))
 
 
 if __name__ == "__main__":

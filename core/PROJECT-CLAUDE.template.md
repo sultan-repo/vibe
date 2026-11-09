@@ -8,22 +8,26 @@
 
 ## Commands (the coordinator runs these)
 - Install/run: `<commands>`
-- Focused checks: `<affected tests and lint/typecheck commands>`
-- Full milestone gate: `<project checks and end-to-end journeys>`
+- Affected checks: `<relevant unit/integration tests, targeted E2E and lint/type checks>`
+- Expanded checks: `<shared consumers, critical invariants and broader regression; full if impact is unbounded>`
+- Full release gate: `<complete relevant project suite and end-to-end journeys>`
 
 ## Delivery
-This project follows Vibe v4.8. Normal requests select the workflow; the user does not run workflow commands.
+This project follows Vibe v4.8 with change-aware verification. Normal requests select the workflow; the user does not run workflow commands.
 - Progress: short, natural updates for a nontechnical owner in their language. Explain the useful result, current focus, next step and any real decision. Keep engineering details in records; distinguish work finished from checked and available to users.
-- Milestones: <usable features or delivery boundaries; do not make each task a milestone>
-- During implementation: focused checks, no automatic full suite or independent reviewer per package/commit/push.
-- At a major milestone: full checks and E2E once on the integrated candidate; reuse valid evidence at release. Run relevant high-risk checks before affected work merges.
+- Milestones: <usable outcomes; feature completion is not automatically a full-suite trigger>
+- During implementation: affected or expanded checks based on cumulative impact and dependencies, no automatic full suite or independent reviewer per package/commit/non-deploying push. Keep cheap broad checks when selection adds overhead.
+- Uncertain/shared/high-risk changes: cover affected consumers and critical invariants before merge; zero selected tests for changed behavior is not a pass. Use full relevant checks when impact cannot be bounded.
+- Before any production delivery: full relevant checks and E2E once on the integrated candidate, including small releases and auto-deploying merges; reuse only valid full evidence. Explicit project integration gates still apply. Feature acceptance and release readiness are separate.
 - Independent review: affected high-risk behavior or an explicit owner request; low-risk documentation, performance and refactoring do not require it.
 - Model effort: Vibe selects native low/medium/high effort by the current work; honor explicit owner choices and host limits. Confirm effective settings from available runtime evidence when adopting, without user commands or global settings changes.
-- Deployment boundary: <integrated delivery or separate release promotion; intermediate stack branches must not deploy alone with reduced checks>
+- Deployment boundary: <integrated delivery or separate release promotion; intermediate branches must not deploy alone with reduced checks>
 - Standing permissions: <none, or exact authorized repository/branches/actions/checks/exclusions>
-- Existing hooks/CI: <applicable project requirements; preserve them when adapting Vibe>
+- Existing hooks/CI: <applicable project requirements; preserve them until an authorized replacement is validated>
 
-For duplicate verification, the coordinator may adapt Vibe's optional verification-cache helper and pre-push template to the existing gate. Reuse requires the actual pushed tree, a clean stable checkout, the right mode and unchanged declared context. Full includes quick only if the project defines that relationship. Test reuse does not replace required CI or reviewer approval. No owner setup command is needed.
+Test selection uses the integration base, cumulative diff, affected journeys and existing dependency/test information, not filenames alone. Record coverage and deferred full E2E in existing tracking. Validate a new selection mapping with a bounded targeted/full comparison before relaxing an existing project gate; do not repeat that comparison for every feature.
+
+For duplicate verification, the coordinator may adapt Vibe's optional verification-cache helper and pre-push template to the existing gate. Its modes remain quick/full: map affected/expanded selections through a scope-aware adapter and release to full. Reuse requires the actual pushed tree, a clean stable checkout, sufficient coverage, selection base/filters and unchanged declared context. Full includes quick only if the project defines that relationship. Keep full evidence separate; a failed/interrupted rerun invalidates prior evidence for those inputs. Test reuse does not replace required CI or reviewer approval. No owner setup command is needed.
 
 ## Conventions and continuity
 <Only conventions that cannot be inferred from code. Use existing issues/ADRs/tasks; create extra records only when needed.>
