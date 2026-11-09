@@ -45,7 +45,7 @@ Small fixes take the short path. Larger tasks can use multiple Claude agents. Ri
 
 - **Less babysitting.** Vibe picks the appropriate workflow and keeps approved work moving.
 - **Parallel help when useful.** Independent tasks can run with Claude subagents, then get integrated.
-- **Checks without endless review loops.** Focused tests during development and broader verification at important milestones.
+- **Checks without endless review loops.** Focused tests for changed features, broader checks for shared or risky changes, and full verification before production delivery.
 - **Clear progress.** Updates explain what's done, what's next, and what needs your decision.
 - **Session continuity.** Project status is saved at work boundaries and loaded when a new session starts.
 - **Safer Git operations.** A hook protects against unsafe force-pushes.
@@ -87,6 +87,8 @@ The board shows reported task progress, not a live guarantee that tests have pas
 - It asks for decisions that materially affect the outcome. Your existing approval and permission rules still apply.
 - Session recovery uses the saved project status and local Git context. It cannot recover work that was never saved.
 - Parallel agents are optional and depend on the task and available Claude resources.
+
+Existing project test requirements still apply. Finishing a feature does not mean it is ready for release. See [how Vibe selects tests](skills/build/references/testing-policy.md).
 
 **Update:** `/plugin update vibe`  
 **Uninstall:** `/plugin uninstall vibe`
