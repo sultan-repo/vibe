@@ -22,7 +22,7 @@ jobs:
             bash -n "$script"
           done
           python3 -m json.tool .claude-plugin/plugin.json >/dev/null
-          python3 -c 'import json; assert json.load(open(".claude-plugin/plugin.json"))["version"] == "4.8.0"'
+          python3 -c 'import json; assert json.load(open(".claude-plugin/plugin.json"))["version"] == "4.9.0"'
           python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
           python3 -m json.tool hooks/hooks.json >/dev/null
           node --check hooks/board.mjs
@@ -65,8 +65,8 @@ jobs:
           test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/verification-cache.py"
 
   native-mod-render:
-    # Validate release candidates and the final main commit before publication.
-    if: github.ref == 'refs/heads/main' || startsWith(github.head_ref || github.ref_name, 'release/')
+    # Every PR can deliver through main: validate before merge, regardless of branch name.
+    # Keep native checks read-only here; publication remains limited to trusted main pushes.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

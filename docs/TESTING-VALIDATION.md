@@ -1,6 +1,6 @@
 # Change-aware testing: validation and adoption
 
-Status: unreleased policy change. This document defines acceptance scenarios, not recorded runtime passes. Check the associated PR/CI evidence for executed checks and the exact candidate. Plugin version and release workflows are unchanged; no release is implied.
+Status: v4.9.0 release candidate. This document defines acceptance scenarios, not recorded runtime passes. Check the associated PR/CI evidence for executed checks and the exact candidate. Merging to `main` is a production delivery because the marketplace installs from this repository; a draft PR or a missing tag is not a deployment hold. The version, release notes and publisher must agree before merge. See [release verification](RELEASE-4.9.md).
 
 ## Scope
 
@@ -28,7 +28,7 @@ Replace automatic full testing at feature milestones with affected/expanded/rele
 
 ## Repository checks
 
-Run the existing policy, YAML, installation, session-start, force-push and verification-cache tests through the unchanged Vibe checks workflow. The new `tests/test_testing_policy.py` guards instruction consistency, escalation rules and evidence contracts. These are static policy regression tests, not proof of an agent's runtime decisions or a project's test coverage. Existing executable cache tests remain responsible for the helper's behavior.
+Run the existing policy, YAML, installation, session-start, force-push and verification-cache tests through the Vibe checks workflow. Both `validate` and `native-mod-render` must pass on the final integrated candidate before merge. Native checks now run on every PR, regardless of branch name, and on main with pinned Claude Code 2.1.314. A skipped, unavailable, cancelled or failed required check is not a pass; post-merge validation alone is too late for marketplace delivery. The new `tests/test_testing_policy.py` guards instruction consistency, escalation rules and evidence contracts. These are static policy regression tests, not proof of an agent's runtime decisions or a project's test coverage. Existing executable cache tests remain responsible for the helper's behavior. `tests/test_release_candidate.py` guards version/release consistency, pre-merge native validation and the trusted-main publication boundary. These configuration checks do not themselves execute a release or prove native runtime behavior.
 
 ## Before reducing a project's existing gate
 
