@@ -54,3 +54,9 @@ Before relaxing a project's existing full-development gate, run a bounded shadow
 If selection misses a relevant failure or impact cannot be bounded, keep expanded/full checks and correct the mapping before adoption. Also verify that push/release reuse preserves full evidence and invalidates it after changed inputs or a failed rerun. Record elapsed time and duplicate runs; do not claim speedups or unchanged defect detection without evidence. This comparison is an adoption check, not a new dual-run requirement for every feature. Preserve the full production gate afterward.
 
 See `docs/TESTING-VALIDATION.md` in the repository for the policy's acceptance scenarios and runtime limits.
+
+## Project adoption and gate inspection
+
+Apply the core's automatic managed policy adoption during authorized project edits; it requires no workflow command and is separate from migrating executable gates. On first relevant adoption or a changed startup advisory, inspect the effective hook path, project rules, command chains, CI triggers and real delivery boundary. Static advisories are bounded hints, not proof that a targeted browser check or stricter intentional gate is a conflict. Preserve gates until an authorized replacement passes the bounded comparison above.
+
+Avoid new expensive blocking full gates on ordinary non-deploying commits/pushes by default, not by an absolute ban. Keep cheap broad checks, required integration checks, targeted UI acceptance and early critical invariants. Where duplicated expensive verification warrants it, use the optional helper's evidence-only `check` or `pre-push --require-evidence` after arranging separate execution. Missing or pending evidence blocks promotion without launching a suite inside the hook. Required CI and review remain independent. Background worktrees are conditional on stable candidates and isolated/reserved resources, not a mandatory milestone ceremony.

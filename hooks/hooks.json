@@ -1,8 +1,5 @@
 {
-  "description": "Vibe core, startup continuity and force-push safeguards; optional native progress board mod.",
-  "modules": [
-    "./board.mjs"
-  ],
+  "description": "Vibe core, bounded startup continuity/gate advice and force-push safeguards.",
   "hooks": {
     "SessionStart": [
       {

@@ -1,4 +1,4 @@
-name: Publish Vibe 4.9.0
+name: Publish Vibe 4.10.0
 
 # Run only after the trusted main-branch Vibe checks succeed. The publish
 # credential is kept out of the pull-request test workflow.
@@ -37,13 +37,13 @@ jobs:
           set -euo pipefail
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           version="$(python3 -c 'import json; print(json.load(open(".claude-plugin/plugin.json"))["version"])')"
-          if [ "$version" != "4.9.0" ]; then
+          if [ "$version" != "4.10.0" ]; then
             echo "Skipping tested source with version $version."
             echo "publish=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          test -f docs/RELEASE_NOTES_4.9.md
-          test -f docs/RELEASE-4.9.md
+          test -f docs/RELEASE_NOTES_4.10.md
+          test -f docs/RELEASE-4.10.md
           echo "publish=true" >> "$GITHUB_OUTPUT"
       - name: Create tag and GitHub release (idempotent)
         if: steps.source.outputs.publish == 'true'
@@ -54,8 +54,8 @@ jobs:
           CI_RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: |
           set -euo pipefail
-          released_sha="$(gh api --paginate "repos/$GH_REPO/releases" --jq '.[] | select(.tag_name == "v4.9.0") | .target_commitish')"
-          tag_object="$(gh api "repos/$GH_REPO/git/matching-refs/tags/v4.9.0" --jq '.[] | select(.ref == "refs/tags/v4.9.0") | [.object.type, .object.sha] | @tsv')"
+          released_sha="$(gh api --paginate "repos/$GH_REPO/releases" --jq '.[] | select(.tag_name == "v4.10.0") | .target_commitish')"
+          tag_object="$(gh api "repos/$GH_REPO/git/matching-refs/tags/v4.10.0" --jq '.[] | select(.ref == "refs/tags/v4.10.0") | [.object.type, .object.sha] | @tsv')"
           read -r tag_type tag_sha <<< "$tag_object"
           while [ "$tag_type" = "tag" ]; do
             tag_object="$(gh api "repos/$GH_REPO/git/tags/$tag_sha" --jq '.object | [.type, .sha] | @tsv')"
@@ -70,7 +70,7 @@ jobs:
               echo "Published release target and tag do not match a full commit SHA." >&2
               exit 1
             fi
-            echo "Vibe v4.9.0 was already published at $released_sha. No changes made."
+            echo "Vibe v4.10.0 was already published at $released_sha. No changes made."
             exit 0
           fi
           main_sha="$(gh api "repos/$GH_REPO/git/ref/heads/main" --jq '.object.sha')"
@@ -79,20 +79,20 @@ jobs:
             exit 0
           fi
           if [ -n "$tag_sha" ] && [ "$tag_sha" != "$TESTED_SHA" ]; then
-            echo "Existing v4.9.0 tag does not match tested commit $TESTED_SHA." >&2
+            echo "Existing v4.10.0 tag does not match tested commit $TESTED_SHA." >&2
             exit 1
           fi
           if [ -z "$tag_sha" ]; then
             gh api --method POST "repos/$GH_REPO/git/refs" \
-              -f ref=refs/tags/v4.9.0 -f sha="$TESTED_SHA" >/dev/null
+              -f ref=refs/tags/v4.10.0 -f sha="$TESTED_SHA" >/dev/null
           fi
           notes="$(mktemp)"
           trap 'rm -f "$notes"' EXIT
-          cat docs/RELEASE_NOTES_4.9.md > "$notes"
+          cat docs/RELEASE_NOTES_4.10.md > "$notes"
           printf '\n\n## Release provenance\n\n- Successful CI run: %s\n- Tested commit: `%s`\n' "$CI_RUN_URL" "$TESTED_SHA" >> "$notes"
-          gh release create v4.9.0 \
+          gh release create v4.10.0 \
             --verify-tag \
             --target "$TESTED_SHA" \
-            --title "Vibe v4.9.0" \
+            --title "Vibe v4.10.0" \
             --notes-file "$notes" \
             --latest

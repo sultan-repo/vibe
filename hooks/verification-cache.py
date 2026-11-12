@@ -135,6 +135,7 @@ def pushed_trees():
 def verify(args):
     os.chdir(git("rev-parse", "--show-toplevel"))
     trees = pushed_trees() if args.action == "pre-push" else None
+    check_only = args.action == "check" or args.require_evidence
     if trees == []:
         return 0  # No source is sent for a deletion-only or empty push.
     directory = Path(git("rev-parse", "--path-format=absolute", "--git-path", "vibe-verification"))
@@ -153,6 +154,11 @@ def verify(args):
         trees = trees if trees is not None else [start[1]]
         hits = {tree: None if args.fresh else evidence.matching(tree, args.mode) for tree in trees}
         missing = [tree for tree in trees if hits[tree] is None]
+        if missing and check_only:
+            raise VerificationError(
+                "required passing evidence is missing, stale or insufficient; "
+                "run verification separately for the intended candidate before retrying"
+            )
         if any(tree != start[1] for tree in missing):
             raise VerificationError(
                 "a pushed tree has no matching evidence and is not checked out; "
@@ -187,12 +193,14 @@ def verify(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("run", "pre-push"))
+    parser.add_argument("action", choices=("run", "check", "pre-push"))
     parser.add_argument("--mode", required=True, choices=("quick", "full"))
     context = parser.add_mutually_exclusive_group(required=True)
     context.add_argument("--context", help="explicitly immutable nonsecret verification context")
     context.add_argument("--context-command", help="executable returning the input signature, checked before and after")
     parser.add_argument("--full-includes-quick", action="store_true")
+    parser.add_argument("--require-evidence", action="store_true",
+                        help="pre-push only: reject missing evidence without running the gate")
     parser.add_argument("--fresh", action="store_true", help="invalidate reusable evidence and run again")
     # Split the command explicitly so option parsing does not swallow helper flags.
     argv = sys.argv[1:]
@@ -200,6 +208,10 @@ def main():
         parser.error("provide the project gate adapter after -- (it receives quick/full as its final argument)")
     separator = argv.index("--")
     args = parser.parse_args(argv[:separator])
+    if args.require_evidence and args.action != "pre-push":
+        parser.error("--require-evidence applies to pre-push; use check for the current candidate")
+    if args.fresh and (args.action == "check" or args.require_evidence):
+        parser.error("evidence-only checks cannot use --fresh")
     args.command = argv[separator + 1:]
     if not args.command:
         parser.error("a project gate adapter is required")

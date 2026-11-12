@@ -1,5 +1,6 @@
 ---
 name: reassess
+user-invocable: false
 effort: medium
 description: 'Assess the delivered outcome at a major milestone, release readiness or an explicit review request. Reuse current evidence, check real user journeys and identify material gaps. Invoke independent review only for affected high-risk behavior or an explicit request. Ordinary progress questions do not require a full reassessment.'
 ---
@@ -10,7 +11,7 @@ Use this at the agreed major milestone or delivery boundary, not after every pac
 
 After loading this workflow, apply the core's effort selection if this work needs a level other than medium. Keep high effort for consequential reasoning, not routine evidence collection.
 
-A standalone assessment authorizes inspection and a report. Edit code or records only when implementation or document maintenance is already authorized.
+A standalone assessment authorizes inspection and a report. Edit code or records only when implementation or document maintenance is already authorized. Apply Vibe principles without a setup command; persist the managed project policy only when such edits are authorized, following the core's adoption rule.
 
 ## 1. Compare scope, behavior and evidence
 Read the objective, relevant requirements/decisions, cumulative diff and available check results. Reuse context and inspect changed sections; do not scan every record or recreate a register. Establish:

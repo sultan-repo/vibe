@@ -78,6 +78,8 @@ class InstallationTest(unittest.TestCase):
         self.assertEqual(personal.count("@~/.claude/vibe.md"), 1)
         self.assertTrue(os.access(self.home / "vibe-tools" / "session-start.sh", os.X_OK))
         self.assertTrue((self.home / "vibe-tools" / "session-start.py").is_file())
+        self.assertTrue((self.home / "vibe-tools" / "project_setup.py").is_file())
+        self.assertTrue((self.home / "vibe-tools" / "project-adoption.md").is_file())
 
     def test_uninstall_removes_only_owned_hooks_and_files(self):
         self.run_script("install.sh")
@@ -95,7 +97,7 @@ class InstallationTest(unittest.TestCase):
         self.assertEqual(self.read_settings(), expected)
         for filename in ("block-force-push.sh", "check-force-push.py"):
             self.assertFalse((self.home / "hooks" / filename).exists())
-        for filename in ("session-start.sh", "session-start.py"):
+        for filename in ("session-start.sh", "session-start.py", "project_setup.py", "project-adoption.md"):
             self.assertFalse((self.home / "vibe-tools" / filename).exists())
         self.assertEqual((self.home / "hooks" / "personal.sh").read_text(encoding="utf-8"),
                          "personal hook\n")

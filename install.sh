@@ -29,7 +29,7 @@ cp "$HERE/hooks/verification-cache.py" "$HERE/hooks/pre-push.template" "$HERE/ho
 
 # 3. Force-push protection and startup continuity, preserving unrelated settings.
 cp "$HERE/hooks/block-force-push.sh" "$HERE/hooks/check-force-push.py" "$CL/hooks/"
-cp "$HERE/hooks/session-start.sh" "$HERE/hooks/session-start.py" "$CL/vibe-tools/"
+cp "$HERE/hooks/session-start.sh" "$HERE/hooks/session-start.py" "$HERE/hooks/project_setup.py" "$HERE/hooks/project-adoption.md" "$CL/vibe-tools/"
 chmod +x "$CL/hooks/block-force-push.sh" "$CL/vibe-tools/session-start.sh"
 python3 - "$CL/settings.json" "$CL/hooks/block-force-push.sh" "$CL/vibe-tools/session-start.sh" <<'PY'
 import json, os, shlex, sys
@@ -42,7 +42,7 @@ pre = data.setdefault("hooks", {}).setdefault("PreToolUse", [])
 present = any(h.get("command") == cmd for e in pre for h in e.get("hooks", []))
 if not present:
     pre.append({"matcher": "Bash", "hooks": [{"type": "command", "command": cmd}]})
-# The core is already imported by CLAUDE.md, so this hook adds only project status.
+# The core is already imported by CLAUDE.md; add bounded project status and gate advice only.
 startup_cmd = shlex.quote(startup_path) + " --status-only"
 starts = data["hooks"].setdefault("SessionStart", [])
 present = any(h.get("command") == startup_cmd for e in starts for h in e.get("hooks", []))
@@ -60,5 +60,6 @@ echo "  skills/effort-low, skills/effort-medium, skills/effort-high (internal co
 echo "  agents/reviewer.md, agents/worker.md"
 echo "  vibe-tools/ (optional project verification reuse; not enabled globally)"
 echo "  hooks/block-force-push.sh + check-force-push.py (PreToolUse hook in settings.json)"
-echo "  vibe-tools/session-start.sh + session-start.py (project status at session start)"
+echo "  vibe-tools/session-start.sh + session-start.py + project_setup.py (bounded project context)"
+echo "  vibe-tools/project-adoption.md (automatic policy adoption during authorized work)"
 echo "Open a new Claude Code session to pick it up."
