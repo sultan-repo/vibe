@@ -8,8 +8,8 @@
     {
       "name": "vibe",
       "source": "./",
-      "description": "Vibe v4.11: reuse before rebuilding, automatic project adoption, evidence-only verification and durable handoffs."
+      "description": "Vibe v4.12: shared project workflows for Claude Code and Codex, focused verification and durable handoffs."
     }
   ],
-  "description": "Sultan Alsubaie's Claude Code plugins. Currently: vibe, an outcome-driven software delivery standard."
+  "description": "Sultan Alsubaie's plugins for Claude Code and Codex. Currently: vibe, an outcome-driven software delivery standard."
 }

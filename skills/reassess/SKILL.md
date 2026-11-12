@@ -7,6 +7,8 @@ description: 'Assess the delivered outcome at a major milestone, release readine
 
 # Reassess: confirm the outcome
 
+If startup has not already supplied the Vibe delivery standard, read `../../core/CLAUDE.md` relative to this installed skill before proceeding.
+
 Use this at the agreed major milestone or delivery boundary, not after every package or commit. An ordinary milestone needs outcome validation, not an automatic full suite or independent review. Select this skill internally; no user command is needed.
 
 After loading this workflow, apply the core's effort selection if this work needs a level other than medium. Keep high effort for consequential reasoning, not routine evidence collection.
@@ -27,7 +29,7 @@ Reuse a valid completed run; run only missing evidence. A readiness question or 
 For a progress question or interim assessment, use available evidence and identify deferred full E2E as pending before delivery. Do not launch a full browser matrix to answer a status question. Never present unobserved journeys, unavailable environments or simulated feedback as verified.
 
 ## 2. Review only when required
-Use the fresh-context Claude `reviewer` for a **high-risk change** before merge/release, an explicit independent-review request, or a concrete newly discovered consequential risk before irreversible action. Classify the actual changed behavior using `../build/references/review-loop.md`; a performance/refactor label does not exempt security, personal data or migrations.
+Use the active host's fresh-context reviewer for a **high-risk change** before merge/release, an explicit independent-review request, or a concrete newly discovered consequential risk before irreversible action. Classify the actual changed behavior using `../build/references/review-loop.md`; a performance/refactor label does not exempt security, personal data or migrations.
 
 Low-risk milestones and releases do not require independent review. Do not add a reviewer just because the work was substantial or parallel.
 

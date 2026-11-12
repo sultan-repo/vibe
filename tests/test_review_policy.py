@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Guard the Claude-only review policy and removal of external reviewer dependencies."""
+"""Guard host-native review and removal of external reviewer dependencies."""
 from pathlib import Path
 import unittest
 
@@ -21,7 +21,8 @@ class ReviewPolicyTest(unittest.TestCase):
     def test_no_external_reviewer_in_active_instructions(self):
         for path in ACTIVE_DOCS:
             with self.subTest(path=path):
-                self.assertNotIn("codex", read(path).lower())
+                for external_reviewer in ("codex-review.py", "codex exec review", "codex exec --"):
+                    self.assertNotIn(external_reviewer, read(path).lower())
 
     def test_external_cli_artifacts_are_removed(self):
         for path in ("scripts/codex-review.py", "scripts/review-result.schema.json",

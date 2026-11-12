@@ -54,6 +54,8 @@ class ProjectSetupTest(unittest.TestCase):
     def test_adopts_empty_project_once(self):
         path, changed = setup.adopt(self.root)
         self.assertTrue(changed)
+        self.assertEqual(path, self.root / "AGENTS.md")
+        self.assertIn("@AGENTS.md", (self.root / "CLAUDE.md").read_text())
         original = path.read_bytes()
         self.assertFalse(setup.adopt(self.root)[1])
         self.assertEqual(path.read_bytes(), original)
@@ -81,17 +83,70 @@ class ProjectSetupTest(unittest.TestCase):
 
     def test_uses_existing_nested_rules_without_creating_duplicate(self):
         nested = self.write(".claude/CLAUDE.md", "nested owner rules\n")
-        self.assertEqual(setup.adopt(self.root)[0], nested)
+        self.assertEqual(setup.adopt(self.root)[0], self.root / "AGENTS.md")
+        self.assertIn("@../AGENTS.md", nested.read_text())
         self.assertFalse((self.root / "CLAUDE.md").exists())
 
     def test_refuses_duplicate_missing_or_reversed_markers(self):
-        for content in (setup.START, setup.END, setup.BLOCK * 2,
+        for content in (setup.START, setup.END, (setup.START + setup.END) * 2,
                         setup.END + "\n" + setup.START):
             with self.subTest(content=content):
                 path = self.write("CLAUDE.md", content)
                 with self.assertRaises(setup.SetupError):
                     setup.adopt(self.root)
                 self.assertEqual(path.read_text(), content)
+                self.assertFalse((self.root / "AGENTS.md").exists())
+
+    def test_migrates_legacy_claude_block_and_reuses_existing_shared_rules(self):
+        shared = self.write("AGENTS.md", "Owner's shared rules\n")
+        claude = self.write("CLAUDE.md", f"Claude rules\n{setup.START}\nold policy\n{setup.END}\nEnd\n")
+        setup.adopt(self.root)
+        self.assertTrue(shared.read_text().startswith("Owner's shared rules\n"))
+        self.assertIn(setup.POLICY, shared.read_text())
+        self.assertEqual(claude.read_text(), f"Claude rules\n{setup.START}\n@AGENTS.md\n{setup.END}\nEnd\n")
+        self.assertFalse(setup.adopt(self.root)[1])
+
+    def test_populated_override_receives_policy_without_sharing_owner_rules(self):
+        override = self.root / "AGENTS.override.md"
+        owner = b"Private Codex rules\r\n"
+        override.write_bytes(owner)
+        shared, changed = setup.adopt(self.root)
+        self.assertTrue(changed)
+        self.assertTrue(override.read_bytes().startswith(owner))
+        self.assertIn(setup.POLICY, override.read_text())
+        self.assertNotIn("Private Codex rules", shared.read_text())
+        self.assertNotIn("Private Codex rules", (self.root / "CLAUDE.md").read_text())
+        self.assertEqual(override.read_text().count(setup.START), 1)
+        self.assertFalse(setup.adopt(self.root)[1])
+
+    def test_configured_fallback_guidance_persists_for_a_new_shared_file(self):
+        claude = self.write("CLAUDE.md", "Owner's existing project constraints\n")
+        shared, _ = setup.adopt(self.root)
+        self.assertFalse((self.root / "AGENTS.override.md").exists())
+        self.assertIn("project_doc_fallback_filenames", shared.read_text())
+        self.assertIn("`CLAUDE.md` when configured", shared.read_text())
+        self.assertNotIn("bridge created by this adoption", shared.read_text())
+        self.assertIn("Owner's existing project constraints", claude.read_text())
+        with shared.open("a", encoding="utf-8") as rules:
+            rules.write("Additional shared rules\n")
+        self.assertFalse(setup.adopt(self.root)[1])
+
+    def test_existing_shared_owner_rules_keep_their_precedence(self):
+        shared = self.write("AGENTS.md", "Use these project rules\n")
+        self.write("CLAUDE.md", "Claude-only rule\n")
+        setup.adopt(self.root)
+        self.assertNotIn("project_doc_fallback_filenames", shared.read_text())
+
+    def test_preserves_existing_import(self):
+        claude = self.write("CLAUDE.md", "@./AGENTS.md\nPersonal instructions\n")
+        before = claude.read_bytes()
+        setup.adopt(self.root)
+        self.assertEqual(claude.read_bytes(), before)
+
+    def test_import_in_a_code_example_is_not_an_active_import(self):
+        claude = self.write("CLAUDE.md", "~~~text\n@AGENTS.md\n~~~\n")
+        setup.adopt(self.root)
+        self.assertIn(f"{setup.START}\n@AGENTS.md", claude.read_text())
 
     def test_refuses_symlink_rules_or_parent(self):
         outside = self.root.parent / "owner.md"

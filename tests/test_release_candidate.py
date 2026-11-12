@@ -24,7 +24,8 @@ def workflow(path):
 class ReleaseCandidateTest(unittest.TestCase):
     def test_version_metadata_and_release_documents_agree(self):
         version = json.loads(read(".claude-plugin/plugin.json"))["version"]
-        self.assertEqual(version, "4.11.0")
+        self.assertEqual(version, "4.12.0")
+        self.assertEqual(json.loads(read(".codex-plugin/plugin.json"))["version"], version)
         series = ".".join(version.split(".")[:2])
         marketplace = json.loads(read(".claude-plugin/marketplace.json"))
         self.assertIn(f"v{series}:", marketplace["plugins"][0]["description"])
@@ -119,20 +120,20 @@ class ReleaseCandidateTest(unittest.TestCase):
         self.assertIn("Never defer critical checks", expanded)
 
     def test_release_boundary_and_skipped_checks_are_not_misrepresented(self):
-        for path in ("docs/TESTING-VALIDATION.md", "docs/RELEASE-4.11.md"):
+        for path in ("docs/TESTING-VALIDATION.md", "docs/RELEASE-4.12.md"):
             text = read(path)
             self.assertIn("Merging to `main` is a production delivery", text)
             self.assertIn("before merge", text)
             self.assertIn("skipped", text.lower())
-            self.assertIn("not a pass", text.lower())
+            self.assertTrue("not a pass" in text.lower() or "skipped checks as pending" in text.lower())
             self.assertNotIn("no release is implied", text)
-        plan = read("docs/RELEASE-4.11.md")
+        plan = read("docs/RELEASE-4.12.md")
         self.assertIn("independent", plan)
         self.assertIn("exact final", plan)
         self.assertIn("targeted recheck", plan)
         self.assertIn("cannot certify", plan)
-        notes = read("docs/RELEASE_NOTES_4.11.md")
-        self.assertIn("No measured speedup or unchanged defect-detection rate is claimed", notes)
+        notes = read("docs/RELEASE_NOTES_4.12.md")
+        self.assertIn("Executable hooks follow Codex's trust settings", notes)
 
     def test_adoption_still_requires_a_bounded_project_comparison(self):
         text = read("docs/TESTING-VALIDATION.md")

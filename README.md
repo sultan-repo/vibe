@@ -1,8 +1,8 @@
 # Vibe
 
-**Give Claude Code a task. Vibe helps it plan, build, check, and finish.**
+**Give Claude Code or Codex a task. Vibe helps it plan, build, check, and finish.**
 
-Vibe is a lightweight workflow plugin for [Claude Code](https://code.claude.com). Just describe what you want in plain language. No special commands required.
+Install Vibe in the agent you use, then describe what you want in plain language. No special commands required.
 
 ## How it works
 
@@ -39,32 +39,40 @@ Vibe is a lightweight workflow plugin for [Claude Code](https://code.claude.com)
          YOU
 ```
 
-Small fixes take the short path. Larger tasks can use multiple Claude agents. Risky changes get more careful checks.
+Small fixes take the short path. Larger tasks can use the host's available agents. Risky changes get more careful checks.
 
 ## What you get
 
 - **Less babysitting.** Vibe picks the appropriate workflow and keeps approved work moving.
-- **Parallel help when useful.** Independent tasks can run with Claude subagents, then get integrated.
+- **Parallel help when useful.** The agent can delegate independent tasks and integrate their results.
 - **Reuse before rebuilding.** Checks existing code and suitable libraries before substantial custom work, without adding dependencies for every small helper.
 - **Checks without endless review loops.** Focused tests for changed features, broader checks for shared or risky changes, and full verification before production delivery.
 - **Clear progress.** Updates explain what's done, what's next, and what needs your decision.
 - **Session continuity.** Project status is saved at work boundaries and loaded when a new session starts.
-- **Safer Git operations.** A hook protects against unsafe force-pushes.
-
-Vibe uses Claude Code's native capabilities. It doesn't require a separate AI service or reviewer CLI.
+- **Safer Git operations.** The enabled, trusted shell hook checks for unsafe force-pushes.
 
 ## Install
 
-In Claude Code, run:
+**Claude Code** (2.1.275 or later). Install from the chat:
 
 ```text
-/plugin marketplace add sultan-repo/vibe
-/plugin install vibe
+/plugin install vibe --marketplace sultan-repo/vibe
 ```
 
-Start a **new Claude Code session**, then describe your task normally.
+**Codex CLI** (tested with 0.162.1). With Git and Python 3.9+ installed, run in a terminal:
 
-## Just talk to Claude
+```sh
+git clone https://github.com/sultan-repo/vibe.git
+python3 vibe/install-codex.py
+```
+
+The installer adds Vibe and its startup instruction to your Codex profile. From an existing checkout, run `python3 install-codex.py`. Pull and rerun to update.
+
+Open a new session in **your project** and ask “Fix the login error.” Vibe selects the workflow. In Codex, approving Vibe's two hooks enables automatic status loading and force-push checks. The workflow works before hook approval.
+
+For marketplace-only Codex installation, use `codex plugin marketplace add sultan-repo/vibe` and `codex plugin add vibe@vibe`. This path relies on skill matching until startup hooks are trusted.
+
+## Just describe the task
 
 | You say | Vibe does |
 | --- | --- |
@@ -78,7 +86,7 @@ You can also ask Vibe to explore an idea without implementing it.
 
 ## Automatic project adoption
 
-Vibe applies its principles to the project you are working on. During the first authorized edit, it adds a small managed policy block while preserving your existing project rules. Discover, Build and Reassess are selected internally, not commands you need to remember. Read-only questions do not change project files.
+On the first authorized edit, Vibe writes its shared policy to `AGENTS.md` and imports it from the project's Claude instructions. It preserves existing rules. Read-only requests leave project files alone.
 
 Startup can flag potentially expensive project gates when relevant configuration changes. Existing protections stay active until their replacement is authorized and validated. Projects can opt into evidence-only push checks, so missing results block the push without starting a long test run inside it.
 
@@ -87,12 +95,11 @@ Startup can flag potentially expensive project gates when relevant configuration
 - Vibe chooses between fast, standard, and careful workflows based on the task.
 - It asks for decisions that materially affect the outcome. Your existing approval and permission rules still apply.
 - Session recovery uses the saved project status and local Git context. It cannot recover work that was never saved.
-- Parallel agents are optional and depend on the task and available Claude resources.
+- Parallel agents depend on the task and host permissions.
 
 Existing project test requirements still apply. Finishing a feature does not mean it is ready for release. See [how Vibe selects tests](skills/build/references/testing-policy.md) and [how it chooses reuse](skills/build/references/reuse-policy.md).
 
-**Update:** `/plugin update vibe`  
-**Uninstall:** `/plugin uninstall vibe`
+In Claude Code, use `/plugin update vibe` or `/plugin uninstall vibe`. Run `python3 install-codex.py --uninstall` to remove installer-managed files. An existing native Codex installation stays under Codex's management.
 
 For alternate installation, detailed behavior, and development instructions, see [the repository docs](docs/) and [change history](CHANGES.md).
 

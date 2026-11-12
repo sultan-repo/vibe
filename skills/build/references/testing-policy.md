@@ -35,7 +35,7 @@ Full release coverage applies before every production delivery, not only major v
 
 Existing project rules, hooks, required CI and independent-review gates remain in force. A Vibe update does not authorize disabling or rewriting them. During authorized adoption, reconcile contradictory project instructions and scripts together; preserve the old gate until the replacement is validated. Report an overriding project gate rather than silently bypassing it.
 
-A high-risk change still needs one consolidated fresh-context Claude review and at most one targeted recheck under `review-loop.md`. Exact-HEAD approval, unresolved required findings and external-action permissions are separate from test coverage. Selecting fewer tests never grants merge or deployment permission.
+A high-risk change still needs one consolidated fresh-context independent review and at most one targeted recheck under `review-loop.md`. Exact-HEAD approval, unresolved required findings and external-action permissions are separate from test coverage. Selecting fewer tests never grants merge or deployment permission.
 
 ## Reuse evidence without widening its claim
 

@@ -7,12 +7,14 @@ description: 'Implement requested software features, fixes and continuations fro
 
 # Build: deliver with minimal overhead
 
+If startup has not already supplied the Vibe delivery standard, read `../../core/CLAUDE.md` relative to this installed skill before proceeding. A small fix follows its Fast path.
+
 Use `$ARGUMENTS` when supplied; otherwise use the current request and authorized project state. **Continuous delivery is the default**: finish the approved outcome without stopping after each increment. Select skills internally; never ask the user to run workflow commands.
 
 After loading this workflow, apply the core's effort selection if this work needs a level other than medium. Effort changes do not change acceptance or verification requirements.
 
 ## 1. Read only what this work needs
-- Inspect project CLAUDE.md, git state and relevant code/tests. On resume, reconcile existing status with the code. Search large records for applicable decisions; do not reread unchanged files or load every reference.
+- Inspect the active project instructions, git state and relevant code/tests. On resume, reconcile existing status with the code. Search large records for applicable decisions; do not reread unchanged files or load every reference.
 - Apply the core's automatic project adoption during authorized edits, even when this project did not go through Discover. Use the existing policy block when current; adoption does not migrate test gates.
 - Missing continuity files do **not** force Discover. Use existing tracking. Invoke Discover only for requested exploration or unresolved material intent.
 - For ongoing work, checkpoint the active task and branch in the canonical status record before substantial work or worker launches. Apply the core's state-change and handoff triggers; do not wait for a merge. Use the existing tracker when authoritative.
