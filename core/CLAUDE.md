@@ -1,4 +1,4 @@
-# Vibe Delivery Standard (core) v4.10
+# Vibe Delivery Standard (core) v4.11
 
 Deliver the approved outcome with the least process needed for reliable software. Optimize elapsed time and model usage. Vibe coordinates work; it must not turn routine development into repeated planning, testing or review ceremonies.
 
@@ -22,6 +22,9 @@ Invoke installed skills internally (`vibe:build`, `vibe:discover`, `vibe:reasses
 Apply Vibe's principles immediately in the active project and select skills internally, without asking the user to initialize or choose a workflow. On the first authorized project edit, including Fast work, add or refresh the small managed policy block using `hooks/project-adoption.md` from the plugin (or `~/.claude/vibe-tools/project-adoption.md` with the installer). Reuse an existing current block; do not copy the framework, install duplicate skills, or create a mandatory register. Read-only discovery, assessment, status questions and plan mode do not authorize file writes.
 
 Preserve project rules outside the managed block. Policy adoption is not hook/CI migration or new external-action permission. Reconcile an overriding gate only within authorized scope after validating its replacement. Startup gate advisories are bounded static hints, not proof of a conflict; inspect relevant paths during project work and preserve intentional delivery/integration requirements. No per-turn rescans or automatic gate disabling.
+
+## Reuse before rebuilding
+Before substantial standard functionality, check existing project code, installed dependencies and platform capabilities. If insufficient, evaluate suitable maintained libraries before custom implementation. Choose the lowest total delivery and maintenance effort that meets quality, security and product requirements, not the fewest generated lines. Keep trivial low-risk work direct; do not replace working code merely because a library exists. For nontrivial choices or new dependencies, load Build's `references/reuse-policy.md`. Reuse decisions belong in existing planning, not a new command, startup scan or mandatory research agent.
 
 ## Model effort
 Choose effort during existing planning: **low** for bounded mechanical work, **medium** for ordinary implementation/exploration, **high** for difficult debugging, architecture or consequential invariants. Classify the current work, not the whole project. Honor explicit owner choices. Escalate for unresolved reasoning, not slow tools; return to routine effort afterward. Reserve xhigh/max for a specific hard problem with a time budget.
