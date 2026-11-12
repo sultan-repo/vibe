@@ -85,7 +85,11 @@ def managed_rules(text, start_marker, end_marker, block, *, prepend=False):
     """Replace only Vibe-owned text. An empty block removes an existing entry."""
     if text.count(start_marker) != text.count(end_marker) or text.count(start_marker) > 1:
         raise SetupError("ambiguous Vibe markers; preserve and reconcile manually")
-    newline = "\r\n" if "\r\n" in text else "\n"
+    # Keep the managed block's own line endings even when an editor appends
+    # owner text with a different newline style later.
+    offset = text.index(start_marker) + len(start_marker) if start_marker in text else 0
+    first_line = text[offset:].partition("\n")[0]
+    newline = "\r\n" if first_line.endswith("\r") else "\n"
     if block:
         block = newline.join((start_marker, block.replace("\n", newline), end_marker))
     if start_marker in text:
@@ -132,15 +136,31 @@ def write_rules(path, before, mode, after):
 
 
 def adopt(root):
-    """Both agents read the same managed policy. Validate both files before writing."""
+    """Both agents receive the same managed policy. Validate all edits before writing."""
     root = root.resolve(strict=True)
     if not root.is_dir():
         raise SetupError("project directory is not a directory")
     shared = root / "AGENTS.md"
     claude = policy_path(root)
     before, mode = read_rules(shared)
-    updated = managed_rules(before, START, END, POLICY)
-    changes = [(shared, before, mode, updated)]
+    # A newly selected AGENTS.md can replace a configured Codex fallback.
+    # Record the handoff only for a new shared file, and keep it on later refreshes.
+    fallback_prefix = "In Codex, retain the owner instructions from your configured project fallback"
+    policy = POLICY
+    if not before.strip() or fallback_prefix in before:
+        claude_name = claude.relative_to(root).as_posix()
+        policy += (f"\n{fallback_prefix}. Read the first existing, nonempty file in "
+                   f"project_doc_fallback_filenames for this directory (including `{claude_name}` "
+                   "when configured). Skip its Vibe-managed text and imports back to AGENTS.md.")
+    changes = [(shared, before, mode, managed_rules(before, START, END, policy))]
+    # Codex loads only the override when it is populated. Mirror just the Vibe
+    # block there; owner-authored override rules stay private to that host.
+    override = root / "AGENTS.override.md"
+    if not (override.is_symlink() and override.resolve() == shared):
+        override_text, override_mode = read_rules(override)
+        if override_text.strip():
+            changes.append((override, override_text, override_mode,
+                            managed_rules(override_text, START, END, POLICY)))
     if not (claude.is_symlink() and claude.resolve() == shared):
         original, permissions = read_rules(claude)
         reference = "@AGENTS.md" if claude.parent == root else "@../AGENTS.md"

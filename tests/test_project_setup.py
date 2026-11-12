@@ -106,6 +106,38 @@ class ProjectSetupTest(unittest.TestCase):
         self.assertEqual(claude.read_text(), f"Claude rules\n{setup.START}\n@AGENTS.md\n{setup.END}\nEnd\n")
         self.assertFalse(setup.adopt(self.root)[1])
 
+    def test_populated_override_receives_policy_without_sharing_owner_rules(self):
+        override = self.root / "AGENTS.override.md"
+        owner = b"Private Codex rules\r\n"
+        override.write_bytes(owner)
+        shared, changed = setup.adopt(self.root)
+        self.assertTrue(changed)
+        self.assertTrue(override.read_bytes().startswith(owner))
+        self.assertIn(setup.POLICY, override.read_text())
+        self.assertNotIn("Private Codex rules", shared.read_text())
+        self.assertNotIn("Private Codex rules", (self.root / "CLAUDE.md").read_text())
+        self.assertEqual(override.read_text().count(setup.START), 1)
+        self.assertFalse(setup.adopt(self.root)[1])
+
+    def test_blank_override_stays_inactive_and_fallback_guidance_persists(self):
+        override = self.write("AGENTS.override.md", "  \n")
+        before = override.read_bytes()
+        claude = self.write(".claude/CLAUDE.md", "Owner's existing project constraints\n")
+        shared, _ = setup.adopt(self.root)
+        self.assertEqual(override.read_bytes(), before)
+        self.assertIn("project_doc_fallback_filenames", shared.read_text())
+        self.assertIn("`.claude/CLAUDE.md` when configured", shared.read_text())
+        self.assertIn("Owner's existing project constraints", claude.read_text())
+        with shared.open("a", encoding="utf-8") as rules:
+            rules.write("Additional shared rules\n")
+        self.assertFalse(setup.adopt(self.root)[1])
+
+    def test_existing_shared_owner_rules_keep_their_precedence(self):
+        shared = self.write("AGENTS.md", "Use these project rules\n")
+        self.write("CLAUDE.md", "Claude-only rule\n")
+        setup.adopt(self.root)
+        self.assertNotIn("project_doc_fallback_filenames", shared.read_text())
+
     def test_preserves_existing_import(self):
         claude = self.write("CLAUDE.md", "@./AGENTS.md\nPersonal instructions\n")
         before = claude.read_bytes()
