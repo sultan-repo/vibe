@@ -119,14 +119,13 @@ class ProjectSetupTest(unittest.TestCase):
         self.assertEqual(override.read_text().count(setup.START), 1)
         self.assertFalse(setup.adopt(self.root)[1])
 
-    def test_blank_override_stays_inactive_and_fallback_guidance_persists(self):
-        override = self.write("AGENTS.override.md", "  \n")
-        before = override.read_bytes()
-        claude = self.write(".claude/CLAUDE.md", "Owner's existing project constraints\n")
+    def test_configured_fallback_guidance_persists_for_a_new_shared_file(self):
+        claude = self.write("CLAUDE.md", "Owner's existing project constraints\n")
         shared, _ = setup.adopt(self.root)
-        self.assertEqual(override.read_bytes(), before)
+        self.assertFalse((self.root / "AGENTS.override.md").exists())
         self.assertIn("project_doc_fallback_filenames", shared.read_text())
-        self.assertIn("`.claude/CLAUDE.md` when configured", shared.read_text())
+        self.assertIn("`CLAUDE.md` when configured", shared.read_text())
+        self.assertNotIn("bridge created by this adoption", shared.read_text())
         self.assertIn("Owner's existing project constraints", claude.read_text())
         with shared.open("a", encoding="utf-8") as rules:
             rules.write("Additional shared rules\n")

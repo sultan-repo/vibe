@@ -147,18 +147,22 @@ def adopt(root):
     # Record the handoff only for a new shared file, and keep it on later refreshes.
     fallback_prefix = "In Codex, retain the owner instructions from your configured project fallback"
     policy = POLICY
-    if not before.strip() or fallback_prefix in before:
-        claude_name = claude.relative_to(root).as_posix()
-        policy += (f"\n{fallback_prefix}. Read the first existing, nonempty file in "
-                   f"project_doc_fallback_filenames for this directory (including `{claude_name}` "
-                   "when configured). Skip its Vibe-managed text and imports back to AGENTS.md.")
+    if not shared.exists() or fallback_prefix in before:
+        policy += (f"\n{fallback_prefix}. In project_doc_fallback_filenames order, select the "
+                   "first existing regular file with an eligible basename in this directory "
+                   "(for example, `CLAUDE.md` when configured). An empty first match still "
+                   "takes precedence. Apply its owner-written rules and skip managed imports back to AGENTS.md.")
+        new_bridge = "Ignore the root CLAUDE.md bridge created by this adoption when locating the previous fallback."
+        if new_bridge in before or (claude == root / "CLAUDE.md" and not claude.exists()):
+            policy += " " + new_bridge
     changes = [(shared, before, mode, managed_rules(before, START, END, policy))]
-    # Codex loads only the override when it is populated. Mirror just the Vibe
+    # At project scope Codex selects an existing override even when empty.
+    # At user scope it skips empty files. Mirror just the Vibe
     # block there; owner-authored override rules stay private to that host.
     override = root / "AGENTS.override.md"
     if not (override.is_symlink() and override.resolve() == shared):
         override_text, override_mode = read_rules(override)
-        if override_text.strip():
+        if override.exists():
             changes.append((override, override_text, override_mode,
                             managed_rules(override_text, START, END, POLICY)))
     if not (claude.is_symlink() and claude.resolve() == shared):

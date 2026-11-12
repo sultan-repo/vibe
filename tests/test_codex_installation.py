@@ -14,6 +14,50 @@ CODEX = shutil.which("codex.cmd" if os.name == "nt" else "codex")
 
 @unittest.skipUnless(CODEX, "requires Codex CLI")
 class CodexInstallationTest(unittest.TestCase):
+    def test_project_override_and_fallback_order_in_the_native_prompt(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            profile = base / "profile"
+            profile.mkdir()
+            env = dict(os.environ, CODEX_HOME=str(profile), PYTHONDONTWRITEBYTECODE="1")
+
+            def prompt(project):
+                return subprocess.check_output(
+                    [CODEX, "debug", "prompt-input", "-c", 'project_doc_fallback_filenames=["CLAUDE.md","TEAM.md"]',
+                     "What are the project rules?"], cwd=project, env=env, stderr=subprocess.PIPE,
+                    encoding="utf-8", timeout=60)
+
+            for name, override in (("empty", b""), ("blank", b" \r\n"), ("populated", b"OVERRIDE_OWNER"),
+                                   ("claude-fallback", None), ("team-fallback", None)):
+                with self.subTest(name=name):
+                    project = base / name
+                    project.mkdir()
+                    subprocess.run(["git", "init", "-q", str(project)], check=True)
+                    (project / "TEAM.md").write_text("TEAM_OWNER", encoding="utf-8")
+                    if name != "team-fallback":
+                        (project / "CLAUDE.md").write_text("CLAUDE_OWNER", encoding="utf-8")
+                    if override is not None:
+                        (project / "AGENTS.override.md").write_bytes(override)
+                    before = prompt(project)
+                    adopt = [sys.executable, str(ROOT / "hooks/project_setup.py"), "adopt", "--project-dir", str(project)]
+                    subprocess.run(adopt, env=env, capture_output=True, check=True)
+                    after = prompt(project)
+                    self.assertIn("Vibe project workflow (managed;", after)
+                    if override is not None:
+                        self.assertTrue((project / "AGENTS.override.md").read_bytes().startswith(override))
+                        self.assertNotIn("CLAUDE_OWNER", before)
+                        self.assertNotIn("OVERRIDE_OWNER", (project / "AGENTS.md").read_text())
+                        if name == "populated":
+                            self.assertIn("OVERRIDE_OWNER", after)
+                    else:
+                        owner = "TEAM_OWNER" if name == "team-fallback" else "CLAUDE_OWNER"
+                        self.assertIn(owner, before)
+                        self.assertIn("project_doc_fallback_filenames", after)
+                        self.assertEqual("bridge created by this adoption" in after, name == "team-fallback")
+                        self.assertFalse((project / "AGENTS.override.md").exists())
+                    repeat = subprocess.check_output(adopt, env=env, encoding="utf-8")
+                    self.assertIn("already current", repeat)
+
     def test_first_prompt_reinstall_and_removal_with_owner_rules(self):
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)
