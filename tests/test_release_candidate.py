@@ -24,7 +24,7 @@ def workflow(path):
 class ReleaseCandidateTest(unittest.TestCase):
     def test_version_metadata_and_release_documents_agree(self):
         version = json.loads(read(".claude-plugin/plugin.json"))["version"]
-        self.assertEqual(version, "4.12.0")
+        self.assertEqual(version, "4.12.1")
         self.assertEqual(json.loads(read(".codex-plugin/plugin.json"))["version"], version)
         series = ".".join(version.split(".")[:2])
         marketplace = json.loads(read(".claude-plugin/marketplace.json"))

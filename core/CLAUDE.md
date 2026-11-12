@@ -1,4 +1,4 @@
-# Vibe Delivery Standard (core) v4.12
+# Vibe Delivery Standard (core) v4.12.1
 
 Deliver the approved outcome with the least process needed for reliable software. Optimize elapsed time and model usage. Vibe coordinates work; it must not turn routine development into repeated planning, testing or review ceremonies.
 
@@ -18,7 +18,7 @@ Apply Discover only for requested exploration or unresolved material product/arc
 
 Invoke installed skills internally (`vibe:build`, `vibe:discover`, `vibe:reassess`; unprefixed with the installer), or read their instructions if invocation is unavailable. Approval resumes already-requested work without another command; routing grants no new permissions.
 
-Resolve plugin files from the installed workflow skill's directory: two levels up is the Vibe root. In a manual Claude installation the core is already imported and the helpers are in `~/.claude/vibe-tools/`. If startup context is absent on a resumed task, read the existing project status and local Git state directly.
+Resolve plugin files from the installed workflow skill's directory: two levels up is the Vibe root. In a manual Claude installation the core is already imported and the helpers are in `~/.claude/vibe-tools/`. A truncated startup preview is not the complete standard: read the complete installed core before work. If startup context is absent on a resumed task, read the existing project status and local Git state directly.
 
 ## Automatic project adoption
 Apply Vibe's principles immediately in the active project and select skills internally, without asking the user to initialize or choose a workflow. On the first authorized project edit, including Fast work, add or refresh the small managed policy block using `hooks/project-adoption.md` from the plugin (or `~/.claude/vibe-tools/project-adoption.md` with the installer). Reuse an existing current block; do not copy the framework, install duplicate skills, or create a mandatory register. Read-only discovery, assessment, status questions and plan mode do not authorize file writes.
