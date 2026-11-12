@@ -43,7 +43,7 @@ The problems are in form, not intent:
 | Sections | 46 | Same rule restated in up to five places |
 | Bullets | 271 | Reads as a checklist to execute, not rules to follow |
 | "Do not / Never / Avoid" sentences | 44 | Prohibition-heavy prompts make the model timid and over-ask |
-| "substantial / material" | 35 uses, never defined |
+| "substantial / material" | 35 uses, never defined | The whole proportionality model depends on an undefined word |
 | "significant / consequential / meaningful / important" | 36 uses | Same problem |
 | "but not for small tasks" disclaimers | 11 | Symptom of the missing definition |
 

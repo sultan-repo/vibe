@@ -86,7 +86,7 @@ You can also ask Vibe to explore an idea without implementing it.
 
 ## Automatic project adoption
 
-On the first authorized edit, Vibe adds a small policy while preserving the instruction file your host actually loads. It uses shared `AGENTS.md` where safe and keeps configured Codex fallback rules active. Unknown routing leaves files unchanged while Vibe applies its principles in-session. Read-only requests leave project files alone.
+During authorized edits, Vibe preserves the instruction file your host loads, including configured fallbacks. It uses `AGENTS.md` where safe. Unknown routing and read-only requests leave files unchanged; in-session principles still apply.
 
 Startup can flag potentially expensive project gates when relevant configuration changes. Existing protections stay active until their replacement is authorized and validated. Projects can opt into evidence-only push checks, so missing results block the push without starting a long test run inside it.
 
