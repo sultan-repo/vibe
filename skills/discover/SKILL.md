@@ -7,6 +7,8 @@ description: Automatically explore product intent and resolve material uncertain
 
 # Discover → Challenge → Enrich → Approve
 
+If startup has not already supplied the Vibe delivery standard, read `../../core/CLAUDE.md` relative to this installed skill before proceeding.
+
 Goal: improve the product direction without blocking clear implementation. Explicit Discover requests produce analysis and a concise decision checkpoint, not application code. Ordinary Build requests with an understood objective and approved decisions skip this skill entirely.
 
 After loading this workflow, apply the core's effort selection if this work needs a level other than medium.
@@ -54,10 +56,10 @@ Present one checkpoint, ideally 5–10 short lines, only when a material decisio
 - **Gaps found (Required)**: what, why it matters, evidence.
 - **Recommended**: at most three consequential choices, each with its tradeoff and recommended default. Avoid a wide table unless it improves clarity.
 - **Assumptions I will proceed on** unless corrected.
-- **Decisions needed now**: numbered, each with a recommendation. No reviewer setup question is needed; Vibe uses its existing fresh-context Claude reviewer when a review is genuinely required.
+- **Decisions needed now**: numbered, each with a recommendation. Use the active host's independent reviewer when review is required.
 - **Plan**: the next useful outcome; internal milestone codes stay out of user-facing text.
 
-During authorized project editing, apply the core's automatic project adoption. If neither root `CLAUDE.md` nor `.claude/CLAUDE.md` exists and product-specific rules are needed, use `references/project-claude-template.md` with agreed objectives, non-goals and constraints, then refresh the managed policy block. Fill Commands only from the actual stack; do not replace existing project rules or require Discover just to adopt Vibe.
+During authorized project editing, apply the core's automatic project adoption. If product-specific rules are needed, use `references/project-claude-template.md` to add agreed objectives and constraints to the shared AGENTS.md. Preserve existing project rules. Fill Commands only from the actual stack.
 
 Record material approved rules, affected/expanded checks and the actual production delivery boundary where full E2E is due. Feature milestones do not automatically require a full suite; use `../build/references/testing-policy.md` when coverage needs clarification. Preserve any explicit project integration gate and high-risk review requirement. No external reviewer configuration or authentication is required.
 

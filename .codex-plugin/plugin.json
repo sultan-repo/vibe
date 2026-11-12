@@ -1,0 +1,7 @@
+{
+  "name": "vibe",
+  "version": "4.12.0",
+  "description": "Plan, build, check and resume software work from ordinary requests.",
+  "skills": ["./skills/discover", "./skills/build", "./skills/reassess"],
+  "hooks": "./hooks/codex.json"
+}

@@ -22,7 +22,7 @@ jobs:
             bash -n "$script"
           done
           python3 -m json.tool .claude-plugin/plugin.json >/dev/null
-          python3 -c 'import json; assert json.load(open(".claude-plugin/plugin.json"))["version"] == "4.11.0"'
+          python3 -c 'import json; assert json.load(open(".claude-plugin/plugin.json"))["version"] == "4.12.0"'
           python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
           python3 -m json.tool hooks/hooks.json >/dev/null
       - name: Benchmark harness self-test (no model calls)
@@ -79,3 +79,7 @@ jobs:
         run: npm install --global @anthropic-ai/claude-code@2.1.314
       - name: Validate plugin package
         run: claude plugin validate --strict .
+      - name: Verify a fresh Codex installation and first prompt
+        run: |
+          npm install --global @openai/codex@0.162.1
+          python3 -m unittest discover -s tests -p test_codex_installation.py -v

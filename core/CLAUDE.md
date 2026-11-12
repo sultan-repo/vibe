@@ -1,10 +1,10 @@
-# Vibe Delivery Standard (core) v4.11
+# Vibe Delivery Standard (core) v4.12
 
 Deliver the approved outcome with the least process needed for reliable software. Optimize elapsed time and model usage. Vibe coordinates work; it must not turn routine development into repeated planning, testing or review ceremonies.
 
 ## Precedence
 1. My explicit instruction in the current conversation. Honor a requested shortcut and disclose what was skipped.
-2. The project's own CLAUDE.md and docs.
+2. The active host's project instructions (including AGENTS.md or CLAUDE.md) and project docs.
 3. This standard.
 Never silently override a higher level. When an authorized workflow change conflicts with old project rules, reconcile the affected rules and hooks rather than leaving both active.
 
@@ -18,6 +18,8 @@ Apply Discover only for requested exploration or unresolved material product/arc
 
 Invoke installed skills internally (`vibe:build`, `vibe:discover`, `vibe:reassess`; unprefixed with the installer), or read their instructions if invocation is unavailable. Approval resumes already-requested work without another command; routing grants no new permissions.
 
+Resolve plugin files from the installed workflow skill's directory: two levels up is the Vibe root. In a manual Claude installation the core is already imported and the helpers are in `~/.claude/vibe-tools/`. If startup context is absent on a resumed task, read the existing project status and local Git state directly.
+
 ## Automatic project adoption
 Apply Vibe's principles immediately in the active project and select skills internally, without asking the user to initialize or choose a workflow. On the first authorized project edit, including Fast work, add or refresh the small managed policy block using `hooks/project-adoption.md` from the plugin (or `~/.claude/vibe-tools/project-adoption.md` with the installer). Reuse an existing current block; do not copy the framework, install duplicate skills, or create a mandatory register. Read-only discovery, assessment, status questions and plan mode do not authorize file writes.
 
@@ -29,7 +31,7 @@ Before substantial standard functionality, check existing project code, installe
 ## Model effort
 Choose effort during existing planning: **low** for bounded mechanical work, **medium** for ordinary implementation/exploration, **high** for difficult debugging, architecture or consequential invariants. Classify the current work, not the whole project. Honor explicit owner choices. Escalate for unresolved reasoning, not slow tools; return to routine effort afterward. Reserve xhigh/max for a specific hard problem with a time budget.
 
-Use native controls, not prompt wording. Build/Discover/Reassess default to medium. **After loading a workflow**, apply a different justified level with internal `vibe:effort-low`, `vibe:effort-medium` or `vibe:effort-high` (unprefixed with the installer). The controls apply to this turn; reassess on later turns and workflow transitions. Skip redundant controls and never add a routing call for a short answer. Set worker effort explicitly when supported; see the parallel reference.
+In Claude Code, workflows default to medium. After loading a workflow, use its internal `vibe:effort-low`, `vibe:effort-medium` or `vibe:effort-high` control when a different level is justified (unprefixed with the manual installer). In Codex, keep the active model and reasoning setting unless the host exposes an authorized native override. Use only the active host's controls. Skip redundant calls and never add a routing call for a short answer. Set worker effort explicitly when supported; see the parallel reference.
 
 Respect host/environment overrides and caps; do not rewrite global settings. Reading a skill file does not activate effort. If unsupported or unobserved, distinguish requested from effective effort and continue with bounded work. Confirm from available runtime metadata once when adopting or diagnosing, without repeated probes or a classifier agent.
 

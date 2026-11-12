@@ -1,0 +1,19 @@
+{
+  "hooks": {
+    "SessionStart": [{
+      "hooks": [{
+        "type": "command",
+        "command": "\"${PLUGIN_ROOT}/hooks/session-start.sh\"",
+        "commandWindows": "cmd.exe /d /c call \"${PLUGIN_ROOT}/hooks/codex-hook.cmd\" startup"
+      }]
+    }],
+    "PreToolUse": [{
+      "matcher": "Bash",
+      "hooks": [{
+        "type": "command",
+        "command": "\"${PLUGIN_ROOT}/hooks/block-force-push.sh\"",
+        "commandWindows": "cmd.exe /d /c call \"${PLUGIN_ROOT}/hooks/codex-hook.cmd\" check"
+      }]
+    }]
+  }
+}

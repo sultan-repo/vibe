@@ -1,6 +1,6 @@
 # Continuity file templates
 
-Create these on first need. Never create a second file for the same purpose. If the project already tracks requirements elsewhere (issues, ADRs, a tasks file), use that and name it in the project CLAUDE.md.
+Create these on first need. Never create a second file for the same purpose. If the project already tracks requirements elsewhere (issues, ADRs, a tasks file), use that and name it in the shared project instructions.
 
 ## docs/REQUIREMENTS.md
 

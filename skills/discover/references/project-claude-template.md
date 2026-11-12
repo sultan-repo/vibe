@@ -13,7 +13,7 @@
 - Full release gate: `<complete relevant project suite and end-to-end journeys>`
 
 ## Delivery
-This project follows Vibe v4.10 with change-aware verification. Normal requests select the workflow; the user does not run workflow commands.
+This project follows Vibe v4.12 with change-aware verification. Normal requests select the workflow; the user does not run workflow commands.
 - Progress: short, natural updates for a nontechnical owner in their language. Explain the useful result, current focus, next step and any real decision. Keep engineering details in records; distinguish work finished from checked and available to users.
 - Milestones: <usable outcomes; feature completion is not automatically a full-suite trigger>
 - During implementation: affected or expanded checks based on cumulative impact and dependencies, no automatic full suite or independent reviewer per package/commit/non-deploying push. Keep cheap broad checks when selection adds overhead.

@@ -40,6 +40,7 @@ class StartupAdoptionTest(unittest.TestCase):
     def test_startup_loads_core_without_writing_project_policy(self):
         self.assertEqual(self.start(), self.core.read_text())
         self.assertFalse((self.project / "CLAUDE.md").exists())
+        self.assertFalse((self.project / "AGENTS.md").exists())
         self.assertEqual(self.start(status_only=True), "")
 
     def test_notice_is_once_per_configuration_with_core_preserved(self):
