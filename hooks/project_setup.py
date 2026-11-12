@@ -154,7 +154,7 @@ def active_import(text, imports):
             if mark[0] != "`" or "`" not in info:
                 fence = mark[0], len(mark)
                 continue
-        if not line.startswith(("    ", "\t")) and line.strip() in imports:
+        if not line.expandtabs(4).startswith("    ") and line.strip() in imports:
             return True
     return False
 
@@ -303,7 +303,8 @@ def adopt(root, *, codex_fallbacks=None):
     if fallback:
         # An owner-authored import cannot be silently left pointing to a deleted file.
         owner_claude = managed_rules(original, START, END, "")
-        if shared.exists() and active_import(owner_claude, {"@AGENTS.md", "@./AGENTS.md", "@../AGENTS.md", "@./../AGENTS.md"}):
+        reference = "@AGENTS.md" if claude.parent == root else "@../AGENTS.md"
+        if shared.exists() and active_import(owner_claude, {reference, reference.replace("@", "@./", 1)}):
             raise SetupError("owner-written Claude import references legacy AGENTS.md; reconcile before removal")
         path, text, file_mode = fallback
         changes.append((path, text, file_mode, managed_rules(text, START, END, POLICY)))
@@ -315,6 +316,9 @@ def adopt(root, *, codex_fallbacks=None):
             if claude.parent.is_symlink():
                 raise SetupError(".claude is a symlink; reconcile project rules manually")
             original, permissions = read_rules(claude)
+            owner_claude = managed_rules(original, START, END, "")
+            if shared.exists() and active_import(owner_claude, {"@../AGENTS.md", "@./../AGENTS.md"}):
+                raise SetupError("owner-written Claude import references legacy AGENTS.md; reconcile before removal")
         if claude != path:
             changes.append((claude, original, permissions, managed_rules(original, START, END, POLICY)))
         if shared.exists():

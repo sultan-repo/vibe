@@ -129,6 +129,16 @@ class AdoptionRecoveryTest(unittest.TestCase):
             setup.adopt(self.root, codex_fallbacks=["CLAUDE.md", "TEAM.md"])
         self.assertEqual(self.snapshot(), before)
 
+    def test_nested_owner_import_blocks_legacy_shared_file_deletion(self):
+        self.legacy()
+        for reference in ("@../AGENTS.md", "@./../AGENTS.md"):
+            with self.subTest(reference=reference):
+                self.put(".claude/CLAUDE.md", reference + "\nNESTED_OWNER\n")
+                before = self.snapshot()
+                with self.assertRaisesRegex(setup.SetupError, "owner-written Claude import"):
+                    setup.adopt(self.root, codex_fallbacks=["CLAUDE.md", "TEAM.md"])
+                self.assertEqual(self.snapshot(), before)
+
     def test_unknown_legacy_fallback_order_is_not_guessed(self):
         self.legacy()
         before = self.snapshot()
@@ -167,13 +177,14 @@ class AdoptionRecoveryTest(unittest.TestCase):
                 self.assertFalse(setup.adopt(root, codex_fallbacks=[])[1])
 
     def test_unclosed_or_indented_example_does_not_hide_the_new_import(self):
-        for original in ("```text\n@AGENTS.md\n", "Example:\n\n    @AGENTS.md\n", "~~~\n@AGENTS.md\n````\n"):
+        for original in ("```text\n@AGENTS.md\n", "Example:\n\n    @AGENTS.md\n", "Example:\n\n  \t@AGENTS.md\n", "~~~\n@AGENTS.md\n````\n"):
             with tempfile.TemporaryDirectory() as tmp:
                 root = Path(tmp)
                 (root / "CLAUDE.md").write_text(original)
                 setup.adopt(root, codex_fallbacks=[])
                 after = (root / "CLAUDE.md").read_text()
                 self.assertTrue(after.endswith(original))
+                self.assertIn(setup.START + "\n@AGENTS.md", after)
                 self.assertTrue(setup.active_import(after, {"@AGENTS.md"}))
 
     def test_second_write_failure_restores_exact_existing_bytes_and_mode(self):
