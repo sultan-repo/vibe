@@ -4,6 +4,9 @@
 # The project adapter receives quick/full and runs its existing checks; context prints a nonsecret
 # fingerprint of relevant runtime, ignored config and stable fixtures. Do not cache live checks.
 set -euo pipefail
+# Opt in after the coordinator has a separate verification path:
+# set this literal array to (--require-evidence). Never take this policy from push-time environment.
+require_evidence=()
 cd "$(git rev-parse --show-toplevel)"
 updates=$(mktemp "$(git rev-parse --path-format=absolute --git-path vibe-pre-push.XXXXXX)")
 trap 'rm -f "$updates" "$updates.quick" "$updates.full"' EXIT
@@ -30,7 +33,7 @@ done < "$updates"
 # impose a full gate on every lower branch in its stack.
 for mode in quick full; do
   if [[ -s "$updates.$mode" ]]; then
-    python3 .githooks/verification-cache.py pre-push \
+    python3 .githooks/verification-cache.py pre-push "${require_evidence[@]}" \
       --mode "$mode" --context-command scripts/verification-context --full-includes-quick \
       -- scripts/verify.sh < "$updates.$mode"
   fi

@@ -39,3 +39,11 @@ Record the candidate, integration base, selected journeys, omitted checks with r
 ## Limits and release prerequisites
 
 Live Claude instruction adherence, real-project targeted/full comparisons and comparative timing require a suitable runtime and representative project. Do not infer them from static tests or report them passed without evidence. A bounded sample cannot prove zero quality impact. Because this changes delivery-control policy, retain the required independent review of the final candidate before merge/release. No automatic project migration or measured speedup is claimed.
+
+## v4.10 additions
+
+Policy-only project adoption is now automatic during authorized editing; executable hook/CI migration still requires authorized replacement validation. Test adoption idempotence and preservation of existing rules, read-only/plan-mode boundaries, malformed markers, encodings and symlinks. Check startup advisory caching, effective hook paths, bounded input, script non-execution, targeted-test false positives and graceful incomplete inspection.
+
+Run evidence-only regression checks for current/non-HEAD/multiple refs, tags, deletion-only updates, missing/stale/malformed/pending evidence, failed/interrupted reruns, quick/full coverage, changed inputs and worktree-local evidence. Confirm a miss launches no gate. Retain existing verification, force-push, installer, workflow and metadata tests. Remove only the deleted progress Mod's tests; keep strict native plugin validation and existing required-check job IDs.
+
+In a fresh authenticated Claude session, confirm ordinary build/discovery/readiness requests select the intended internal skill, policy adoption occurs only on authorized editing, and no removed board command or progress tool appears. Deterministic helper tests do not prove live model routing or effective host permissions. A skipped native/model check is not a pass. Merging to `main` is a production delivery, so complete required checks and independent delivery-control review before merge.

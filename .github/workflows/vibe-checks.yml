@@ -22,12 +22,9 @@ jobs:
             bash -n "$script"
           done
           python3 -m json.tool .claude-plugin/plugin.json >/dev/null
-          python3 -c 'import json; assert json.load(open(".claude-plugin/plugin.json"))["version"] == "4.9.0"'
+          python3 -c 'import json; assert json.load(open(".claude-plugin/plugin.json"))["version"] == "4.10.0"'
           python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
           python3 -m json.tool hooks/hooks.json >/dev/null
-          node --check hooks/board.mjs
-      - name: Progress board unit tests
-        run: node --test tests/mod-board.test.mjs
       - name: Benchmark harness self-test (no model calls)
         run: node --test tests/benchmark-runner.test.mjs
       - name: Force-push protection
@@ -50,6 +47,8 @@ jobs:
           test -f "$VIBE_CLAUDE_HOME/hooks/check-force-push.py"
           test -f "$VIBE_CLAUDE_HOME/vibe-tools/session-start.sh"
           test -f "$VIBE_CLAUDE_HOME/vibe-tools/session-start.py"
+          test -f "$VIBE_CLAUDE_HOME/vibe-tools/project_setup.py"
+          test -f "$VIBE_CLAUDE_HOME/vibe-tools/project-adoption.md"
           test -f "$VIBE_CLAUDE_HOME/vibe-tools/verification-cache.py"
           test -f "$VIBE_CLAUDE_HOME/vibe-tools/pre-push.template"
           test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/review-result.schema.json"
@@ -62,9 +61,12 @@ jobs:
           test ! -f "$VIBE_CLAUDE_HOME/hooks/check-force-push.py"
           test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/session-start.sh"
           test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/session-start.py"
+          test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/project_setup.py"
+          test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/project-adoption.md"
           test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/verification-cache.py"
 
   native-mod-render:
+    # Legacy job ID retained for required-check compatibility; the removed Mod has no render test.
     # Every PR can deliver through main: validate before merge, regardless of branch name.
     # Keep native checks read-only here; publication remains limited to trusted main pushes.
     runs-on: ubuntu-latest
@@ -77,5 +79,3 @@ jobs:
         run: npm install --global @anthropic-ai/claude-code@2.1.314
       - name: Validate plugin package
         run: claude plugin validate --strict .
-      - name: Exercise native Mod render tree
-        run: claude plugin test .

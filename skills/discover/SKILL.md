@@ -1,5 +1,6 @@
 ---
 name: discover
+user-invocable: false
 effort: medium
 description: Automatically explore product intent and resolve material uncertainty from normal conversation. Use for brainstorming, discovery or planning requests, or an unresolved product or architecture decision. No slash command is required. Clear approved implementation proceeds through Build without a mandatory checkpoint; discovery-only requests do not authorize project edits.
 ---
@@ -56,7 +57,7 @@ Present one checkpoint, ideally 5–10 short lines, only when a material decisio
 - **Decisions needed now**: numbered, each with a recommendation. No reviewer setup question is needed; Vibe uses its existing fresh-context Claude reviewer when a review is genuinely required.
 - **Plan**: the next useful outcome; internal milestone codes stay out of user-facing text.
 
-If the repository has no `CLAUDE.md`, create one from `references/project-claude-template.md` with the objective, non-goals, and constraints agreed in the checkpoint; fill the Commands section once the stack is decided.
+During authorized project editing, apply the core's automatic project adoption. If neither root `CLAUDE.md` nor `.claude/CLAUDE.md` exists and product-specific rules are needed, use `references/project-claude-template.md` with agreed objectives, non-goals and constraints, then refresh the managed policy block. Fill Commands only from the actual stack; do not replace existing project rules or require Discover just to adopt Vibe.
 
 Record material approved rules, affected/expanded checks and the actual production delivery boundary where full E2E is due. Feature milestones do not automatically require a full suite; use `../build/references/testing-policy.md` when coverage needs clarification. Preserve any explicit project integration gate and high-risk review requirement. No external reviewer configuration or authentication is required.
 

@@ -10,6 +10,11 @@ import subprocess
 import sys
 import time
 
+try:
+    from project_setup import inspect_project
+except (ImportError, SyntaxError):
+    inspect_project = None  # Advisory failure must not suppress core or continuity.
+
 
 STATUS = "docs/STATUS.md"
 FIELDS = ("Updated", "Position", "In progress", "Next task", "Waiting on owner")
@@ -143,8 +148,8 @@ def freshness_warnings(git, fields, summary):
     return warnings
 
 
-def continuity_context():
-    git = LocalGit(project_directory())
+def continuity_context(git=None):
+    git = git or LocalGit(project_directory())
     root = git.text("rev-parse", "--show-toplevel")
     if root:
         git.cwd = Path(root)
@@ -176,8 +181,15 @@ def main():
             core = args.core.read_text(encoding="utf-8")
         except OSError:
             pass
-    status = continuity_context()
-    context = core + ("\n\n" if core and status else "") + status
+    git = LocalGit(project_directory())
+    status = continuity_context(git)
+    try:
+        advisory = inspect_project(git) if inspect_project else (
+            "Vibe gate advisory: inspection unavailable; inspect relevant configuration during project work.")
+    except Exception:
+        # This optional static inspection is never a dependency of session recovery.
+        advisory = "Vibe gate advisory: inspection unavailable; preserve existing project protections."
+    context = "\n\n".join(part for part in (core, status, advisory) if part)
     if context:
         print(json.dumps({"hookSpecificOutput": {"hookEventName": "SessionStart",
                                                  "additionalContext": context}}))

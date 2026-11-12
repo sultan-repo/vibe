@@ -9,3 +9,7 @@ The project comes from hook input `cwd`, falling back to `CLAUDE_PROJECT_DIR` an
 Warnings describe **locally known** refs. Unmerged branches absent from Now are listed as potentially relevant, not proven forgotten work. Merged branches and history-only mentions do not suppress that check. There is no fetch, remote query, lazy object fetch, file write, model call or per-turn hook. Git inspection has a two-second total budget. The hook can detect a stale record but cannot create a handoff or recover unsaved work.
 
 For an existing authoritative issue tracker, declare that source in project instructions and have the coordinator read it on resume. This local hook does not query a tracker or create a competing status file. Installations without Python retain plain core injection; continuity inspection needs Python 3.
+
+## Bounded gate advice and project policy
+
+The startup helper also fingerprints a bounded local configuration snapshot through `project_setup.py`, including the actual hooks directory. It may report possible broad commit/push or CI verification and incomplete inspection once per changed snapshot. It does not execute project scripts, inspect the whole repository, change tracked files, disable a gate or certify test coverage. Git-private notice bookkeeping is separate from read-only Git calls. See `project-adoption.md` for limits and the coordinator's automatic, authorized policy adoption. A startup advisory is not permission to migrate a project gate.

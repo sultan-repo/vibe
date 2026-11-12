@@ -13,7 +13,7 @@
 - Full release gate: `<complete relevant project suite and end-to-end journeys>`
 
 ## Delivery
-This project follows Vibe v4.8 with change-aware verification. Normal requests select the workflow; the user does not run workflow commands.
+This project follows Vibe v4.10 with change-aware verification. Normal requests select the workflow; the user does not run workflow commands.
 - Progress: short, natural updates for a nontechnical owner in their language. Explain the useful result, current focus, next step and any real decision. Keep engineering details in records; distinguish work finished from checked and available to users.
 - Milestones: <usable outcomes; feature completion is not automatically a full-suite trigger>
 - During implementation: affected or expanded checks based on cumulative impact and dependencies, no automatic full suite or independent reviewer per package/commit/non-deploying push. Keep cheap broad checks when selection adds overhead.
@@ -28,6 +28,8 @@ This project follows Vibe v4.8 with change-aware verification. Normal requests s
 Test selection uses the integration base, cumulative diff, affected journeys and existing dependency/test information, not filenames alone. Record coverage and deferred full E2E in existing tracking. Validate a new selection mapping with a bounded targeted/full comparison before relaxing an existing project gate; do not repeat that comparison for every feature.
 
 For duplicate verification, the coordinator may adapt Vibe's optional verification-cache helper and pre-push template to the existing gate. Its modes remain quick/full: map affected/expanded selections through a scope-aware adapter and release to full. Reuse requires the actual pushed tree, a clean stable checkout, sufficient coverage, selection base/filters and unchanged declared context. Full includes quick only if the project defines that relationship. Keep full evidence separate; a failed/interrupted rerun invalidates prior evidence for those inputs. Test reuse does not replace required CI or reviewer approval. No owner setup command is needed.
+
+The coordinator applies Vibe's small managed project policy during first authorized editing, without workflow commands. Policy adoption does not certify that hooks/CI were migrated. Prefer optional evidence-only enforcement only after a separate verification path is working; missing evidence still blocks promotion.
 
 ## Conventions and continuity
 <Only conventions that cannot be inferred from code. Use existing issues/ADRs/tasks; create extra records only when needed.>

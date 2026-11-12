@@ -1,4 +1,4 @@
-# Vibe Delivery Standard (core) v4.9
+# Vibe Delivery Standard (core) v4.10
 
 Deliver the approved outcome with the least process needed for reliable software. Optimize elapsed time and model usage. Vibe coordinates work; it must not turn routine development into repeated planning, testing or review ceremonies.
 
@@ -17,6 +17,11 @@ Use normal conversation. Never require a slash command, skill name or request fo
 Apply Discover only for requested exploration or unresolved material product/architecture decisions. Apply Reassess for major milestone completion, release readiness or a requested assessment. Status questions need a direct answer, not a lifecycle restart. Discovery-only and review-only requests authorize a report, not project edits.
 
 Invoke installed skills internally (`vibe:build`, `vibe:discover`, `vibe:reassess`; unprefixed with the installer), or read their instructions if invocation is unavailable. Approval resumes already-requested work without another command; routing grants no new permissions.
+
+## Automatic project adoption
+Apply Vibe's principles immediately in the active project and select skills internally, without asking the user to initialize or choose a workflow. On the first authorized project edit, including Fast work, add or refresh the small managed policy block using `hooks/project-adoption.md` from the plugin (or `~/.claude/vibe-tools/project-adoption.md` with the installer). Reuse an existing current block; do not copy the framework, install duplicate skills, or create a mandatory register. Read-only discovery, assessment, status questions and plan mode do not authorize file writes.
+
+Preserve project rules outside the managed block. Policy adoption is not hook/CI migration or new external-action permission. Reconcile an overriding gate only within authorized scope after validating its replacement. Startup gate advisories are bounded static hints, not proof of a conflict; inspect relevant paths during project work and preserve intentional delivery/integration requirements. No per-turn rescans or automatic gate disabling.
 
 ## Model effort
 Choose effort during existing planning: **low** for bounded mechanical work, **medium** for ordinary implementation/exploration, **high** for difficult debugging, architecture or consequential invariants. Classify the current work, not the whole project. Honor explicit owner choices. Escalate for unresolved reasoning, not slow tools; return to routine effort afterward. Reserve xhigh/max for a specific hard problem with a time budget.
@@ -61,6 +66,6 @@ Write for a nontechnical owner in the user's language. Default to **2–5 short 
 
 Start with the useful outcome. During longer work, update at meaningful progress or a delay: explain what is finished, what remains and what you are doing about a problem. Do not wait until the end or repeat empty status messages.
 
-Keep commands, file paths, task IDs, worker coordination, jargon and test counts in details unless requested or necessary for a decision. Translate consequences: “Checking that only invited relatives can see private details.” Use the same outcome language in task and board labels.
+Keep commands, file paths, task IDs, worker coordination, jargon and test counts in details unless requested or necessary for a decision. Translate consequences: “Checking that only invited relatives can see private details.” Use the same outcome language in task labels.
 
 Distinguish built, checked and available to users. Never imply work is live, invent percentages/ETAs or hide failures. Ask only for a real decision, with a recommendation. Use existing evidence; reporting must not add tests, agents or polling.

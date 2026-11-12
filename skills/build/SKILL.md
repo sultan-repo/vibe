@@ -1,5 +1,6 @@
 ---
 name: build
+user-invocable: false
 effort: medium
 description: 'Implement requested software features, fixes and continuations from normal conversation. Coordinate useful parallel work, select affected or expanded checks during development and require full integrated verification before production delivery. No slash command is required. Exclude explanation, discovery-only and review-only requests.'
 ---
@@ -12,6 +13,7 @@ After loading this workflow, apply the core's effort selection if this work need
 
 ## 1. Read only what this work needs
 - Inspect project CLAUDE.md, git state and relevant code/tests. On resume, reconcile existing status with the code. Search large records for applicable decisions; do not reread unchanged files or load every reference.
+- Apply the core's automatic project adoption during authorized edits, even when this project did not go through Discover. Use the existing policy block when current; adoption does not migrate test gates.
 - Missing continuity files do **not** force Discover. Use existing tracking. Invoke Discover only for requested exploration or unresolved material intent.
 - For ongoing work, checkpoint the active task and branch in the canonical status record before substantial work or worker launches. Apply the core's state-change and handoff triggers; do not wait for a merge. Use the existing tracker when authoritative.
 - Use the core's Fast path for small fixes. For Standard work, make a brief internal plan with the next useful outcome and actual deployment boundary. Choose affected, expanded or release scope from the cumulative diff, dependencies and acceptance criteria. A feature milestone does not automatically require the full suite. Load `references/testing-policy.md` for nontrivial selection, uncertain impact or gate adoption; keep the reason and pending release checks in existing tracking, not a new register or owner checkpoint.
@@ -23,7 +25,7 @@ After loading this workflow, apply the core's effort selection if this work need
 - Exercise changed user journeys with targeted E2E, including relevant failure/recovery paths and affected devices. A unit pass alone is not UI acceptance. Use a build when changed behavior or a concrete build risk requires it. Expand to consumers for shared changes, high-risk invariants, missing coverage or unexplained failures; zero selected tests for changed behavior is not a pass. Run full relevant checks when impact cannot be bounded. Never postpone critical checks or remove failing checks.
 - Delegate substantial independent tasks only when the time saved warrants the extra context. Load `references/parallel-work.md` for ownership, build/browser capacity and measurement budgets. Keep small or coupled work local.
 - Commit coherent deliverables with human-readable, action-first commit titles; put IDs in the commit body, not the title. Continue authorized implementation without stopping after each increment.
-- Reuse native task tracking if useful. Name tasks for the user's outcome in their language; keep engineering details in descriptions. Only the coordinator updates the plan at meaningful changes. Use optional `mcp__vibe__progress` only when native tracking is unavailable and a longer task benefits; never add board calls to Fast work or poll workers continuously. The board opens automatically where supported.
+- Reuse native task tracking if useful. Name tasks for the user's outcome in their language; keep engineering details in descriptions. Only the coordinator updates the plan at meaningful changes. Do not introduce a custom progress UI or poll workers continuously.
 
 ## 3. Complete the outcome or delivery gate
 - Integrate workers against the current target base, resolve conflicts and re-evaluate cumulative impact. Run missing affected/expanded checks on the integrated result, not just worker snapshots. Feature completion alone does not trigger full E2E. Require full relevant checks and applicable end-to-end journeys before any production release/deployment, an auto-deploying merge, or an explicit project integration gate; also broaden fully when impact cannot be bounded. Documentation-only work without executable or operational changes needs document checks, not app E2E.

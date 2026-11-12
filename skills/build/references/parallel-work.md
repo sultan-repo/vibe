@@ -19,7 +19,13 @@ Delegate substantial independent work only when the saved time warrants the extr
 
 - Prefer worktrees for substantial edits, verifying each starting SHA against the intended committed base. Uncommitted parent edits are absent; preserve them and deliberately supply authorized prerequisites or keep dependent work local.
 - A shared checkout is suitable only for disjoint edits with exclusive ownership. Stop a worker before transferring its files. Worktrees do not isolate ports, databases or services; isolate those resources or reserve their use.
-- The coordinator owns shared lockfiles, branch operations, integration, decision logs, status files and the board. Workers never edit shared status; they return proposed decision/status text in their reports. Before launching substantial work, the coordinator records active packages and branch names, then combines reports at the core's state-change triggers rather than waiting for merges. Delimited blocks in the same shared file do not prevent conflicts.
+- The coordinator owns shared lockfiles, branch operations, integration, decision logs, status files and the plan. Workers never edit shared status; they return proposed decision/status text in their reports. Before launching substantial work, the coordinator records active packages and branch names, then combines reports at the core's state-change triggers rather than waiting for merges. Delimited blocks in the same shared file do not prevent conflicts.
+
+## Long verification without blocking independent work
+
+Run expensive verification in a stable committed candidate checkout when isolation and capacity make it useful, not at every milestone by rule. Continue independent edits elsewhere. Worktrees do not isolate ports, databases, fixtures or services; reserve or isolate them and serialize conflicting browser/build stages. Prefer verifying and promoting from the same candidate worktree because the optional cache is worktree-local.
+
+The coordinator collects exit status, failures and cancellation, and saves discoverable run metadata for handoff. Pending, failed or cancelled checks never permit promotion. Evidence-only enforcement can reject a push without launching a suite inside the hook; arrange the separate verification path first. Foreground execution is valid when resources or the runtime cannot support safe background work. Do not add a scheduler or cross-worktree evidence store for this policy.
 
 ## Budget performance work
 

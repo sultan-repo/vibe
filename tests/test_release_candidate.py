@@ -24,7 +24,7 @@ def workflow(path):
 class ReleaseCandidateTest(unittest.TestCase):
     def test_version_metadata_and_release_documents_agree(self):
         version = json.loads(read(".claude-plugin/plugin.json"))["version"]
-        self.assertEqual(version, "4.9.0")
+        self.assertEqual(version, "4.10.0")
         series = ".".join(version.split(".")[:2])
         marketplace = json.loads(read(".claude-plugin/marketplace.json"))
         self.assertIn(f"v{series}:", marketplace["plugins"][0]["description"])
@@ -48,7 +48,7 @@ class ReleaseCandidateTest(unittest.TestCase):
         runs = [step.get("run") for step in native["steps"]]
         self.assertIn("npm install --global @anthropic-ai/claude-code@2.1.314", runs)
         self.assertIn("claude plugin validate --strict .", runs)
-        self.assertIn("claude plugin test .", runs)
+        self.assertNotIn("claude plugin test .", runs)  # No native Mod remains.
 
     def test_pr_checks_keep_read_only_permissions_and_no_publisher(self):
         checks = workflow(CHECKS)
@@ -67,7 +67,6 @@ class ReleaseCandidateTest(unittest.TestCase):
         self.assertNotIn("continue-on-error", validate)
         runs = "\n".join(step.get("run", "") for step in validate["steps"])
         for command in (
-            "node --test tests/mod-board.test.mjs",
             "node --test tests/benchmark-runner.test.mjs",
             "python3 hooks/test-force-push-hook.py",
             "python3 -m unittest discover -s tests -v",
@@ -120,19 +119,19 @@ class ReleaseCandidateTest(unittest.TestCase):
         self.assertIn("Never defer critical checks", expanded)
 
     def test_release_boundary_and_skipped_checks_are_not_misrepresented(self):
-        for path in ("docs/TESTING-VALIDATION.md", "docs/RELEASE-4.9.md"):
+        for path in ("docs/TESTING-VALIDATION.md", "docs/RELEASE-4.10.md"):
             text = read(path)
             self.assertIn("Merging to `main` is a production delivery", text)
             self.assertIn("before merge", text)
             self.assertIn("skipped", text.lower())
             self.assertIn("not a pass", text.lower())
             self.assertNotIn("no release is implied", text)
-        plan = read("docs/RELEASE-4.9.md")
+        plan = read("docs/RELEASE-4.10.md")
         self.assertIn("independent", plan)
         self.assertIn("exact final", plan)
         self.assertIn("targeted recheck", plan)
         self.assertIn("cannot certify", plan)
-        notes = read("docs/RELEASE_NOTES_4.9.md")
+        notes = read("docs/RELEASE_NOTES_4.10.md")
         self.assertIn("No measured speedup or unchanged defect-detection rate is claimed", notes)
 
     def test_adoption_still_requires_a_bounded_project_comparison(self):

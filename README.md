@@ -75,11 +75,11 @@ Start a **new Claude Code session**, then describe your task normally.
 
 You can also ask Vibe to explore an idea without implementing it.
 
-## Optional progress board
+## Automatic project adoption
 
-On supported Claude Code interfaces, Vibe can show a simple progress board. It opens automatically for tracked plans, or you can reopen it with `/vibe-board`.
+Vibe applies its principles to the project you are working on. During the first authorized edit, it adds a small managed policy block while preserving your existing project rules. Discover, Build and Reassess are selected internally, not commands you need to remember. Read-only questions do not change project files.
 
-The board shows reported task progress, not a live guarantee that tests have passed.
+Startup can flag potentially expensive project gates when relevant configuration changes. Existing protections stay active until their replacement is authorized and validated. Projects can opt into evidence-only push checks, so missing results block the push without starting a long test run inside it.
 
 ## Good to know
 
