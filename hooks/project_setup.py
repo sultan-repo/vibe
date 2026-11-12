@@ -17,7 +17,7 @@ import time
 
 START = "<!-- vibe:project:start -->"
 END = "<!-- vibe:project:end -->"
-POLICY = """## Vibe project workflow (managed; v4.12)
+POLICY = """## Vibe project workflow (managed; v4.12.1)
 Apply installed Vibe principles automatically to authorized work in this project.
 Select Discover for material exploration, Build for implementation, and Reassess for assessment or delivery readiness; the user describes outcomes, not workflow commands.
 Keep small, understood work on the Fast path. Read detailed skills and references only when needed; do not copy the framework into this repository.
@@ -135,55 +135,208 @@ def write_rules(path, before, mode, after):
     return True
 
 
-def adopt(root):
-    """Both agents receive the same managed policy. Validate all edits before writing."""
+LEGACY_FALLBACK = "In Codex, retain the owner instructions from your configured project fallback"
+LEGACY_BRIDGE = "Ignore the root CLAUDE.md bridge created by this adoption"
+
+
+def active_import(text, imports):
+    """Recognize standalone imports in prose, never in fenced/indented examples."""
+    fence = None
+    for line in text.splitlines():
+        if fence:
+            if re.fullmatch(r" {0,3}" + re.escape(fence[0]) +
+                            "{" + str(fence[1]) + r",}[ \t]*", line):
+                fence = None
+            continue
+        opening = re.match(r" {0,3}(`{3,}|~{3,})(.*)$", line)
+        if opening:
+            mark, info = opening.groups()
+            if mark[0] != "`" or "`" not in info:
+                fence = mark[0], len(mark)
+                continue
+        if not line.expandtabs(4).startswith("    ") and line.strip() in imports:
+            return True
+    return False
+
+
+def rules_state(path):
+    """Existence is significant: an empty instruction file can mask a fallback."""
+    try:
+        data, mode = regular_bytes(path, 131072)
+        return data, mode
+    except FileNotFoundError:
+        return None
+
+
+def apply_rule_changes(changes):
+    """Rollback caught failures; keep private recovery copies if rollback is unsafe.
+
+This is not filesystem-wide atomicity. Abrupt termination can leave a partial
+transaction and a private recovery directory; never replay it over owner edits.
+"""
+    import shutil
+    changes = [edit for edit in changes if edit[1] != edit[3]]
+    if not changes:
+        return False
+    states = [rules_state(path) for path, _, _, _ in changes]
+    for (path, before, mode, after), state in zip(changes, states):
+        expected = before.encode("utf-8")
+        if (state is None and before) or (state is not None and state != (expected, mode)):
+            raise SetupError("project rules changed during adoption; retry after reconciliation")
+        if after is not None and len(after.encode("utf-8")) > 131072:
+            raise SetupError("updated project rules exceed the size limit")
+    recovery = Path(tempfile.mkdtemp(prefix="vibe-adoption-"))
+    attempted, made_dirs = [], []
+    keep_recovery = False
+    try:
+        metadata = []
+        for index, ((path, _, mode, after), state) in enumerate(zip(changes, states)):
+            if state is not None:
+                backup = recovery / f"{index}.before"
+                backup.write_bytes(state[0])
+                backup.chmod(0o600)
+            metadata.append({"path": str(path), "existed": state is not None, "mode": mode,
+                             "before": f"{index}.before" if state is not None else None,
+                             "after_sha256": hashlib.sha256(after.encode()).hexdigest()
+                             if after is not None else None})
+        (recovery / "recovery.json").write_text(json.dumps(metadata), encoding="utf-8")
+        (recovery / "recovery.json").chmod(0o600)
+        for index, ((path, before, mode, after), state) in enumerate(zip(changes, states)):
+            if rules_state(path) != state:
+                raise SetupError("project rules changed during adoption; retry after reconciliation")
+            if path.parent.is_symlink():
+                raise SetupError("instruction directory became a symlink; reconcile manually")
+            if not path.parent.exists():
+                path.parent.mkdir()  # Only the project's .claude directory is ever created.
+                made_dirs.append(path.parent)
+            attempted.append(index)
+            if after is None:
+                path.unlink()
+            else:
+                write_rules(path, before, mode, after)
+    except BaseException as error:
+        unresolved = []
+        for index in reversed(attempted):
+            path, before, mode, after = changes[index]
+            state = states[index]
+            try:
+                current = rules_state(path)
+                if current == state:
+                    continue
+                written = (after.encode("utf-8"), mode) if after is not None else None
+                if current != written or path.parent.is_symlink():
+                    raise SetupError("concurrent edit")
+                if state is None:
+                    path.unlink()
+                else:
+                    write_rules(path, after or "", state[1], before)
+            except (OSError, SetupError):
+                unresolved.append(str(path))
+        for directory in reversed(made_dirs):
+            try:
+                directory.rmdir()
+            except OSError:
+                pass  # Never delete an owner's newly added files.
+        if unresolved:
+            keep_recovery = True
+            raise SetupError("adoption incomplete; preserve concurrent edits and reconcile " +
+                             ", ".join(unresolved) + f" using private recovery copies in {recovery}") from error
+        if isinstance(error, (OSError, SetupError)):
+            raise SetupError("adoption failed; completed edits rolled back: " + str(error)) from error
+        raise
+    finally:
+        if not keep_recovery:
+            shutil.rmtree(recovery)
+    return True
+
+
+def fallback_names(names):
+    if names is None:
+        raise SetupError("effective Codex fallback order is unknown; the coordinator must supply "
+                         "--codex-fallbacks-json from the active configuration before changing instruction routing")
+    if not isinstance(names, list) or any(not isinstance(name, str) for name in names):
+        raise SetupError("Codex fallback names must be a JSON array of basenames")
+    # Reject ambiguous/cross-platform path syntax instead of reading outside root.
+    if any(not name or name in (".", "..") or re.search(r"[/\\:\x00-\x1f]", name)
+           or name in ("AGENTS.md", "AGENTS.override.md") for name in names):
+        raise SetupError("Codex fallback names must be eligible non-reserved basenames")
+    return list(dict.fromkeys(names))
+
+
+def adopt(root, *, codex_fallbacks=None):
+    """Add policy without shadowing a native owner instruction source."""
     root = root.resolve(strict=True)
     if not root.is_dir():
         raise SetupError("project directory is not a directory")
     shared = root / "AGENTS.md"
     claude = policy_path(root)
     before, mode = read_rules(shared)
-    # A newly selected AGENTS.md can replace a configured Codex fallback.
-    # Record the handoff only for a new shared file, and keep it on later refreshes.
-    fallback_prefix = "In Codex, retain the owner instructions from your configured project fallback"
-    policy = POLICY
-    if not shared.exists() or fallback_prefix in before:
-        policy += (f"\n{fallback_prefix}. In project_doc_fallback_filenames order, select the "
-                   "first existing regular file with an eligible basename in this directory "
-                   "(for example, `CLAUDE.md` when configured). An empty first match still "
-                   "takes precedence. Apply its owner-written rules and skip managed imports back to AGENTS.md.")
-        new_bridge = "Ignore the root CLAUDE.md bridge created by this adoption when locating the previous fallback."
-        if new_bridge in before or (claude == root / "CLAUDE.md" and not claude.exists()):
-            policy += " " + new_bridge
-    changes = [(shared, before, mode, managed_rules(before, START, END, policy))]
-    # At project scope Codex selects an existing override even when empty.
-    # At user scope it skips empty files. Mirror just the Vibe
-    # block there; owner-authored override rules stay private to that host.
     override = root / "AGENTS.override.md"
-    if not (override.is_symlink() and override.resolve() == shared):
-        override_text, override_mode = read_rules(override)
-        if override.exists():
+    override_alias = override.is_symlink() and override.resolve() == shared
+    override_text, override_mode = ("", 0o644) if override_alias else read_rules(override)
+    override_active = override.exists() and not override_alias
+    original, permissions = ("", 0o644) if claude.is_symlink() and claude.resolve() == shared else read_rules(claude)
+    # Validate all owned markers before any write, including files not selected.
+    for text in (before, override_text, original):
+        managed_rules(text, START, END, "")
+    legacy = LEGACY_FALLBACK in before
+    fallback = None
+    remove_bridge = False
+    if (not shared.exists() or legacy) and not override_active:
+        names = fallback_names(codex_fallbacks)
+        if legacy and managed_rules(before, START, END, "").strip("\ufeff \t\r\n"):
+            raise SetupError("legacy shared policy also contains owner rules; reconcile active instruction "
+                             "precedence explicitly before migration")
+        # Remove only the exact, still owner-free bridge recorded as generated by 4.12.
+        remove_bridge = (LEGACY_BRIDGE in before and claude == root / "CLAUDE.md" and
+                         not managed_rules(original, START, END, "").strip("\ufeff \t\r\n") and
+                         active_import(original, {"@AGENTS.md", "@./AGENTS.md"}))
+        for name in names:
+            path = root / name
+            if remove_bridge and path == claude:
+                continue
+            text, file_mode = read_rules(path)
+            if path.exists():  # Empty matches still take precedence at project scope.
+                fallback = path, text, file_mode
+                break
+    changes = []
+    if fallback:
+        # An owner-authored import cannot be silently left pointing to a deleted file.
+        owner_claude = managed_rules(original, START, END, "")
+        reference = "@AGENTS.md" if claude.parent == root else "@../AGENTS.md"
+        if shared.exists() and active_import(owner_claude, {reference, reference.replace("@", "@./", 1)}):
+            raise SetupError("owner-written Claude import references legacy AGENTS.md; reconcile before removal")
+        path, text, file_mode = fallback
+        changes.append((path, text, file_mode, managed_rules(text, START, END, POLICY)))
+        if remove_bridge:
+            changes.append((claude, original, permissions, None))
+        # Keep host-specific owner rules private. Do not copy them into another host's file.
+        if remove_bridge or not claude.exists():
+            claude = root / ".claude" / "CLAUDE.md"
+            if claude.parent.is_symlink():
+                raise SetupError(".claude is a symlink; reconcile project rules manually")
+            original, permissions = read_rules(claude)
+            owner_claude = managed_rules(original, START, END, "")
+            if shared.exists() and active_import(owner_claude, {"@../AGENTS.md", "@./../AGENTS.md"}):
+                raise SetupError("owner-written Claude import references legacy AGENTS.md; reconcile before removal")
+        if claude != path:
+            changes.append((claude, original, permissions, managed_rules(original, START, END, POLICY)))
+        if shared.exists():
+            changes.append((shared, before, mode, None))  # Only owner-free legacy policy reaches here.
+        target = path
+    else:
+        changes.append((shared, before, mode, managed_rules(before, START, END, POLICY)))
+        if override_active:
             changes.append((override, override_text, override_mode,
                             managed_rules(override_text, START, END, POLICY)))
-    if not (claude.is_symlink() and claude.resolve() == shared):
-        original, permissions = read_rules(claude)
-        reference = "@AGENTS.md" if claude.parent == root else "@../AGENTS.md"
-        # Keep a user's existing standalone import. Migrate an older managed block in place.
-        imports = {reference, reference.replace("@", "@./", 1)}
-        # Imports inside Markdown code fences are examples, not Claude instructions.
-        prose = re.sub(r"(?ms)^ {0,3}(`{3,}|~{3,})[^\n]*\n.*?^ {0,3}\1[ \t]*\r?$", "", original)
-        has_import = any(line.strip() in imports for line in prose.splitlines())
-        if START in original or END in original or not has_import:
-            bridge = managed_rules(original, START, END, reference)
-            changes.append((claude, original, permissions, bridge))
-    if any(len(replacement.encode("utf-8")) > 131072 for _, _, _, replacement in changes):
-        raise SetupError("updated project rules exceed the size limit")
-    changed = False
-    for path, previous, permissions, replacement in changes:
-        if write_rules(path, previous, permissions, replacement):
-            changed = True
-    return shared, changed
-
+        if not (claude.is_symlink() and claude.resolve() == shared):
+            reference = "@AGENTS.md" if claude.parent == root else "@../AGENTS.md"
+            if START in original or not active_import(original, {reference, reference.replace("@", "@./", 1)}):
+                # Put a new bridge before an unclosed example fence, not inside it.
+                bridge = managed_rules(original, START, END, reference, prepend=START not in original)
+                changes.append((claude, original, permissions, bridge))
+        target = shared
+    return target, apply_rule_changes(changes)
 
 class Inspection:
     def __init__(self, root):
@@ -402,13 +555,15 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("adopt",))
     parser.add_argument("--project-dir", required=True, type=Path)
+    parser.add_argument("--codex-fallbacks-json", type=json.loads,
+                        help="effective Codex project_doc_fallback_filenames; [] only when verified empty")
     args = parser.parse_args()
     try:
-        path, changed = adopt(args.project_dir)
+        path, changed = adopt(args.project_dir, codex_fallbacks=args.codex_fallbacks_json)
         print(f"Vibe project policy {'updated' if changed else 'already current'}: {path}")
         return 0
     except (OSError, SetupError) as error:
-        print(f"Vibe project policy unchanged: {error}", file=sys.stderr)
+        print(f"Vibe project policy not completed: {error}", file=sys.stderr)
         return 1
 
 

@@ -4,7 +4,8 @@
       "hooks": [{
         "type": "command",
         "command": "\"${PLUGIN_ROOT}/hooks/session-start.sh\"",
-        "commandWindows": "cmd.exe /d /c call \"${PLUGIN_ROOT}/hooks/codex-hook.cmd\" startup"
+        "commandWindows": "cmd.exe /d /c call \"${PLUGIN_ROOT}/hooks/codex-hook.cmd\" startup",
+        "additionalContextLimit": 16384
       }]
     }],
     "PreToolUse": [{

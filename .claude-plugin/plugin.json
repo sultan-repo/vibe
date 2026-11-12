@@ -1,6 +1,6 @@
 {
   "name": "vibe",
-  "version": "4.12.0",
+  "version": "4.12.1",
   "description": "Vibe: lightweight delivery for Claude Code and Codex, durable session handoffs, automatic model effort, focused checks and useful parallel work.",
   "author": {
     "name": "Sultan Alsubaie"
