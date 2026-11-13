@@ -64,7 +64,7 @@ class GovernanceTest(unittest.TestCase):
         path = self.put('CLAUDE.md','Run the full test suite before every commit.\n')
         item = self.item()
         g.decide(self.root,item['id'],item['fingerprint'],'defer',True)
-        path.write_text('Run all tests before each commit.\n')
+        path.write_text('Must run the entire test suite before each commit.\n')
         self.assertEqual(self.item()['state'],'unresolved')
         with self.assertRaises(g.GovernanceError):
             g.decide(self.root,item['id'],item['fingerprint'],'keep-project',True)
