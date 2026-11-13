@@ -71,6 +71,16 @@ class TestingPolicyTest(unittest.TestCase):
             self.assert_terms(path, "formal production release", "full relevant", "e2e")
 
 
+    def test_managed_policy_and_loaded_references_use_same_deployment_rule(self):
+        self.assert_terms("hooks/project_setup.py", "managed; v4.14.0",
+                          "routine work or feature deployment", "explicit owner e2e request",
+                          "formal production release/promotion")
+        for path in (CACHE, REVIEW):
+            self.assert_terms(path, "routine feature deployment", "formal production release",
+                              "affected/expanded", "e2e")
+            self.assertNotIn("full end-to-end verification is required before production delivery", read(path))
+            self.assertNotIn("full before any production delivery", read(path))
+
     def test_impact_uses_cumulative_changes_and_a_real_base(self):
         self.assert_terms(POLICY, "current integration base", "cumulative changes",
                           "not just the latest commit", "staged", "unstaged",

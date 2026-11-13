@@ -62,6 +62,22 @@ class ProjectSetupTest(unittest.TestCase):
         self.assertIn("not completed hook/CI migration", path.read_text())
         self.assertEqual(path.read_text().count(setup.START), 1)
 
+    def test_managed_policy_migrates_from_v413_without_overwriting_owner_rules(self):
+        self.assertIn("routine work or feature deployment", setup.POLICY)
+        self.assertIn("formal production release/promotion", setup.POLICY)
+        self.assertIn("explicit owner E2E request", setup.POLICY)
+        legacy = setup.POLICY.replace("managed; v4.14.0", "managed; v4.13.0")
+        legacy = legacy.replace(
+            "Use feature-scoped unit/integration/component and UI/API acceptance for routine work or feature deployment, including auto-deploying merges; do not automatically run whole-journey E2E. Expand for shared, high-risk or uncertain impact, and preserve relevant smoke/rollback checks. Require full relevant checks and E2E for formal production release/promotion or an explicit owner E2E request. Existing project gates still apply; reuse only matching, sufficient evidence.",
+            "Use affected checks and targeted browser acceptance during development, expand for shared or uncertain impact, and require full integrated evidence before production delivery. Reuse only matching, sufficient evidence.")
+        owner = "Owner constraint: require review before sensitive data changes.\\n"
+        shared = self.write("AGENTS.md", setup.managed_rules(owner, setup.START, setup.END, legacy))
+        setup.adopt(self.root, codex_fallbacks=[])
+        self.assertIn(owner, shared.read_text())
+        self.assertIn("managed; v4.14.0", shared.read_text())
+        self.assertNotIn("full integrated evidence before production delivery", shared.read_text())
+        self.assertFalse(setup.adopt(self.root, codex_fallbacks=[])[1])
+
     def test_preserves_existing_rules_and_permissions(self):
         path = self.write("CLAUDE.md", "# Owner policy\nNever weaken production checks.\n")
         path.chmod(0o600)
