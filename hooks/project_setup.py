@@ -17,7 +17,7 @@ import time
 
 START = "<!-- vibe:project:start -->"
 END = "<!-- vibe:project:end -->"
-POLICY = """## Vibe project workflow (managed; v4.12.1)
+POLICY = """## Vibe project workflow (managed; v4.13.0)
 Apply installed Vibe principles automatically to authorized work in this project.
 Select Discover for material exploration, Build for implementation, and Reassess for assessment or delivery readiness; the user describes outcomes, not workflow commands.
 Keep small, understood work on the Fast path. Read detailed skills and references only when needed; do not copy the framework into this repository.
