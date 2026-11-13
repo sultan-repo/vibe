@@ -42,8 +42,8 @@ jobs:
             echo "publish=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          test -f docs/RELEASE_NOTES_4.12.md
-          test -f docs/RELEASE-4.12.md
+          test -f docs/RELEASE_NOTES_4.13.md
+          test -f docs/RELEASE-4.13.md
           echo "publish=true" >> "$GITHUB_OUTPUT"
       - name: Create tag and GitHub release (idempotent)
         if: steps.source.outputs.publish == 'true'
@@ -88,7 +88,7 @@ jobs:
           fi
           notes="$(mktemp)"
           trap 'rm -f "$notes"' EXIT
-          cat docs/RELEASE_NOTES_4.12.md > "$notes"
+          cat docs/RELEASE_NOTES_4.13.md > "$notes"
           printf '\n\n## Release provenance\n\n- Successful CI run: %s\n- Tested commit: `%s`\n' "$CI_RUN_URL" "$TESTED_SHA" >> "$notes"
           gh release create v4.13.0 \
             --verify-tag \
