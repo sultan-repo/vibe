@@ -23,6 +23,9 @@ This is not a filesystem-wide atomic transaction. An abrupt process or machine t
 
 Read-only discovery, assessment, explanation, status questions and plan mode apply principles without writing policy files. Adoption never grants permission to commit, push, merge, release, deploy, change review requirements or replace existing hooks/CI.
 
+## Owner-controlled governance
+During the first authorized edit or when relevant project instruction/gate configuration changes, the coordinator loads `governance.md` and performs a bounded, read-only conflict assessment. This check is separate from project policy adoption and does not run at every session start. The same policy applies to Claude Code and Codex. Report only confirmed consequential contradictions and use existing decisions to suppress repeat questions for unchanged evidence. Project-specific product, security and delivery requirements are not automatically conflicts.
+
 ## Policy adoption is not gate migration
 
 Inspect relevant gate instructions and actual `core.hooksPath` when first adopting or when a startup advisory reports changed configuration. Follow Build's testing-policy reference. The local startup inspector reads a bounded set of rules, active executable commit/push hooks, root package scripts, literal script references and workflow files. It never executes project commands. Its fingerprint cache is Git-private and suppresses unchanged notices; it does not certify coverage or runtime branch conditions.

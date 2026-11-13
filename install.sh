@@ -29,7 +29,7 @@ cp "$HERE/hooks/verification-cache.py" "$HERE/hooks/pre-push.template" "$HERE/ho
 
 # 3. Force-push protection and startup continuity, preserving unrelated settings.
 cp "$HERE/hooks/block-force-push.sh" "$HERE/hooks/check-force-push.py" "$CL/hooks/"
-cp "$HERE/hooks/session-start.sh" "$HERE/hooks/session-start.py" "$HERE/hooks/project_setup.py" "$HERE/hooks/project-adoption.md" "$CL/vibe-tools/"
+cp "$HERE/hooks/session-start.sh" "$HERE/hooks/session-start.py" "$HERE/hooks/project_setup.py" "$HERE/hooks/project-adoption.md" "$HERE/hooks/governance.py" "$HERE/hooks/governance.md" "$CL/vibe-tools/"
 chmod +x "$CL/hooks/block-force-push.sh" "$CL/vibe-tools/session-start.sh"
 python3 - "$CL/settings.json" "$CL/hooks/block-force-push.sh" "$CL/vibe-tools/session-start.sh" <<'PY'
 import json, os, shlex, sys

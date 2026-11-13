@@ -1,4 +1,4 @@
-# Vibe Delivery Standard (core) v4.12.1
+# Vibe Delivery Standard (core) v4.13.0
 
 Deliver the approved outcome with the least process needed for reliable software. Optimize elapsed time and model usage. Vibe coordinates work; it must not turn routine development into repeated planning, testing or review ceremonies.
 
@@ -24,6 +24,9 @@ Resolve plugin files from the installed workflow skill's directory: two levels u
 Apply Vibe's principles immediately in the active project and select skills internally, without asking the user to initialize or choose a workflow. On the first authorized project edit, including Fast work, add or refresh the small managed policy block using `hooks/project-adoption.md` from the plugin (or `~/.claude/vibe-tools/project-adoption.md` with the installer). Reuse an existing current block; do not copy the framework, install duplicate skills, or create a mandatory register. Read-only discovery, assessment, status questions and plan mode do not authorize file writes.
 
 Preserve project rules outside the managed block. Policy adoption is not hook/CI migration or new external-action permission. Reconcile an overriding gate only within authorized scope after validating its replacement. Startup gate advisories are bounded static hints, not proof of a conflict; inspect relevant paths during project work and preserve intentional delivery/integration requirements. No per-turn rescans or automatic gate disabling.
+
+## Project governance
+Vibe guides development workflow by default, but never silently overrides active host instructions or project safeguards. During first authorized project work or when relevant rules change, run the bounded governance check in `hooks/governance.md` and inspect effective instructions, hooks and CI. Treat static matches as candidates, not confirmed conflicts. Ask the owner once about consequential contradictions: align with Vibe (after validating changes), keep the intentional project exception, or defer. Record an explicit choice in existing decisions; do not re-ask for unchanged evidence. Preserve current gates, permissions, critical checks and delivery boundaries until authorized reconciliation is verified. Do not scan every turn or add an approval question for ordinary compatible rules.
 
 ## Reuse before rebuilding
 Before substantial standard functionality, check existing project code, installed dependencies and platform capabilities. If insufficient, evaluate suitable maintained libraries before custom implementation. Choose the lowest total delivery and maintenance effort that meets quality, security and product requirements, not the fewest generated lines. Keep trivial low-risk work direct; do not replace working code merely because a library exists. For nontrivial choices or new dependencies, load Build's `references/reuse-policy.md`. Reuse decisions belong in existing planning, not a new command, startup scan or mandatory research agent.
