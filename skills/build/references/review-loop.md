@@ -1,6 +1,6 @@
 # High-risk rules and independent review
 
-Load only for high-risk behavior or a required independent review. Use affected/expanded feature-scoped verification during development and routine feature deployment, including auto-deploying merges, under `testing-policy.md`. Full end-to-end verification is required for formal production release/promotion, when explicitly requested by the owner, for unbounded impact or by an explicit project integration gate, not merely because a feature milestone ended. High-risk invariants and required independent review remain mandatory.
+Load only for high-risk behavior or a required independent review. Use affected/expanded feature-scoped verification during development and routine feature deployment, including auto-deploying merges, under `testing-policy.md`. Full end-to-end verification (E2E) is required for formal production release/promotion, when explicitly requested by the owner, for unbounded impact or by an explicit project integration gate, not merely because a feature milestone ended. High-risk invariants and required independent review remain mandatory.
 
 ## Before building high-risk behavior
 
