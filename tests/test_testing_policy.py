@@ -55,7 +55,7 @@ class TestingPolicyTest(unittest.TestCase):
         for path in (CORE, BUILD, REASSESS, POLICY, *TEMPLATES):
             self.assert_terms(path, "routine feature deployment", "auto-deploying",
                               "affected", "expanded")
-        self.assert_terms(POLICY, "automatic deployment from `main`",
+        self.assert_terms(POLICY, "auto-deploying merge through `main`",
                           "feature-scoped browser", "smoke", "rollback")
         for path in (CORE, BUILD, REASSESS, POLICY):
             self.assertNotIn("before any production release/deployment", read(path))
@@ -162,13 +162,13 @@ class TestingPolicyTest(unittest.TestCase):
     def test_parallel_integration_does_not_inherit_worker_local_passes(self):
         self.assert_terms(PARALLEL, "current target-branch base",
                           "worker-local passes do not prove the combined result",
-                          "lower branches must not deploy independently",
+                          "do not ship dependent lower branches before their prerequisites",
                           "integration changes invalidate the affected evidence")
 
     def test_feature_verdict_is_not_release_readiness(self):
         self.assert_terms(CORE, "feature acceptance is not release readiness")
         self.assert_terms(REASSESS, "full release e2e remains pending",
-                          "do not call the release verified until its full evidence exists")
+                          "do not call the formal release verified until its full evidence exists")
         self.assert_terms(POLICY, "passed, failed, skipped, pending and unavailable")
 
     def test_adoption_requires_runtime_comparison_without_quality_claims(self):
