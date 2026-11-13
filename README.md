@@ -46,7 +46,7 @@ Small fixes take the short path. Larger tasks can use the host's available agent
 - **Less babysitting.** Vibe picks the appropriate workflow and keeps approved work moving.
 - **Parallel help when useful.** The agent can delegate independent tasks and integrate their results.
 - **Reuse before rebuilding.** Checks existing code and suitable libraries before substantial custom work, without adding dependencies for every small helper.
-- **Checks without endless review loops.** Focused tests for changed features, broader checks for shared or risky changes, and full verification before production delivery.
+- **Checks without endless review loops.** Focused tests for changed features, broader checks for shared or risky changes, and full verification before formal production releases.
 - **Clear progress.** Updates explain what's done, what's next, and what needs your decision.
 - **Session continuity.** Project status is saved at work boundaries and loaded when a new session starts.
 - **Safer Git operations.** The enabled, trusted shell hook checks for unsafe force-pushes.

@@ -1,5 +1,8 @@
 # Changes
 
+**v4.14.0 (release candidate):** routine feature deployments, including auto-deploying merges, use focused unit/integration/component and feature-scoped UI/API acceptance tests plus needed smoke/rollback checks, without automatically running whole-journey E2E. Explicit owner requests for E2E and formal production release/promotion still require full journey verification. High-risk invariants, unbounded impact, project-specific hooks/CI and required review remain binding; a Vibe upgrade never silently migrates those gates. No new commands, per-turn scans, full-suite loops, or measured speed claims.
+
+
 **v4.13.0 (release candidate):** introduces bounded, owner-controlled project governance shared by Claude Code and Codex. On initial authorized adoption or relevant rule changes, inspect potential contradictions in project instructions and active hooks, verify effective applicability, and ask the owner once to align with Vibe, keep an exception or defer. Store evidence-fingerprinted choices in the existing decisions record; do not rewrite hooks/CI or bypass delivery gates simply because an owner chose alignment. Preserve precedence, risk-based testing/reviews, session continuity, security and release permissions. No mandatory research agent, slash command, per-turn scan or new global enforcement hook. Detector is advisory and cannot interpret arbitrary dynamic scripts.
 
 

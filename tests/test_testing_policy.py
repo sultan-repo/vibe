@@ -51,12 +51,25 @@ class TestingPolicyTest(unittest.TestCase):
                 with self.subTest(path=path, rule=rule):
                     self.assertNotIn(rule, read(path))
 
-    def test_all_production_deliveries_retain_full_gate(self):
+    def test_small_feature_deployments_do_not_require_full_e2e(self):
         for path in (CORE, BUILD, REASSESS, POLICY, *TEMPLATES):
-            self.assert_terms(path, "full relevant", "production", "auto-deploying")
-        self.assert_terms(POLICY, "not only major versions", "small release",
-                          "explicit project integration gate", "deploy alone")
-        self.assert_terms(CORE, "a branch shipped alone gets full delivery checks")
+            self.assert_terms(path, "routine feature deployment", "auto-deploying",
+                              "affected", "expanded")
+        self.assert_terms(POLICY, "automatic deployment from `main`",
+                          "feature-scoped browser", "smoke", "rollback")
+        for path in (CORE, BUILD, REASSESS, POLICY):
+            self.assertNotIn("before any production release/deployment", read(path))
+
+    def test_full_e2e_requires_explicit_owner_request_or_formal_release(self):
+        for path in (CORE, BUILD, REASSESS, POLICY):
+            self.assert_terms(path, "formal production release", "full relevant", "e2e")
+        self.assert_terms(CORE, "explicitly requested by the owner")
+        self.assert_terms(BUILD, "owner requests it")
+        self.assert_terms(POLICY, "full journey e2e", "explicit owner requests",
+                          "explicit project hooks/ci", "cannot be bounded")
+        for path in TEMPLATES:
+            self.assert_terms(path, "formal production release", "full relevant", "e2e")
+
 
     def test_impact_uses_cumulative_changes_and_a_real_base(self):
         self.assert_terms(POLICY, "current integration base", "cumulative changes",
@@ -76,7 +89,7 @@ class TestingPolicyTest(unittest.TestCase):
         for path in (BUILD, POLICY):
             self.assert_terms(path, "failure/recovery", "affected devices",
                               "a unit pass alone is not ui acceptance")
-        self.assert_terms(POLICY, "observed browser evidence", "unavailable environment",
+        self.assert_terms(POLICY, "feature-scoped browser evidence", "unavailable environment",
                           "mobile-specific")
 
     def test_empty_selection_and_missing_acceptance_do_not_pass(self):
@@ -169,7 +182,7 @@ class TestingPolicyTest(unittest.TestCase):
 
     def test_readme_stays_simple_but_explains_the_boundary(self):
         self.assert_terms("README.md", "focused tests for changed features",
-                          "full verification before production delivery",
+                          "full verification before formal production releases",
                           "existing project test requirements still apply",
                           "skills/build/references/testing-policy.md")
         self.assertLess(len(read("README.md").split()), 700)
