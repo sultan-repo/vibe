@@ -1,6 +1,6 @@
 # Vibe v4.13.0 release candidate
 
-Merging to `main` is a production delivery. This PR is authorized for review only, not merge or publication. Complete required evidence before merge. Treat skipped or unavailable checks as pending; a skipped check is not a pass.
+Merging to `main` is a production delivery. The owner authorized merge and publication of v4.13.0 after the release gates pass. Complete required evidence before merge. Treat skipped or unavailable checks as pending; a skipped check is not a pass.
 
 ## Scope and safety
 Owner-controlled governance is shared by Claude Code and Codex. The bounded scanner checks likely conflicts in instruction files and active Git hooks, but does not execute project scripts or change enforcement. Actual applicability must be confirmed by the coordinator, including effective host instructions, CI and deployment boundaries. The owner may align, keep an exception, or defer. Recorded alignment remains pending until project safeguards are reconciled and validated.
