@@ -17,12 +17,12 @@ import time
 
 START = "<!-- vibe:project:start -->"
 END = "<!-- vibe:project:end -->"
-POLICY = """## Vibe project workflow (managed; v4.13.0)
+POLICY = """## Vibe project workflow (managed; v4.14.0)
 Apply installed Vibe principles automatically to authorized work in this project.
 Select Discover for material exploration, Build for implementation, and Reassess for assessment or delivery readiness; the user describes outcomes, not workflow commands.
 Keep small, understood work on the Fast path. Read detailed skills and references only when needed; do not copy the framework into this repository.
 Preserve existing project-specific safeguards, review requirements and permissions. Report contradictory gates; reconcile them only within authorized scope and after validating their replacement.
-Use affected checks and targeted browser acceptance during development, expand for shared or uncertain impact, and require full integrated evidence before production delivery. Reuse only matching, sufficient evidence.
+Use feature-scoped unit/integration/component and UI/API acceptance for routine work or feature deployment, including auto-deploying merges; do not automatically run whole-journey E2E. Expand for shared, high-risk or uncertain impact, and preserve relevant smoke/rollback checks. Require full relevant checks and E2E for formal production release/promotion or an explicit owner E2E request. Existing project gates still apply; reuse only matching, sufficient evidence.
 Keep native task tracking and the existing canonical project status current at work boundaries. Give concise, outcome-based updates.
 This block records policy adoption, not completed hook/CI migration or permission to merge, publish or deploy."""
 MAX_FILE = 65536

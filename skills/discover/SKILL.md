@@ -61,7 +61,7 @@ Present one checkpoint, ideally 5–10 short lines, only when a material decisio
 
 During authorized project editing, apply the core's automatic project adoption. If product-specific rules are needed, use `references/project-claude-template.md` to add agreed objectives and constraints to the shared AGENTS.md. Preserve existing project rules. Fill Commands only from the actual stack.
 
-Record material approved rules, affected/expanded checks and the actual production delivery boundary where full E2E is due. Feature milestones do not automatically require a full suite; use `../build/references/testing-policy.md` when coverage needs clarification. Preserve any explicit project integration gate and high-risk review requirement. No external reviewer configuration or authentication is required.
+Record material approved rules, affected/expanded checks and the formal production release/promotion boundary where full E2E is due; routine feature deployment can use targeted checks, including on auto-deploying main. Feature milestones do not automatically require a full suite; use `../build/references/testing-policy.md` when coverage needs clarification. Preserve any explicit project integration gate and high-risk review requirement. No external reviewer configuration or authentication is required.
 
 Use existing project tracking. For long-running projects that need it, create or update relevant continuity files using `references/register-template.md`; do not require all three files or update them when no material state changed.
 

@@ -8,7 +8,7 @@
     {
       "name": "vibe",
       "source": "./",
-      "description": "Vibe v4.13: shared owner-controlled project governance, safe adoption, testing reuse"
+      "description": "Vibe v4.14: focused feature checks, full formal-release E2E, owner governance"
     }
   ],
   "description": "Sultan Alsubaie's plugins for Claude Code and Codex. Currently: vibe, an outcome-driven software delivery standard."

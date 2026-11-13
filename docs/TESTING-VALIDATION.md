@@ -1,10 +1,10 @@
 # Change-aware testing: validation and adoption
 
-Status: v4.9.0 release candidate. This document defines acceptance scenarios, not recorded runtime passes. Check the associated PR/CI evidence for executed checks and the exact candidate. Merging to `main` is a production delivery because the marketplace installs from this repository; a draft PR or a missing tag is not a deployment hold. The version, release notes and publisher must agree before merge. See [release verification](RELEASE-4.9.md).
+Status: v4.14.0 release candidate. This document defines acceptance scenarios, not recorded runtime passes. Check the associated PR/CI evidence for executed checks and the exact candidate. Merging to `main` is a production delivery because the marketplace installs from this repository; a draft PR or a missing tag is not a deployment hold. The version, release notes and publisher must agree before merge. See [release verification](RELEASE-4.9.md).
 
 ## Scope
 
-Replace automatic full testing at feature milestones with affected/expanded/release coverage. Full production verification, critical invariants, project gates and bounded independent review remain mandatory where applicable. This change updates Vibe's instructions and project templates; it does not rewrite existing projects' scripts, install a selector, change the cache executable or bypass CI.
+Replace automatic full testing at feature milestones with affected/expanded/release coverage. Full formal production release verification, critical invariants, project gates and bounded independent review remain mandatory where applicable. Routine feature deployments, including auto-deploying merges, use affected/expanded checks and deployment smoke/rollback evidence unless risk or project gates require more. This change updates Vibe's instructions and project templates; it does not rewrite existing projects' scripts, install a selector, change the cache executable or bypass CI.
 
 ## Acceptance scenarios
 
@@ -18,7 +18,9 @@ Replace automatic full testing at feature milestones with affected/expanded/rele
 | Selected runner executes zero tests or misses new acceptance | No acceptance pass. Add coverage or broaden; a full green suite cannot establish an uncovered requirement. |
 | Unexpected failure | Diagnose, retain the failure and add regression evidence. No blind full-suite retry loop or disabled assertion. |
 | Integration brings in new target-branch changes | Re-evaluate cumulative impact and invalidate affected prior evidence. Worker-local passes are insufficient. |
-| Small production release or auto-deploying merge | Full integrated delivery gate, just as for a major release. |
+| Routine small feature deployment, including auto-deploying merge to `main` | Affected/expanded tests, feature-specific acceptance checks and deployment smoke/rollback checks; no automatic full E2E. |
+| Formal production release/promotion, including a minor version | Full integrated suite and applicable E2E before promotion. |
+| High-risk or unknown-impact feature deployment | Test critical invariants and consumers; full relevant checks if impact cannot be bounded. |
 | Non-deploying feature PR or status question | Use applicable focused evidence; report full release E2E pending without automatically running it. |
 | Existing project mandates full pre-push checks | Preserve it until an authorized replacement is validated; do not silently bypass it. |
 | Same tree, different selection base/filter/device | Do not reuse narrower evidence for a broader or different claim. |
@@ -32,7 +34,7 @@ Run the existing policy, YAML, installation, session-start, force-push and verif
 
 ## Before reducing a project's existing gate
 
-During authorized adoption, identify its true deployment boundary and map existing commands to coverage scopes. Keep old gates active while performing a bounded shadow comparison: targeted and full checks on the same representative candidate/environment, plus known-regression replay where available. Include isolated, shared and high-risk changes, and intentionally incomplete selections. Investigate any relevant failure missed by selection before enabling the narrower development gate. Do not repeat this dual-run adoption exercise for every feature.
+During authorized adoption, identify its true deployment boundary and map existing commands to coverage scopes. Keep old gates active while performing a bounded shadow comparison: feature-scoped and full checks on the same representative candidate/environment, plus known-regression replay where available. Include isolated, shared and high-risk changes, and intentionally incomplete selections. Investigate any relevant failure missed by selection before enabling the narrower development gate. Do not repeat this dual-run adoption exercise for every feature.
 
 Record the candidate, integration base, selected journeys, omitted checks with reasons, outcomes, elapsed time and duplicate-run count in existing CI/PR evidence. Verify cache invalidation for changed inputs, failed reruns and selection-scope changes. Keep release coverage unchanged and make fallback to expanded/full explicit.
 
