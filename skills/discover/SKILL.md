@@ -1,7 +1,6 @@
 ---
 name: discover
 user-invocable: false
-effort: medium
 description: Automatically explore product intent and resolve material uncertainty from normal conversation. Use for brainstorming, discovery or planning requests, or an unresolved product or architecture decision. No slash command is required. Clear approved implementation proceeds through Build without a mandatory checkpoint; discovery-only requests do not authorize project edits.
 ---
 
@@ -11,7 +10,7 @@ If startup has not already supplied the Vibe delivery standard, read `../../core
 
 Goal: improve the product direction without blocking clear implementation. Explicit Discover requests produce analysis and a concise decision checkpoint, not application code. Ordinary Build requests with an understood objective and approved decisions skip this skill entirely.
 
-After loading this workflow, apply the core's effort selection if this work needs a level other than medium.
+Apply the core's model and effort routing during existing planning. Loading this workflow does not override the user's model or effort.
 
 Input: `$ARGUMENTS` is the idea or feature. If empty, use the request already in the conversation.
 
@@ -43,7 +42,7 @@ Classify every meaningful finding:
 - **Optional**: future enhancement. Goes to the deferred list in STATUS.md only if worth remembering.
 - **Not applicable**: dropped without mention.
 
-For high-risk changes, read `../build/references/review-loop.md` (or the installed build skill). Reuse or draft concise invariants and recovery rules; ask only about unresolved material choices. Use sequence/property tests where they add evidence, otherwise use adequate focused examples.
+For high-risk changes, read `../build/references/review-loop.md` (or the installed build skill). Reuse or draft concise invariants and recovery rules; ask only about unresolved material choices. Use sequence/property tests when stateful risks justify them, otherwise use adequate focused examples.
 
 Five strong recommendations beat twenty weak ones. Include only findings that would change the outcome if omitted.
 

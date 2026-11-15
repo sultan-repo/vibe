@@ -21,7 +21,7 @@ This project follows Vibe v4.14 with change-aware verification. Normal requests 
 - Routine feature deployment, including auto-deploying main: affected/expanded checks plus feature-specific acceptance checks and deployment smoke/rollback checks; full E2E is not automatic. Security and data-change invariants still apply.
 - Formal production release/promotion: full relevant checks and E2E once on the integrated candidate, including small formal releases; reuse only valid full evidence. Explicit project integration gates still apply. Feature acceptance and release readiness are separate.
 - Independent review: affected high-risk behavior or an explicit owner request; low-risk documentation, performance and refactoring do not require it.
-- Model effort: Vibe selects native low/medium/high effort by the current work; honor explicit owner choices and host limits. Confirm effective settings from available runtime evidence when adopting, without user commands or global settings changes.
+- Model routing: apply installed Vibe's fast/balanced/deep/maximum tiers using current host capabilities and native controls, not model version pins. Preserve scoped user preferences and the main-session model; distinguish requested from observed model/effort. No silent quality downgrade, per-turn lookup or global settings changes. Consequential approval stays pending when model suitability is unverified.
 - Deployment boundary: <which actions cause routine production deployment versus formal release/promotion; preserve current required checks and prerequisites>
 - Standing permissions: <none, or exact authorized repository/branches/actions/checks/exclusions>
 - Existing hooks/CI: <applicable project requirements; preserve them until an authorized replacement is validated>
