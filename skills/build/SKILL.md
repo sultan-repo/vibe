@@ -1,7 +1,6 @@
 ---
 name: build
 user-invocable: false
-effort: medium
 description: 'Implement requested software features, fixes and continuations from normal conversation. Coordinate useful parallel work, select affected or expanded checks during development and require full integrated verification before formal production release. No slash command is required. Exclude explanation, discovery-only and review-only requests.'
 ---
 
@@ -11,7 +10,7 @@ If startup has not already supplied the Vibe delivery standard, read `../../core
 
 Use `$ARGUMENTS` when supplied; otherwise use the current request and authorized project state. **Continuous delivery is the default**: finish the approved outcome without stopping after each increment. Select skills internally; never ask the user to run workflow commands.
 
-After loading this workflow, apply the core's effort selection if this work needs a level other than medium. Effort changes do not change acceptance or verification requirements.
+Apply the core's model and effort routing during existing planning. Loading this workflow does not override the user's model or effort. Effort changes do not change acceptance or verification requirements.
 
 ## 1. Read only what this work needs
 - Inspect the active project instructions, git state and relevant code/tests. On resume, reconcile existing status with the code. Search large records for applicable decisions; do not reread unchanged files or load every reference.

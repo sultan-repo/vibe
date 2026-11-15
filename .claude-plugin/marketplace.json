@@ -8,7 +8,7 @@
     {
       "name": "vibe",
       "source": "./",
-      "description": "Vibe v4.14: focused feature checks, full formal-release E2E, owner governance"
+      "description": "Vibe v4.15: capability-based model routing, scoped user preferences, focused feature checks"
     }
   ],
   "description": "Sultan Alsubaie's plugins for Claude Code and Codex. Currently: vibe, an outcome-driven software delivery standard."

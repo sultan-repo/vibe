@@ -38,20 +38,16 @@ class SkillMetadataTest(unittest.TestCase):
                 self.assertNotIn("allowed-tools", metadata)
                 self.assertNotIn("model", metadata)
 
-    def test_workflow_and_agent_effort_defaults(self):
-        expected = {
-            "skills/build/SKILL.md": "medium",
-            "skills/discover/SKILL.md": "medium",
-            "skills/reassess/SKILL.md": "medium",
-            "agents/worker.md": "medium",
-            "agents/reviewer.md": "high",
-        }
-        for relative, effort in expected.items():
+    def test_workflows_and_agents_preserve_host_user_defaults(self):
+        # Fixed frontmatter would override the user's session effort or
+        # subagent-model default before the instruction body can respect it.
+        paths = [f"skills/{name}/SKILL.md" for name in ("build", "discover", "reassess")]
+        paths += ["agents/worker.md", "agents/reviewer.md"]
+        for relative in paths:
             with self.subTest(path=relative):
                 metadata = yaml.safe_load((ROOT / relative).read_text().split("---\n", 2)[1])
-                self.assertEqual(metadata["effort"], effort)
-                if relative.startswith("agents/"):
-                    self.assertEqual(metadata["model"], "inherit")
+                self.assertNotIn("effort", metadata)
+                self.assertNotIn("model", metadata)
 
 
 if __name__ == "__main__":
