@@ -6,7 +6,7 @@ Load only for high-risk behavior or a required independent review. Use affected/
 
 Classify the actual changes: authentication, authorization, identity/security verification, consent, personal data, privacy/deletion, payments, migrations, destructive operations, production configuration, delivery controls and consequential concurrency require appropriate invariants and review. Merely running verification is not high-risk work. A performance or refactoring label does not exempt a migration or permission change.
 
-Reuse existing rules and acceptance criteria. Write only missing consequential invariants, boundaries, retries/races and recovery behavior in the existing rules record. Ask the owner only about material ambiguity. Add focused acceptance/regression tests; use sequence/property tests when stateful risks justify them, otherwise use adequate focused examples. Do not defer checks needed to protect data or an irreversible action until the milestone.
+Reuse existing rules and acceptance criteria. Write only missing consequential invariants, boundaries, retries/races and recovery behavior in the existing rules record. Ask the owner only about material ambiguity. Add focused acceptance/regression tests; use sequence/property tests when stateful risks justify them. Do not defer checks needed to protect data or an irreversible action until the milestone.
 
 ## Review tiers
 
