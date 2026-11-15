@@ -1,13 +1,13 @@
 # Capability routing: validation and adoption
 
-**Purpose:** acceptance evidence for the draft routing change, not a claim of a release or runtime pass.
+**Purpose:** acceptance evidence for capability routing in v4.15.0, not a claim that unobserved runtime cases passed.
 **Read when:** reviewing this change or diagnosing host routing. Normal tasks use the small core and on-demand [routing reference](../skills/build/references/model-routing.md).
 
 ## Scope and delivery boundary
 
 Built on main/release v4.14.0 (`af080f173bb183ef8471ed4cd2381d50b3e638fb`). This changes native-control instructions, skill/agent metadata and project templates. No new resolver service, hook, model catalog, per-turn lookup or provider credentials. Existing installation, permission, test-selection and release mechanisms remain intact. Existing projects are not rewritten by this change.
 
-Keep the PR unmerged and unpublished until explicitly authorized. Marketplace installs follow main, so merging would deliver these changes. Release version/notes consistency must be prepared and checked before a later authorized merge; retaining v4.14 metadata in this draft is not permission to ship changed behavior under the released version. Do not modify tags or publish from this PR.
+Keep the PR unmerged and unpublished until current release checks and independent review pass and the owner explicitly authorizes delivery. Marketplace installs follow main, so merging would deliver these changes. The v4.15.0 version metadata, notes and publisher must agree before merge; retaining earlier metadata is not permission to ship changed behavior under the released version. Use the trusted-main publisher after authorized merge, not publication from a PR check. See [release verification](RELEASE-4.15.md).
 
 ## Acceptance cases
 

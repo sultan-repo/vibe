@@ -1,4 +1,4 @@
-# Vibe Delivery Standard (core) v4.14.0
+# Vibe Delivery Standard (core) v4.15.0
 
 Deliver the approved outcome with the least process needed for reliable software. Optimize elapsed time and model usage. Vibe coordinates work; it must not turn routine development into repeated planning, testing or review ceremonies.
 
