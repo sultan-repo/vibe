@@ -42,7 +42,7 @@ Classify every meaningful finding:
 - **Optional**: future enhancement. Goes to the deferred list in STATUS.md only if worth remembering.
 - **Not applicable**: dropped without mention.
 
-For high-risk changes, read `../build/references/review-loop.md` (or the installed build skill). Reuse or draft concise invariants and recovery rules; ask only about unresolved material choices. Use sequence/property tests when stateful risks justify them, otherwise use adequate focused examples.
+For high-risk changes, read `../build/references/review-loop.md` (or the installed build skill). Reuse or draft concise invariants and recovery rules; ask only about unresolved material choices. Use sequence/property tests where they add evidence, otherwise use adequate focused examples.
 
 Five strong recommendations beat twenty weak ones. Include only findings that would change the outcome if omitted.
 
