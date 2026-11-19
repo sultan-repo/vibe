@@ -97,10 +97,14 @@ class ModelRoutingTest(unittest.TestCase):
 
     def test_claude_aliases_are_conditional_not_global_tier_bindings(self):
         self.contains(ROUTING, "Claude Code adapter", "family aliases rather than version IDs",
-                      "conditional candidates", "not guaranteed", "`best` currently means `opus`",
+                      "conditional candidates", "not guaranteed",
                       "`default` clears an override", "Future aliases require native capability evidence")
         self.contains(ROUTING, "not full IDs or `inherit`", "forced subagent model",
                       "allowlists can cause substitution", "forks may behave differently")
+
+    def test_best_is_resolved_by_the_installed_host(self):
+        self.contains(ROUTING, "`best`", "varies by CLI version")
+        self.assertNotRegex(read(ROUTING), r"`best` (?:currently )?(?:means|resolves to|selects) `\w+`")
 
     def test_codex_discovery_does_not_invent_aliases_or_rank_names(self):
         self.contains(ROUTING, "Codex adapter", "not Claude aliases", "model/list",
@@ -115,9 +119,14 @@ class ModelRoutingTest(unittest.TestCase):
 
     def test_codex_role_precedence_and_cross_model_effort_are_explicit(self):
         self.contains(ROUTING, "default_subagent_model", "default_subagent_reasoning_effort",
-                      "custom agent file's", "model_reasoning_effort", "override that resolution",
-                      "model's default effort, not the parent's", "instead of rewriting their TOML",
+                      "spawn or default selects a model and neither supplies effort",
+                      "model's default effort", "instead of rewriting their TOML",
                       "Claude skill frontmatter is not a Codex effort control")
+
+    def test_model_only_role_retains_effort_and_requires_compatibility(self):
+        self.contains(ROUTING, "Apply the custom role last",
+                      "sets only `model` keeps the previously resolved effort",
+                      "Check that effort against the role's final model before dispatch")
 
     def test_reused_nested_workers_must_qualify_for_new_work(self):
         self.contains(PARALLEL, "reused or nested workers", "actual parent/worker configuration",
@@ -143,6 +152,10 @@ class ModelRoutingTest(unittest.TestCase):
                       "No repeated fallback loop", "unapproved provider switch")
         self.contains(REVIEW, "approval gate pending, not silently downgraded")
         self.contains("agents/reviewer.md", "collect useful findings without issuing APPROVE")
+
+    def test_runtime_model_evidence_does_not_imply_observed_effort(self):
+        self.contains(ROUTING, "`/tasks`", "Treat the effort setting as configuration",
+                      "`model/rerouted`", "for its thread and turn", "It supplies no effort")
 
     def test_no_versioned_model_defaults_or_magic_new_aliases(self):
         for path in [CORE, ROUTING, PARALLEL, REVIEW] + WORKFLOWS + AGENTS + CONTROLS + TEMPLATES:

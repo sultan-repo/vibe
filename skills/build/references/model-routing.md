@@ -25,7 +25,7 @@ These are Vibe semantics, not literal host arguments or universal model rankings
 
 ## Claude Code adapter
 
-Use available family aliases rather than version IDs. Current host guidance offers `haiku` for simple work, `sonnet` for everyday coding, `opus` for complex reasoning and `fable` for the hardest work. These are conditional candidates, not guaranteed account/provider availability or permanent tier bindings. `best` currently means `opus`; `default` clears an override, not a balanced-tier selection. Future aliases require native capability evidence, not a Vibe release or an assumed name ranking. [1]
+Use available family aliases rather than version IDs. Current host guidance offers `haiku` for simple work, `sonnet` for everyday coding, `opus` for complex reasoning and `fable` for the hardest work. These are conditional candidates, not guaranteed account/provider availability or permanent tier bindings. Preserve an owner's `best` selection. Its target varies by CLI version and provider availability. Establish what the installed host resolves before counting it toward a consequential tier. `default` clears an override. Future aliases require native capability evidence. [1]
 
 The Agent tool's `model` argument accepts supported family aliases, not full IDs or `inherit`. Agent frontmatter and environment settings have different precedence; a forced subagent model can remove invocation choice, and allowlists can cause substitution. Preserve owner defaults rather than overriding them just because a tool permits it. Use per-invocation `effort` only when the exposed schema supports it; cross-model defaults and forks may behave differently. Inspect available metadata/warnings for a substitution. [2]
 
@@ -37,11 +37,13 @@ Use the current native catalog or host-provided model metadata, not Claude alias
 
 Only use app-server controls when the connected host actually exposes them. A documented API or UI `/model` command is not automatically an agent tool. `turn/start` model/effort overrides persist as thread defaults; they are not an automatically restored one-turn switch. `turn/steer` does not switch models. Do not launch a second app-server just to route. [4]
 
-For native workers, inspect the effective role configuration. Spawn values, `[agents].default_subagent_model` / `default_subagent_reasoning_effort`, and parent inheritance participate in resolution. A custom agent file's `model` or `model_reasoning_effort` can override that resolution. Changing model without effort may select that model's default effort, not the parent's. Pass a compatible model/effort pair through exposed native fields; honor existing role pins instead of rewriting their TOML. If independent controls are unavailable, use an adequate existing role/current configuration or disclose the limitation. Claude skill frontmatter is not a Codex effort control. [5]
+For native workers, resolve each field from the spawn request, then the corresponding `[agents].default_subagent_model` or `default_subagent_reasoning_effort`, then the parent. If the spawn or default selects a model and neither supplies effort, use that model's default effort. Apply the custom role last, overriding only the fields it sets (`model` or `model_reasoning_effort`). A role that sets only `model` keeps the previously resolved effort. Check that effort against the role's final model before dispatch. Use a compatible invocation effort where permitted. Honor role pins instead of rewriting their TOML. If no suitable pair is available, follow the fallback rule below. Claude skill frontmatter is not a Codex effort control. [5]
 
 ## Evidence and fallback
 
 Keep three concepts separate: **requested** tier/model/effort; **configured** effective native settings after known precedence; **observed** runtime model/effort from available native events or metadata. A requested alias, successful tool call, passing task or agent self-identification is not observed proof. Missing observations remain unknown; do not add polling or diagnostic model calls merely to fill fields. Adequacy may be established from trustworthy native configuration and documented capabilities without a hidden serving-model ID; disclose that observation limit, and never label configuration as observation.
+
+When exposed, Claude's `/tasks` row names the running worker's model and the effort set for it. Treat the effort setting as configuration. In Codex, a `model/rerouted` event identifies the replacement model for its thread and turn. It supplies no effort. Recheck suitability for the affected work using that evidence. [2, 4]
 
 On a rejection, cap, fallback or material mismatch, stop relying on the original route. Re-evaluate once using already available capabilities. Use an alternative only when allowed, within budget and demonstrably suitable; never silently downgrade. Otherwise preserve a suitable current configuration, narrow independent work, or report the blocker. If suitability for consequential work cannot be established, leave its required review/approval gate pending. Useful findings can continue but cannot become an approval by renaming the tier. No repeated fallback loop, unapproved provider switch, relaxed checks or broader permissions.
 
@@ -49,7 +51,7 @@ This is a policy for using native controls, not an interception layer that can f
 
 ## Official sources
 
-Verified 2026-11-15. Installed host schemas, account restrictions and runtime evidence govern actual availability; recheck these sources on a material capability change, not per task.
+Adapter details checked 2026-11-19. Installed host schemas, account restrictions and runtime evidence govern actual availability; recheck these sources on a material capability change, not per task.
 
 1. [Claude model configuration](https://code.claude.com/docs/en/model-config)
 2. [Claude subagent model and effort controls](https://code.claude.com/docs/en/sub-agents)
