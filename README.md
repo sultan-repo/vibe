@@ -1,107 +1,132 @@
 # Vibe
 
-**Give Claude Code or Codex a task. Vibe helps it plan, build, check, and finish.**
+**Vibe is a small Claude Code plugin for people who build software by describing what they want and judging the result.** You do not need to read code to use it.
 
-Install Vibe in the agent you use, then describe what you want in plain language. No special commands required.
+It changes four things about how Claude works for you:
 
-## How it works
+- **It checks before it says "done".** Claude runs the change and sees it work before reporting it.
+- **It tells you the plan, then reports in plain language.** No file names or test counts; what works now, what was checked, what was not, and whether it is live.
+- **It remembers where you stopped.** A short status note in your project lets tomorrow's session, or a session on another computer, carry on without you explaining again.
+- **It gets a second opinion on risky changes.** Sign-in, payments, personal data and deleting stored data get one independent review before they are called done.
 
-```text
-         YOU
-          |
-   "Build this feature"
-          |
-          v
-    +-----------+
-    |   VIBE    |
-    +-----------+
-          |
-          v
-   Understand the task
-          |
-          v
-   Plan only if needed
-          |
-          v
-   Build the solution
-      /    |    \
-     /     |     \
-  Agent  Agent  Agent    <- parallel when useful
-     \     |     /
-      \    |    /
-          v
-   Check the result
-          |
-          v
-   Report what's done
-          |
-          v
-         YOU
-```
-
-Small fixes take the short path. Larger tasks can use the host's available agents. Risky changes get more careful checks.
-
-## What you get
-
-- **Less babysitting.** Vibe picks the appropriate workflow and keeps approved work moving.
-- **Parallel help when useful.** The agent can delegate independent tasks and integrate their results.
-- **Reuse before rebuilding.** Checks existing code and suitable libraries before substantial custom work, without adding dependencies for every small helper.
-- **Checks without endless review loops.** Focused tests for changed features, broader checks for shared or risky changes, and full verification before formal production releases.
-- **Clear progress.** Updates explain what's done, what's next, and what needs your decision.
-- **Session continuity.** Project status is saved at work boundaries and loaded when a new session starts.
-- **Safer Git operations.** The enabled, trusted shell hook checks for unsafe force-pushes.
+It is one page of rules and one small script. There are no commands to learn.
 
 ## Install
 
-**Claude Code** (2.1.275 or later). Install from the chat:
+You need [Claude Code](https://claude.com/claude-code) 2.1.275 or later. In a Claude Code session, type:
 
 ```text
 /plugin install vibe --marketplace sultan-repo/vibe
 ```
 
-**Codex CLI** (tested with 0.162.1). With Git and Python 3.9+ installed, run in a terminal:
+Then start a new session in your project and ask for what you want.
 
-```sh
-git clone https://github.com/sultan-repo/vibe.git
-python3 vibe/install-codex.py
+- **Update:** type `/plugin`, open the Installed tab, choose Vibe and pick "Update now". Updates are not automatic unless you turn on auto-update for the `vibe` marketplace in the Marketplaces tab.
+- **Remove:** same place, "Uninstall".
+- **Coming from Vibe 4?** See [Upgrading](CHANGES.md#upgrading-from-vibe-4).
+
+The line that shows you where things stand at the start of a session needs Python 3 and Git on your computer. Without them everything else still works.
+
+## What you will see
+
+When you ask for several things at once, Claude starts with the plan:
+
+```text
+Goal: You can run the report for a chosen date range, see a total at the bottom,
+and save it as a spreadsheet file.
+Steps:
+1. The report can be exported as a spreadsheet file
+2. The report can be limited to entries since a given date
+3. The report ends with a total line
+4. The instructions explain the new options
 ```
 
-The installer adds Vibe and its startup instruction to your Codex profile. From an existing checkout, run `python3 install-codex.py`. Pull and rerun to update.
+When it finishes, the last message always has the same lines:
 
-Open a new session in **your project** and ask “Fix the login error.” Vibe selects the workflow. In Codex, approving Vibe's two hooks enables automatic status loading and force-push checks. The workflow works before hook approval.
+| Line | What it tells you | What you do with it |
+| --- | --- | --- |
+| **Done** | How many of the steps are finished | If it is not all of them, the line says what is left |
+| **Works now** | What you can do now, with any command to type | Try it yourself |
+| **Checked** | What Claude ran and saw work | This is the evidence behind "done" |
+| **Not checked** | The most important thing it did not try | Try that part yourself, or ask Claude to |
+| **Live** | Whether the change is saved, published, or neither | Nothing is saved or published until you ask |
+| **Also changed** | Anything it changed that you did not ask for, and why | Say so if you do not want it |
+| **Noticed, not changed** | Things it saw and left alone | Ask for them if you want them |
+| **Next** | The one decision it needs from you, with its recommendation | Answer it, or say "go with your recommendation" |
 
-For marketplace-only Codex installation, use `codex plugin marketplace add sultan-repo/vibe` and `codex plugin add vibe@vibe`. This path relies on skill matching until startup hooks are trusted.
+A one-line fix gets two lines. A question gets a plain answer.
 
-## Just describe the task
+## Working with Vibe, from idea to live
 
-| You say | Vibe does |
-| --- | --- |
-| “Fix the login error.” | Makes the fix and runs relevant checks. |
-| “Build a family tree app.” | Works through the scope, builds approved features, and verifies milestones. |
-| “Add search and export.” | Uses parallel agents if the work can be safely split. |
-| “Is this ready to release?” | Checks the integrated result and reports blockers. |
-| “Continue where we left off.” | Uses the saved project status to resume. |
+**1. Say what you want and how you will know it works.**
+"People can sign up with an email and see their own bookings" is better than "add users". For something big, ask for the plan first: start your message with `/plan`, or press Shift+Tab until the status bar says "plan mode on". In plan mode Claude can look but not change anything until you approve.
 
-You can also ask Vibe to explore an idea without implementing it.
+**2. Ask for a few outcomes at a time.**
+Three to five related things in one request is a good size. You get a goal and numbered steps to agree on before any work starts. If the plan is not what you meant, say so then; it is the cheapest moment to change direction.
 
-## Automatic project adoption
+**3. Read the last message, then try it.**
+"Works now" tells you what to try. "Not checked" tells you where to look hardest. If something is wrong, say what you did and what you saw.
 
-During authorized edits, Vibe preserves the instruction file your host loads, including configured fallbacks. It uses `AGENTS.md` where safe. Unknown routing and read-only requests leave files unchanged; in-session principles still apply.
+**4. Save often.**
+Vibe never saves to Git or publishes on its own. When you are happy with a step, say "commit this". Small saves are easy to undo; one big save is not.
 
-Startup can flag potentially expensive project gates when relevant configuration changes. Existing protections stay active until their replacement is authorized and validated. Projects can opt into evidence-only push checks, so missing results block the push without starting a long test run inside it.
+**5. Stop whenever you like.**
+Say "I'll come back to this later." Claude writes a short note in `docs/STATUS.md`: the goal, the steps with ticks, what is next, and anything waiting on you. It does not do this every time yet (see the results below), so if the last message does not mention the note, say "save the status note". Next time, the session opens with a line like:
 
-## Good to know
+```text
+SessionStart:startup says: Where things stand: Let people export the report | Done 2 of 4 | Next: build the date filter
+```
 
-- Vibe chooses between fast, standard, and careful workflows based on the task.
-- It asks for decisions that materially affect the outcome. Your existing approval and permission rules still apply.
-- Session recovery uses the saved project status and local Git context. It cannot recover work that was never saved.
-- Parallel agents depend on the task and host permissions.
+(The first three words are Claude Code's label for a message that comes from a plugin.)
 
-Existing project test requirements still apply. Finishing a feature does not mean it is ready for release. See [how Vibe selects tests](skills/build/references/testing-policy.md) and [how it chooses reuse](skills/build/references/reuse-policy.md).
+Say "continue" and it carries on from there. The note is an ordinary file in your project: you can read it, and it travels with your project when you save to Git.
 
-In Claude Code, use `/plugin update vibe` or `/plugin uninstall vibe`. Run `python3 install-codex.py --uninstall` to remove installer-managed files. An existing native Codex installation stays under Codex's management.
+**6. Start a fresh session for each new topic.**
+Long sessions get slower, cost more, and drift. Because the note holds your place, starting fresh is safe: finish or pause a piece of work, then open a new session or type `/clear`.
 
-For alternate installation, detailed behavior, and development instructions, see [the repository docs](docs/) and [change history](CHANGES.md).
+**7. Expect one review on risky changes.**
+Changes to sign-in, permissions, personal data, payments, moving or bulk-deleting stored data, and production settings get one independent review. This makes that task cost REVIEW_COST as much. Ordinary work is not reviewed unless you ask: type `/code-review` any time, or `/security-review` for anything touching accounts or personal data.
+
+**8. Before it goes live, ask.**
+"Is this ready to go live?" makes Claude run everything the project has, once, on the final version. The more your project can check itself, the more this is worth, so early on ask: "Add tests for the main things this app must do."
+
+**9. If it gets stuck, it will tell you.**
+After two failed attempts at the same problem Claude stops and says what it learned. Give it the missing piece (an error message, a screenshot, what you expected) or ask it to try a different way.
+
+**10. Keep the cost down.**
+`/model` and `/effort` choose quality against cost for the session; Vibe never changes them. Short, focused sessions cost less than long ones.
+
+## What it costs
+
+Vibe adds about 1,200 tokens to every request. Because it checks its work, a task costs a little more than without it. Measured on small test projects:
+
+COST_TABLE
+
+## What Vibe does not do
+
+- It does not edit your `CLAUDE.md` or `AGENTS.md`. The only file it asks Claude to write is `docs/STATUS.md`.
+- It does not commit, push, publish or deploy unless you ask.
+- It does not change your model or effort.
+- It adds no commands, skills or background helpers.
+- It does not replace your project's own rules. Your instructions, and your project's rules, hooks and checks, always come first.
+
+## Measured, not promised
+
+Every release is run against plain Claude Code on the same small tasks, and the result is committed in [`evals/results/`](evals/results/). For this release:
+
+RESULTS_TABLE
+
+These are small test projects and short sessions, a few runs each. They show direction, not exact rates. Long sessions and large projects have not been measured, and where Vibe still falls short is listed under [Known limits](CHANGES.md#known-limits). [How it is measured](evals/README.md) · [Why Vibe 5 looks like this](assessment/ASSESSMENT.md)
+
+## Other tools
+
+The rules are one plain text file, [`plugin/rules.md`](plugin/rules.md). In a tool that reads `AGENTS.md` (Codex, Cursor and others), paste that file into your project's `AGENTS.md`. This gives you the rules but not the session-start line, and it has not been tested outside Claude Code.
+
+## For maintainers
+
+- `python3 -B -m unittest discover -s tests` runs the tests; no model calls.
+- `python3 evals/run.py` runs the with-and-without comparison and writes the result file.
+- The [rules for changing Vibe](CHANGES.md#rules-for-changing-vibe) are short. The main one: nothing in `plugin/` changes without a fresh measured result.
 
 ## License
 
