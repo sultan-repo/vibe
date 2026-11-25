@@ -1,5 +1,8 @@
 name: Vibe checks
 
+# Runs on every pull request and on every push to main. Read-only: no secrets, no
+# publishing. The release workflow (release.yml) starts only after this one passes
+# on main, and finds it by the name above.
 on:
   push:
     branches: [main]
@@ -8,78 +11,52 @@ on:
 permissions:
   contents: read
 
+# Branch protection on main requires two checks called "validate" and
+# "native-mod-render". GitHub reports a check under the job's "name:", or under its
+# ID when it has none, and adds a suffix for a matrix. So these two jobs keep their
+# IDs and have neither a "name:" nor a matrix.
 jobs:
+  # Tests and file checks. No model calls, standard library only.
   validate:
-    runs-on: ubuntu-latest
+    # ubuntu-24.04 rather than ubuntu-latest: it is the newest runner image that
+    # still offers Python 3.9, the python3 that comes with macOS developer tools.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Static file validation
+      - name: Shell syntax and JSON validity
         run: |
-          for script in install.sh uninstall.sh hooks/*.sh hooks/pre-push.template; do
-            bash -n "$script"
+          sh -n plugin/hooks/run.sh
+          for file in .claude-plugin/marketplace.json plugin/.claude-plugin/plugin.json plugin/hooks/hooks.json; do
+            python3 -m json.tool "$file" >/dev/null
           done
-          python3 -m json.tool .claude-plugin/plugin.json >/dev/null
-          python3 -c 'import json; assert json.load(open(".claude-plugin/plugin.json"))["version"] == "4.15.0"'
-          python3 -m json.tool .claude-plugin/marketplace.json >/dev/null
-          python3 -m json.tool hooks/hooks.json >/dev/null
-      - name: Benchmark harness self-test (no model calls)
-        run: node --test tests/benchmark-runner.test.mjs
-      - name: Force-push protection
-        run: python3 hooks/test-force-push-hook.py
-      - name: Review workflow and YAML skill metadata
+      - name: Tests on Python 3.11
         run: |
-          python3 -m pip install "PyYAML>=6.0,<7"
-          python3 -m unittest discover -s tests -v
-      - name: Install and uninstall smoke test
+          python3 -c 'import sys; assert sys.version_info[:2] == (3, 11), sys.version'
+          python3 -B -m unittest discover -s tests -v
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+      - name: Tests on Python 3.9 (the oldest supported)
         run: |
-          VIBE_SMOKE_ROOT="$(mktemp -d)"
-          export VIBE_CLAUDE_HOME="$VIBE_SMOKE_ROOT/.claude"
-          trap 'rm -rf "$VIBE_SMOKE_ROOT"' EXIT
-          bash ./install.sh
-          test -f "$VIBE_CLAUDE_HOME/agents/reviewer.md"
-          test -f "$VIBE_CLAUDE_HOME/agents/worker.md"
-          for level in low medium high; do
-            test -f "$VIBE_CLAUDE_HOME/skills/effort-$level/SKILL.md"
-          done
-          test -f "$VIBE_CLAUDE_HOME/hooks/check-force-push.py"
-          test -f "$VIBE_CLAUDE_HOME/vibe-tools/session-start.sh"
-          test -f "$VIBE_CLAUDE_HOME/vibe-tools/session-start.py"
-          test -f "$VIBE_CLAUDE_HOME/vibe-tools/project_setup.py"
-          test -f "$VIBE_CLAUDE_HOME/vibe-tools/project-adoption.md"
-          test -f "$VIBE_CLAUDE_HOME/vibe-tools/verification-cache.py"
-          test -f "$VIBE_CLAUDE_HOME/vibe-tools/pre-push.template"
-          test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/review-result.schema.json"
-          bash ./uninstall.sh
-          test ! -f "$VIBE_CLAUDE_HOME/agents/reviewer.md"
-          test ! -f "$VIBE_CLAUDE_HOME/agents/worker.md"
-          for level in low medium high; do
-            test ! -d "$VIBE_CLAUDE_HOME/skills/effort-$level"
-          done
-          test ! -f "$VIBE_CLAUDE_HOME/hooks/check-force-push.py"
-          test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/session-start.sh"
-          test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/session-start.py"
-          test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/project_setup.py"
-          test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/project-adoption.md"
-          test ! -f "$VIBE_CLAUDE_HOME/vibe-tools/verification-cache.py"
+          python3 -c 'import sys; assert sys.version_info[:2] == (3, 9), sys.version'
+          python3 -B -m unittest discover -s tests -v
 
+  # Claude Code's own validator accepts the marketplace file and the plugin.
+  # The ID "native-mod-render" is kept only because the required-check setting names
+  # it; rename it once the owner has updated branch protection.
   native-mod-render:
-    # Legacy job ID retained for required-check compatibility; the removed Mod has no render test.
-    # Every PR can deliver through main: validate before merge, regardless of branch name.
-    # Keep native checks read-only here; publication remains limited to trusted main pushes.
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Install pinned Claude Code
-        run: npm install --global @anthropic-ai/claude-code@2.1.314
-      - name: Validate plugin package
+      - name: Install the Claude Code version Vibe was measured on
+        run: npm install --global @anthropic-ai/claude-code@2.1.331
+      - name: Validate the marketplace file
         run: claude plugin validate --strict .
-      - name: Verify a fresh Codex installation and first prompt
-        run: |
-          npm install --global @openai/codex@0.162.1
-          python3 -m unittest discover -s tests -p test_codex_installation.py -v
+      - name: Validate the plugin
+        run: claude plugin validate --strict plugin

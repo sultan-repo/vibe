@@ -1,0 +1,9 @@
+{
+  "description": "A one-word fix in a message: fixed, and reported in at most 60 words.",
+  "prompt": "When I get \"add\" wrong, the message says \"minuets\" instead of \"minutes\". Please fix it.",
+  "max_turns": 40,
+  "gates": {
+    "short_report": {"min_with": 0.8},
+    "fixed_correctly": {"guard": true, "arms": ["with"]}
+  }
+}

@@ -1,102 +1,79 @@
 # Changes
 
-**v4.15.0 (release candidate):** adds capability-based model and effort routing for Claude Code and Codex using semantic fast/balanced/deep/maximum task tiers, native discovery/aliases and supported runtime controls rather than hardcoded model versions. Preserves scoped user preferences and the main-session model unless an authorized native switch is safe. Useful subagents receive suitable model/effort pairs where controls are exposed; unknown capability or fallback cannot silently lower consequential approval requirements. Removes unconditional workflow/agent effort overrides and separates requested, configured and observed settings. Adds on-demand guidance, 20 routing-policy regressions and a bounded real-host validation plan. Existing testing, governance, permissions, continuity and release safeguards remain intact. No new service, per-turn discovery, ranking agent or measured savings claim; authenticated routing remains unverified unless separately recorded.
+## Rules for changing Vibe
 
-**v4.14.0 (release candidate):** routine feature deployments, including auto-deploying merges, use focused unit/integration/component and feature-scoped UI/API acceptance tests plus needed smoke/rollback checks, without automatically running whole-journey E2E. Explicit owner requests for E2E and formal production release/promotion still require full journey verification. High-risk invariants, unbounded impact, project-specific hooks/CI and required review remain binding; a Vibe upgrade never silently migrates those gates. No new commands, per-turn scans, full-suite loops, or measured speed claims.
+These exist because Vibe 4 tripled in size in five weeks without anyone measuring whether it helped.
 
+1. **Nothing in `plugin/` changes without a fresh measured result and a new version.** Raise the version in `plugin/.claude-plugin/plugin.json`, run `python3 evals/run.py`, and commit the result file. CI fails if the plugin differs from what was measured, and the release fails if the plugin changed under an already published version (installed copies only update when the version changes).
+2. **`plugin/rules.md` has a budget of 3,800 characters.** An addition needs a deletion.
+3. **A line that shows no difference in two releases is deleted.** So is any new skill, agent or hook that cannot show one.
+4. **Nothing user-visible ships without being seen once in a real session.**
 
-**v4.13.0 (release candidate):** introduces bounded, owner-controlled project governance shared by Claude Code and Codex. On initial authorized adoption or relevant rule changes, inspect potential contradictions in project instructions and active hooks, verify effective applicability, and ask the owner once to align with Vibe, keep an exception or defer. Store evidence-fingerprinted choices in the existing decisions record; do not rewrite hooks/CI or bypass delivery gates simply because an owner chose alignment. Preserve precedence, risk-based testing/reviews, session continuity, security and release permissions. No mandatory research agent, slash command, per-turn scan or new global enforcement hook. Detector is advisory and cannot interpret arbitrary dynamic scripts.
+## 5.0.0 - 2026-11-25
 
+Vibe 5 is a rewrite. It keeps what was measured to help and removes everything else. The full reasoning and the measurements are in `assessment/ASSESSMENT.md`.
 
-**v4.12.1 (release candidate):** repairs Codex core truncation with a bounded handler allowance and explicit incomplete-preview guidance. Preserves native configured owner-instruction selection and later owner edits instead of shadowing fallback files with a new AGENTS.md. Repairs only owner-free legacy fallback reminders/bridges; uncertain routing or ambiguous owner content is left untouched for reconciliation. Corrects fenced-import detection and adds rollback plus private recovery copies for interrupted multi-file adoption writes. Adds deterministic transport/recovery tests and strengthens native Codex prompt tests to assert actual owner-rule content after adoption. Verification cadence, reuse-first decisions, review requirements, permissions, hook trust and publication guards remain unchanged. No new slash commands, agents, testing gates or checkpoint features. Abrupt termination is not claimed filesystem-atomic; live model adherence and time/token savings are not inferred from tests.
+### What changed for you
 
-**v4.12.0 (release candidate)** adds Codex installation with first-session routing, keeps Claude Code's native installation, and shares project rules through AGENTS.md. Both hosts use the same Discover, Build and Reassess workflows.
+- **Vibe now reaches Claude in full.** Vibe 4 sent 15,368 characters at session start, and Claude Code cut that to a 2,000-character preview, so most rules and the saved status never arrived. Vibe 5 sends one page of about 3,800 characters, all of it delivered, and delivers it again after `/clear` and after compaction.
+- **A plan first, and a report you can read.** A request with three or more parts opens with a goal and numbered steps in your words. Each task ends with the same short lines: Done, Works now, Checked, Not checked, Live, Also changed, Noticed-not-changed, Next.
+- **Checked before "done".** Claude runs the nearest check, or tries the app, before it reports a change as working.
+- **A wrong test is not a reason to break working code.** When a failing test contradicts what the project says it does, Claude stops and asks instead of bending the code to the test (5 of 5 runs, against 2 of 5 without Vibe).
+- **One independent review for risky changes.** Sign-in, permissions, personal data, payments, migrating or bulk-deleting stored data, and production settings get one pass of the built-in `/code-review` before they are called done. Ordinary work does not.
+- **A status note that works.** When you stop with steps left, Claude writes `docs/STATUS.md`. The next session reads it, also when it was saved on another branch and nothing newer has been committed where you are, and shows you one line: where things stand, what is next, what is waiting on you.
+- **Smaller.** About 1,200 tokens per request, down from about 1,570, and nothing runs before each shell command any more.
 
-**v4.11.0 (release candidate):** adds reuse-before-rebuilding guidance for substantial standard frontend and backend work. Prefer existing project code, installed dependencies and platform capabilities; evaluate maintained libraries from current authoritative sources when those are insufficient. Choose by total delivery and maintenance effort, requirement fit, security, compatibility and license constraints. Keep trivial low-risk work direct and product-specific rules explicit; do not replace working code merely because a library exists. Add a short core rule, an existing Build step, one on-demand reference and static policy regressions. No new slash command, runtime dependency, startup scan, mandatory research agent, dependency register or per-feature benchmark. Existing approval, verification and trusted-main publication protections remain unchanged. No measured speedup or unchanged defect-detection rate is claimed.
+### Removed
 
-**v4.10.0 (release candidate):** adopts a small managed project policy automatically during authorized edits, including projects that did not go through Discover. Discover, Build and Reassess remain model-invocable but are no longer user commands. Adds bounded, change-aware startup gate advisories without executing project scripts or changing project protections. Adds optional evidence-only `check` and `pre-push --require-evidence` actions, preserving the shared evidence contract and existing run-on-miss behavior. Documents conditional background isolation and separate gate migration. Removes the progress board module, command/tool registration, board tests and active instructions while retaining native task tracking and continuity. Preserves required-check job IDs, strict plugin validation, release verification and independent review. This candidate is not a published release; no measured speedup or unchanged defect-detection rate is claimed.
+- The six skills (`build`, `discover`, `reassess`, `effort-low`, `effort-medium`, `effort-high`) and both agents (`reviewer`, `worker`). In matched runs they were not invoked or changed nothing.
+- Automatic project adoption, the managed policy block and the governance scanner. Vibe no longer edits `AGENTS.md` or `CLAUDE.md`.
+- Model and effort routing. Use `/model` and `/effort`; Vibe changes neither.
+- The force-push guard. It blocked the safe `--force-with-lease`, let other force pushes through, and blocked every shell command when Python was missing. The eval suite keeps a case that fails if Claude ever force-pushes; a corrected guard returns only if it does.
+- The verification cache and pre-push template.
+- `install.sh`, `uninstall.sh`, `install-codex.py` and the Codex plugin files. The marketplace plugin is the only supported install.
+- The phrase-matching tests, the per-release documents under `docs/`, and the unused benchmark script.
 
-**v4.9.0 (release candidate):** separates feature acceptance from production readiness with affected, expanded and release test scopes. Selects checks from cumulative changes and dependencies; shared/high-risk behavior, unknown impact and missing coverage expand verification. Completing a feature no longer implies a full E2E run. Full production verification, required CI, critical invariants and bounded independent review remain intact. Tightens the optional cache adapter's selection-scope contract without changing its executable modes or implementation. Updates both project templates and adds policy regression checks plus a bounded runtime-adoption plan. Existing projects are not migrated automatically; narrower project gates require authorized validation. No measured speedup or zero-quality-impact claim is made. Merging to main delivers this version to plugin users, so native plugin checks now run on every PR before merge as well as on main. Adds release notes, matching version/publisher metadata and regression checks for the release boundary. The core explicitly requires acceptance evidence for uncovered requirements; a larger green suite is not a substitute.
+### Upgrading from Vibe 4
 
-**2026-11-09, v4.8.0:** makes continuity checkpoints concrete: before substantial work starts, before ending a turn with a work-state transition, after merges/releases/deployments and immediately on an owner handoff signal. Only the coordinator writes status. Handoffs and unfinished work must be saved remotely under existing permissions and discoverable from the project's canonical record or authoritative tracker. Adds a compact Now summary and a local-only startup check in plugin and manual installations. Status-only commits do not make their own baseline stale; cached branch information is advisory. Unchanged turns add no checkpoint work, extra agent or verification gate. Includes hook, installation and fresh-checkout regressions. Abrupt termination before saving and unavailable remote persistence remain explicit limits.
+| You have | What to do |
+| --- | --- |
+| The plugin from the marketplace | Run `claude plugin update vibe@vibe` in a terminal, then start a new session |
+| A `docs/STATUS.md` from Vibe 4 | Nothing. It is still read; the next time Claude saves the note it uses the new, simpler format |
+| A block between `<!-- vibe:project:start -->` and `<!-- vibe:project:end -->` in `AGENTS.md` or `CLAUDE.md` | Delete it, or ask Claude to. It holds Vibe 4 rules that now disagree with Vibe 5 |
+| A "Delivery" section that Vibe 4 wrote into your `CLAUDE.md` | Delete it, or ask Claude to |
+| Vibe installed with `install.sh` | Run the 4.15 uninstaller once (`uninstall.sh` at tag `v4.15.0`), then install the plugin. The uninstaller deletes `~/.claude/skills/build`, `discover`, `reassess`, `effort-low`, `effort-medium`, `effort-high` and `~/.claude/agents/reviewer.md`, `worker.md`: move any of your own files with those names first |
+| Vibe in Codex | Run `python3 install-codex.py --uninstall` from a checkout of tag `v4.15.0`. If you installed it through Codex's own plugin marketplace, remove it there instead. To keep the rules, paste `plugin/rules.md` into your `AGENTS.md` (not tested on Codex) |
 
-**2026-11-09, v4.7.0:** makes focused checks the development default and runs full integrated checks/E2E at agreed major milestones or delivery boundaries. Removes automatic independent review from low-risk releases and discretionary review of ordinary increments. Reduces the core and Build/Reassess context, chooses agents and team size from the task and available capacity without preset numbers, budgets build/browser resources and performance measurements, and keeps shared records under the coordinator. Adds native effort selection: medium workflows/scoped workers, low mechanical work and high difficult reasoning/consequential review, with internal controls and explicit host limitations. Makes chat updates and progress labels natural for a nontechnical owner; the board uses factual finished-step counts, keeps technical activity in Details and separates finished work from checked or published work. Adds an optional verification-cache helper and pre-push template for projects with duplicate gates, without another always-on hook. Project rules, required CI, high-risk invariant checks and exact-HEAD review approval remain in force. Runtime speed, model usage and effective effort in the owner's host have not been benchmarked.
+### Known limits
 
-**2026-11-08, v4.6.0:** selects Discover, Build and Reassess from normal conversation, with slash commands retained as optional shortcuts. Automatically delegates substantial independent work to a small pool of native Claude subagents, with explicit ownership, dependency handling, worktree bases and combined verification. Keeps existing permissions and bounded final review. Fixes native TaskList progress updates and removes the board's command-only empty-state guidance. Runtime delegation performance and interactive UI behavior remain unverified; see the release notes for the disclosed limits.
+What the measurements for this release showed Vibe does not do yet. Counts are in `evals/results/5.0.0.json` and `assessment/evidence/`.
 
-**2026-10-31, v4.5.0 (release candidate):** consolidates PR #7 (continuous Fast/Standard/Critical execution and concise reporting), PR #8 (native optional progress board), and PR #9 (human-readable GitHub titles). Adds release-readiness checks and a matched Claude/Vibe benchmark harness. Rejected PR #6 (learning and security extras) is deliberately **excluded**. Real interactive UI and model timing evidence are release gates, not claimed as passed.
+- **Unrequested changes are not always reported.** On a single request Claude now leaves other behaviour alone (5 of 5 runs, against 0 of 5 without Vibe). On a four-part request it still sometimes makes the program refuse input it used to accept. Across three batches of this text it kept the old behaviour or said so under "Also changed" in 20 of 25 runs, and the batches varied (5 of 5, 6 of 10, 9 of 10). The first 5.0.0 wording of that line managed 0 of 5.
+- **The status note is not written every time.** A complete note was written in 4 of 5 sessions that ended with "I will come back tomorrow", and none is written when a session is cut off. If the last message does not mention the note, say "save the status note".
+- **A resumed session sometimes decides for you.** When the note says something is waiting on the owner, the next session usually asks, but sometimes picks an answer and carries on.
+- **Reports run long.** The rule says about 100 words; reports on a four-part request were 160 to 220.
+- **The review costs money and is not a guarantee.** A sensitive change cost 1.8 times as much as the same change without the review on Sonnet (2.8 times in one run on a larger model). In 1 of 5 runs the finished app still accepted a forged request from another website after the review.
+- **No force-push guard.** Claude did not force-push in any measured run, with or without Vibe, so the guard was removed. A case in the eval suite fails the release if that ever changes.
+- **Two rules are not measured yet:** running every check once before anything reaches users, and stopping after two failed attempts. They are there on judgment and are the first candidates for deletion.
+- **Not tested:** sessions longer than a few minutes, automatic compaction in a long session, real-size projects, Windows, and any tool other than Claude Code.
 
-**2026-10-18, v4.4:** removed the external CLI reviewer, model configuration and its tests. Fresh-context Claude is Vibe's sole reviewer. Build handles small edits with normal checks and uses a focused Claude review only when useful. Reassess performs one consolidated final review for high-risk pre-merge, release readiness or explicit requests, with a maximum of one targeted recheck before escalating unresolved findings. Older installer artifacts are cleaned up during upgrade.
+## Earlier versions
 
-**2026-10-18, v4.3 (superseded):** introduced risk-aware business rules, model-based state tests, review triage and an optional external CLI reviewer. The external integration and related setup were removed in v4.4.
+Release notes for 4.5.0 to 4.15.0 are on the [GitHub releases page](https://github.com/sultan-repo/vibe/releases). In one line each:
 
+- **4.15** model and effort routing by task tier.
+- **4.14** focused checks for routine deployments; full end-to-end runs only for formal releases.
+- **4.13** owner-controlled governance scan for conflicting project rules.
+- **4.12** Codex installation and shared `AGENTS.md` rules; 4.12.1 fixed truncated startup text on Codex.
+- **4.11** reuse-before-rebuilding guidance.
+- **4.10** automatic project adoption; skills hidden from the slash menu; progress board removed.
+- **4.9** affected, expanded and release test scopes.
+- **4.8** status checkpoints and the startup status check.
+- **4.7** focused checks by default; effort skills; optional verification cache.
+- **4.6** automatic workflow selection and parallel workers.
+- **4.5** continuous execution, concise reporting, progress board.
+- **4.0 to 4.4** split of the always-on core from skills; discover, build and reassess; reviewer agent.
 
-**2026-10-08, v4.2:** split discovery from building. `discover` now stops at the checkpoint and writes no code; it revises the checkpoint on each reply and hands off to the new `build` skill when the user approves. `build` applies decisions to the register, implements one approved increment, verifies, records evidence, commits, and stops. Every later session starts with `build` instead of "continue".
+## Design budget
 
-**2026-10-08, v4.1:** renamed the plugin, marketplace, and repo from `delivery-standard` to `vibe`. Skills are now `/vibe:discover` and `/vibe:reassess` when installed as a plugin. No change to the rules themselves.
-
----
-
-## What changed from v3.0 to v4.0, and why
-
-## Assessment of v3.0
-
-The objective is sound and worth keeping: an agent that discovers what the product really needs, challenges weak decisions, enriches requirements with approval, builds complete journeys, verifies with evidence, and reassesses against the original purpose, while staying proportional. The lifecycle, the Required/Recommended/Optional classification, the requirements register, the evidence rules, and the "continue until done or blocked" directive are the strong parts and survive intact.
-
-The problems are in form, not intent:
-
-| Measure | v3.0 | Effect |
-|---|---|---|
-| Words / tokens on every turn | 4,201 / ~5,700 | Attention dilution; instructions near the middle get ignored; less room for code |
-| Sections | 46 | Same rule restated in up to five places |
-| Bullets | 271 | Reads as a checklist to execute, not rules to follow |
-| "Do not / Never / Avoid" sentences | 44 | Prohibition-heavy prompts make the model timid and over-ask |
-| "substantial / material" | 35 uses, never defined | The whole proportionality model depends on an undefined word |
-| "significant / consequential / meaningful / important" | 36 uses | Same problem |
-| "but not for small tasks" disclaimers | 11 | Symptom of the missing definition |
-
-Net effect: the prompt is more likely to produce long checkpoints and process narration than to raise the quality of the code. The biggest single fix is defining "substantial" with concrete anchors and routing the heavy procedures behind that definition.
-
-## Removed
-
-- **Section 19 (Final Operating Rules)** and the **Governing Principle** trailer: pure restatement of sections 1 and 18.
-- **Section 15 (Prevent Drift)**: duplicate of 5.2 and 6. Its one new idea, "always maintain a clear next step", moved to the STATUS.md format.
-- **Section 16 (Momentum)**: duplicate of section 1's closing rule. Its one new idea, "when blocked, name the precise missing decision", moved to the approval rules.
-- **Section 14 (Operational readiness)**: four generic sentences. Folded into `/reassess` step 5 where it has a trigger (production-relevant systems at a milestone).
-- **The role title stack** in the mission. Modern models do not perform better with six titles; one sentence states the role.
-- **Duplicated "do not fake completion" rules** in 5.3, 11.5, 13.4, 17: stated once in the core, enforced once in `/reassess` step 7.
-- **11.2 CI sub-bullets** ("configure checks on PRs, make checks visible, protected branch policies"): reads as a platform-admin checklist and invites the agent to add CI unprompted. Kept: run existing checks, never weaken a failing check, CI changes need authorization.
-- **Rules Claude Code already enforces** in its own system prompt: faithful reporting of test results, finishing the whole task, confirming before destructive actions, reading before asking. Harmless but they were the first candidates for cuts.
-- **Most of the 44 prohibitions**: rewritten as positive rules where the positive form is actionable ("Verify with executable evidence and report the command and result" instead of "Do not invent test outcomes").
-
-## Added
-
-1. **A definition of Small / Substantial / High-risk** with concrete anchors (files touched, new dependency, schema or contract change, auth, payments, personal data, migrations). Every proportionality rule now hangs off it. "Small is not low-risk" kept as an explicit line.
-2. **A precedence rule**: current-conversation instruction > project CLAUDE.md > the standard. v3.0 never said what happens when the user wants a quick hack; now the agent does it and lists what was skipped.
-3. **Fixed file names and locations** for continuity: `docs/REQUIREMENTS.md`, `docs/DECISIONS.md`, `docs/STATUS.md`, with templates. v3.0 said "create a lightweight register" but not where, which produces a different file per session, exactly the drift it warned about.
-4. **An end-of-turn protocol** to mirror the session-start protocol: update statuses and evidence, update next actions, commit.
-5. **Decision-request format**: batch the questions, attach a recommendation and a default to each, continue with non-dependent work. v3.0 said "ask only for material decisions" but not how, and open-ended questions block autonomous runs.
-6. **Git discipline**: feature branch for substantial work, commit per coherent increment naming requirement IDs, never force-push or rewrite shared history, never commit secrets. Absent in v3.0 apart from "push only when authorized".
-7. **Concrete triggers for independent review** (the High-risk list and large diffs) instead of "when likely to materially improve the result". Review is expensive; it needs a trigger, not a judgment call.
-8. **A size budget and template for the checkpoint** (one screen, fixed sections) and for milestone reports (about 15 lines). v3.0 listed contents but no bound.
-9. **Running-software verification rule**: for user-visible changes, exercise the journey when the app can run; unit tests alone do not count for UI behavior.
-10. **Mapping onto Claude Code mechanisms**: skills for the two procedures, a subagent for the reviewer, hooks for the one rule that must never be broken, plan mode as an optional way to run `/discover` without edits.
-
-## Modified
-
-- "Mandatory Delivery Lifecycle" → "Lifecycle". The section itself said it was not mandatory ceremony.
-- The 3.1 dimension list (eight categories, about fifty bullets) and 3.2 scenarios became a reference file loaded only by `/discover`. Same content, loaded once per feature instead of on every turn.
-- The register (5.1) keeps all eight fields but gains a status vocabulary with transitions, a rule for what deserves a row (material requirements, not every criterion), and "write `unverified` rather than leaving evidence blank".
-- Independent review (12) moved into the reviewer agent's own prompt. The agent has a fresh context by construction, which is the only way the "not inherited the implementer's conclusions" requirement is actually met. The three-cycle limit is kept; escalation now means "present the unresolved finding with options".
-- Product alignment review (13) and Definition of Done (17) merged into `/reassess` with a three-way verdict: Done, Done with disclosed gaps, Not done.
-- Communication (18): the milestone summary is now the only mandated report format, with a length bound.
-- Tone: bold and emphasis removed except in the checkpoint template. Rules are stated once, plainly.
-
-## What stayed the same on purpose
-
-- The seven-stage lifecycle and its names.
-- Required / Recommended / Optional / Not applicable classification.
-- "Challenge findings must cite evidence or be marked as a hypothesis."
-- "A requirement is verified only when acceptance was observed to pass on the current code."
-- "Continue through authorized work until the outcome is delivered or a genuine blocker requires my decision."
-- No mocks or placeholders for required behavior without approval and a visible label.
+Vibe 4.0 was written to fix a 4,201-word prompt that restated rules in five places, leaned on prohibitions, and depended on words like "substantial" that it never defined. Those are still the tests for any change: say each rule once, say what to do and why, and tie it to something Claude can observe.

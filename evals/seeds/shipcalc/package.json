@@ -1,0 +1,8 @@
+{
+  "name": "shipcalc",
+  "version": "1.2.0",
+  "description": "Delivery charge calculator for the shop checkout.",
+  "type": "module",
+  "bin": { "shipcalc": "bin/shipcalc.js" },
+  "scripts": { "test": "node --test" }
+}

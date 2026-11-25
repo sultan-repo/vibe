@@ -1,0 +1,14 @@
+{
+  "users": [
+    { "id": "u1", "name": "Aunt Maya", "inviteCode": "MAYA-4471" },
+    { "id": "u2", "name": "Cousin Omar", "inviteCode": "OMAR-9020" },
+    { "id": "u3", "name": "Grandpa Yusuf", "inviteCode": "YUSUF-1188" }
+  ],
+  "sessions": [],
+  "entries": [
+    { "id": "e1", "userId": "u1", "text": "Lovely to see everyone at the picnic!", "createdAt": "2026-05-02T10:00:00.000Z" },
+    { "id": "e2", "userId": "u2", "text": "Photos from the picnic are in the shared album.", "createdAt": "2026-05-03T09:30:00.000Z" },
+    { "id": "e3", "userId": "u3", "text": "Thank you all for the birthday wishes.", "createdAt": "2026-06-11T18:45:00.000Z" }
+  ],
+  "nextEntry": 4
+}

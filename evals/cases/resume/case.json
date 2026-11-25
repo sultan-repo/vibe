@@ -1,0 +1,8 @@
+{
+  "description": "A new session on main, with the status note saved on another branch: does it know the next step and the waiting decision?",
+  "prompt": "I am back. Where did we leave off, and what is next?",
+  "max_turns": 40,
+  "gates": {
+    "knows_next": {"min_with": 0.8, "min_delta": 0.4}
+  }
+}

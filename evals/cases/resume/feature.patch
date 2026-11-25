@@ -1,0 +1,28 @@
+diff --git a/src/cli.js b/src/cli.js
+index 38921b3..261c33a 100644
+--- a/src/cli.js
++++ b/src/cli.js
+@@ -5,7 +5,7 @@ const USAGE = [
+   'Usage:',
+   '  tasklog add <project> <minutes> [note...]',
+   '  tasklog list',
+-  '  tasklog report',
++  '  tasklog report [--csv]',
+ ];
+ 
+ export function run(argv, { file, out, err }) {
+@@ -30,7 +30,13 @@ export function run(argv, { file, out, err }) {
+         return 0;
+       }
+       case 'report': {
+-        for (const line of renderReport(summarize(loadEntries(file)))) out(line);
++        const summary = summarize(loadEntries(file));
++        if (args.includes('--csv')) {
++          out('project,minutes');
++          for (const p of summary.projects) out(`${p.project},${p.minutes}`);
++          return 0;
++        }
++        for (const line of renderReport(summary)) out(line);
+         return 0;
+       }
+       default:
