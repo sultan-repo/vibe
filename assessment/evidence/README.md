@@ -1,6 +1,6 @@
 # Evidence behind section 6 of the assessment
 
-These are the working write-ups of the live experiments, as their authors left them. They are raw: paths that begin with `/tmp/claude-0/...` pointed at a session scratch directory that no longer exists, and "v7" and "v8" are the first and the revised prototype text.
+These are the working write-ups of the live experiments, as their authors left them. They are raw: paths that begin with `/tmp/claude-0/...` pointed at a session scratch directory that no longer exists. "v7" and "v8" are the first and the revised prototype text, and "v9" is the text that ships as `plugin/rules.md`.
 
 | File | What it is | Sessions |
 | --- | --- | --- |
@@ -8,6 +8,10 @@ These are the working write-ups of the live experiments, as their authors left t
 | `exp-channel.md` | Through which channel do reporting rules work: startup hook, output style, both, repo file? | 62 |
 | `measure-a-first-text.md` | Prototype, first text: delivery checks, tool-free native eval, one-line fix, read-only question | 31 plus 24 eval runs |
 | `measure-b-first-text.md` | Prototype, first text: multi-part feature, pause and resume, risky change with review, default model | 82 |
-| `measure-c-revised-text.md` | Prototype, revised text, beside the recorded numbers. Vibe 5.0 ships one further revision of this text; its numbers are in `../../evals/results/` | 36 |
+| `measure-c-revised-text.md` | Prototype, revised text, beside the recorded numbers | 36 |
+| `measure-d1-shipped-text.md` | The shipped rules text: delivery, one-line fix, question, single feature, four-part feature | 27 |
+| `measure-d2-shipped-text.md` | The shipped rules text: risky change with review, wrong test, force-push pressure, pause and resume | 49 |
+
+The release comparison for the shipped files is in `../../evals/results/`.
 
 The round-one audits, their verifier reports, the research notes, the three competing designs, the critic and the judges are not in the repository; they were delivered separately as an archive.

@@ -2,7 +2,7 @@
 
 Assessed 2026-11-24 and 25 on `main` at `81604f8` (v4.15.0), with Claude Code 2.1.331.
 
-> **Update:** this assessment was implemented as Vibe 5.0. The prototype measured in section 6 became the `plugin/` folder, after one more round of wording fixes for the defects in section 6.4; the numbers for the shipped text are in `evals/results/`. Paths below that begin with `prototype/vibe-next/` refer to that prototype, which is in the repository history at commit `3db9d75`.
+> **Update:** this assessment was implemented as Vibe 5.0. The prototype measured in section 6 became the `plugin/` folder, after one more round of wording fixes for the defects in section 6.4; the numbers for the shipped text are in `evals/results/` and in `assessment/evidence/measure-d1-shipped-text.md` and `measure-d2-shipped-text.md`. Paths below that begin with `prototype/vibe-next/` refer to that prototype. It was removed once it became `plugin/`; `plugin/rules.md` is its final text.
 
 ## Bottom line
 

@@ -84,6 +84,14 @@ jobs:
             fi
             echo "Vibe $tag was already published at $released_sha. No changes made."
             if [ "$released_sha" != "$TESTED_SHA" ]; then
+              # Claude Code offers an update only when the version changes. A changed plugin under an
+              # unchanged version would reach nobody who has it installed, so that is an error.
+              changed="$(gh api "repos/$GH_REPO/compare/$released_sha...$TESTED_SHA" \
+                --jq 'if .status == "ahead" then [.files[].filename | select(startswith("plugin/"))] | length else 0 end')"
+              if [ "$changed" != "0" ]; then
+                echo "::error::plugin/ changed after $tag was published but the version did not. Raise the version in plugin/.claude-plugin/plugin.json."
+                exit 1
+              fi
               echo "Commit $TESTED_SHA is not released. A new release needs a new version in plugin/.claude-plugin/plugin.json."
             fi
             exit 0
