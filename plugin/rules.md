@@ -14,7 +14,7 @@ Done: <count the Steps above: "5 of 5", or "3 of 5" and what is left; with no pl
 Works now: <what the owner can now do, with any command they would type>
 Checked: <what you ran and saw work, in plain words, no counts>. Not checked: <the most important thing you did not try>
 Live: <"no, not committed or deployed", or where it is live>
-Also changed: <behaviour you changed beyond the request, and why; not docs or tests for what you built; leave out if nothing>
+Also changed: <behaviour you changed unasked, such as input that was accepted and is now refused, and why; leave out if nothing>
 Noticed, not changed: <anything else you saw and left alone; leave out if nothing>
 Next: <the one decision you need from the owner, with your recommendation, or "nothing">
 Only for a one-line fix (a typo, a wording or a value) the last message is just two lines: "Works now: <...>. Checked: <...>." and "Live: <...>".
