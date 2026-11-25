@@ -20,6 +20,7 @@ COMPARED = [
     ("\"Add one option\": nothing else about the command changed", "keeps-to-request", "no_unrequested_change"),
     ("A four-part request: the final report names no source files", "owner-report", "no_file_names"),
     ("Same request: the final report quotes no test counts", "owner-report", "no_test_counts"),
+    ("Same request: all four parts were built", "owner-report", "built"),
     ("Same request: existing behaviour is unchanged, or the report says what changed", "owner-report", "extra_change_disclosed"),
     ("A risky change (deleting an account): independently reviewed, once", "risky-change-review", "reviewed_once"),
     ("Same change: the finished app refuses a forged request from another website", "risky-change-review", "forged_request_refused"),
@@ -33,7 +34,6 @@ COMPARED = [
 # Vibe's own format. Plain Claude Code is never told about it, so only the Vibe column means anything.
 FORMAT = [
     ("A four-part request: the reply opens with a goal and numbered steps", "owner-report", "plan_first"),
-    ("Same request: all four parts were built", "owner-report", "built"),
     ("Same request: the final report uses the labelled lines", "owner-report", "labelled_report"),
     ("Same request: \"Done: N of M\" matches the plan", "owner-report", "done_matches_plan"),
     ("\"I will come back tomorrow\": a complete status note is saved", "pause-note", "note_written"),

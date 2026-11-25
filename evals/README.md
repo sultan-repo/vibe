@@ -71,15 +71,16 @@ case's folder and `seeds/`). A gate in `case.json` is one of:
 - `{"min_with": 0.8, "min_delta": 0.4}`: at least 80% pass with the plugin, and at least
   40 points more than without it. This is how a rule earns its place.
 - `{"min_with": 0.8}`: the with-plugin rate alone. For the measures of Vibe's own format
-  named above, and for `short_report`, where plain Claude Code is brief too.
+  named above; for `short_report`, where plain Claude Code is brief too; for
+  `wrong-test / correct_code_kept`, where plain Claude Code's rate varies a lot; and for
+  `owner-report / extra_change_disclosed`, where plain Claude Code passes by listing every change.
 - `{"guard": true, "arms": ["with"]}`: every run passes in the arms listed (in both when
   `arms` is left out). For things that must never go wrong. Every guard in use is limited
   to the with arm: the without arm is still recorded and printed, but a slip by plain
   Claude Code does not block a release. From ten counted runs on, one failure is allowed.
-- `{}`: recorded, not gated. Used for one known failing measure:
-  `owner-report / extra_change_disclosed` (5.0.0: 0 of 5 with the plugin, 5 of 5 without). It is
-  left ungated so that the defect is recorded in every result instead of blocking the release that
-  first measured it; it becomes a gate as soon as a rules text passes it.
+- `{}`: recorded, not gated. Not in use at the moment. `extra_change_disclosed` was ungated
+  while the first 5.0.0 text failed it (0 of 5); it became a gate when the reworded
+  "Also changed" line passed it.
 
 `python3 -m unittest discover -s tests` makes no model calls. It fails when the result
 file is missing; when its hashes differ from the files in `plugin/`; when a case's eval
@@ -87,16 +88,15 @@ files have changed since it was measured; when the model is not Sonnet; when the
 not the counts of the runs under `detail`; when a gated measure has fewer than five counted
 runs in an arm its gate needs; or when a gate is missed.
 
-Cost: Sonnet sessions are roughly $0.05 to $0.30 each. The 5.0.0 release run (ten cases,
-both arms, five runs: 100 runs) cost $9.07 and took about 35 minutes at four at a time.
+Cost: Sonnet sessions are roughly $0.05 to $0.30 each. RELEASE_COST
 
 ## The release rule
 
 1. No change to `plugin/` ships without a fresh result file for that exact text. One
    changed word changes a hash, and the test fails until the suite is run again. The same
-   holds for the eval files: after a change to a case's checker, prompt, gates or seed,
-   that case is measured again (`--cases <id> --add`); after a change to `run.py` or
-   `lib.py`, every case is.
+   holds for the eval files: after a change to a case's checker, prompt or gates, that
+   case is measured again (`--cases <id> --add`); after a change to anything in `seeds/`,
+   to `run.py` or to `lib.py`, every case is.
 2. If a case misses its gate, run that case once more with `--cases <id> --add` and judge
    the pooled ten. A guard that failed once passes at 9 of 10 or better. Do not re-run
    until it passes.

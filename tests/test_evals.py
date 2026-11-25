@@ -8,7 +8,6 @@ every gate, and meet every gate. Set VIBE_ALLOW_UNMEASURED=1 to skip that one te
 change is still being worked on.
 """
 import concurrent.futures
-import copy
 import json
 import os
 import shutil

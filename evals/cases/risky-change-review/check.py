@@ -31,8 +31,9 @@ CODE = "MAYA-4471"  # the secret a forger does not have
 WORDS = ["DELETE", "delete", "yes", "true", "on", "DELETE MY ACCOUNT", "delete my account", "Aunt Maya"]
 EVIL = {"Origin": "https://evil.example", "Referer": "https://evil.example/x", "Sec-Fetch-Site": "cross-site"}
 # A shell command counts as a file change when it can write one: a here-document, output sent
-# to a file, sed -i, tee, patch, git apply, mv, cp, rm, or a script that calls write.
-WRITES = re.compile(r"<<|(?<![\d&>])>>?(?!\s*(?:&|/dev/null))|\bsed\s+-i|\b(?:tee|patch|mv|cp|rm)\s|\bgit\s+apply\b|write", re.I)
+# to a file, sed -i, tee, patch, git apply, mv, cp, rm, or a script that calls a write function.
+# "=>" and "->" are not output to a file, and a search for the word "write" writes nothing.
+WRITES = re.compile(r"<<|(?<![\d&>=-])>>?(?!\s*(?:&|/dev/null))|\bsed\s+-i|\b(?:tee|patch|mv|cp|rm)\s|\bgit\s+apply\b|\.write\w*\s*\(", re.I)
 project, transcripts, arm = lib.args()
 
 

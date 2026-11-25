@@ -163,6 +163,7 @@ class BudgetsAndLayout(Project):
         for entry in registered["SessionStart"]:  # no "resume": nothing is added again on resume
             self.assertEqual(entry.get("matcher"), "startup|clear|compact")
         self.assertEqual(hook_timeout(), 10)  # the reader's own limit for git (6 seconds) must stay well below it
+        self.assertNotIn("matcher", registered["PreCompact"][0])  # compaction asked for by hand or automatically
         for command in commands("SessionStart") + commands("PreCompact"):
             names = re.findall(r"[\w./-]+\.(?:py|sh|md|txt)\b", command)  # /hooks/run.sh, status.py, ...
             self.assertTrue(names, "no plugin file in: " + command)
@@ -267,9 +268,10 @@ class StatusReader(Project):
 
     def test_branch_name_is_cleaned_and_cut_wherever_it_is_printed(self):
         self.repo()
-        self.branch_with_note("feat/with\u202eevil/" + "b" * 250, note())  # a text-direction character, and far too long
+        self.branch_with_note("feat/with\u202e\u200fevil/" + "b" * 250, note())  # text-direction characters, and far too long
         context, banner = self.status()
         self.assertNotIn("\u202e", context + banner)
+        self.assertNotIn("\u200f", context + banner)
         for text in (context, banner):
             self.assertIn("ranch feat/withevil/%s..." % ("b" * 186), text)
             self.assertNotIn("b" * 187, text)
@@ -335,6 +337,21 @@ class StatusReader(Project):
                     self.assertEqual(packs(), before)
         self.assertFalse(unset.exists(), "a git command was run without GIT_NO_LAZY_FETCH=1")
 
+    def test_committed_note_in_a_treeless_clone_fetches_nothing(self):
+        self.repo(note())
+        self.commit("app.txt", "later work\n")
+        self.git("config", "uploadpack.allowFilter", "true")
+        clone = self.tmp / "clone"
+        r = subprocess.run(["git", "clone", "-q", "--filter=tree:0", "file://%s" % self.dir, str(clone)],
+                           env=self.env, capture_output=True, encoding="utf-8")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        packs = lambda: sorted(p.name for p in (clone / ".git" / "objects" / "pack").iterdir())
+        before = packs()
+        old_git = self.fake("git", 'unset GIT_NO_LAZY_FETCH\nexec "%s" "$@"\n' % GIT)  # Git before 2.44
+        context, _ = self.status(cwd=clone, path=old_git)
+        self.assertIn("Customers can book a table", context)  # the note in the folder is still shown
+        self.assertEqual(packs(), before)
+
     def test_open_question_keeps_a_finished_plan_in_view(self):
         ask = "## Now\nGoal: Email the weekly report\n- [x] Build it\n- [x] Send it\nNext: nothing\n%s"
         for waiting in ("Waiting on owner: No answer yet: Monday or Friday?\n",
@@ -354,6 +371,8 @@ class StatusReader(Project):
                 context, banner = self.status()
                 self.assertIn("Monday or Friday?", context)
                 self.assertNotIn("finished", context)
+                if waiting.startswith("Waiting on owner:"):
+                    self.assertIn("Waiting on you: Monday or Friday?", banner or "")
 
     def test_started_from_a_subfolder(self):
         self.repo(note())
@@ -407,6 +426,27 @@ class StatusReader(Project):
         self.assertIn("Customers can book a table", context)
         self.assertLess(elapsed, hook_timeout())
         self.assertLess(elapsed, 5)  # one stuck call is given up after 2 seconds, not after the time meant for all
+
+    def test_two_stuck_git_calls_are_each_given_up_after_two_seconds(self):
+        self.repo()
+        self.branch_with_note("booking", note())  # rev-parse answers; the next two calls hang
+        path = self.fake("git", 'case " $* " in *" rev-parse "*) exec "%s" "$@";; esac\nsleep 30\n' % GIT)
+        started = time.time()
+        self.assertEqual(self.run_hook(path=path), (0, "", ""))
+        self.assertLess(time.time() - started, 5.5)
+
+    def test_a_git_call_that_runs_out_of_time_is_not_an_answer(self):
+        hang = 'case " $* " in *" %s "*) sleep 30;; esac\nexec "%s" "$@"\n'
+        self.repo(note())  # the last commit saved the note
+        (self.dir / NOTE).unlink()  # removed here, not yet committed: there is nothing to show
+        self.assertEqual(self.run_hook(path=self.fake("git", hang % ("merge-base", GIT))), (0, "", ""))
+        self.git("checkout", "-q", "--", NOTE)
+        context, _ = self.status(path=self.fake("git", hang % ("show", GIT)))
+        self.assertNotIn("not committed", context)  # no answer about the saved copy is not a difference from it
+
+    def test_label_variants_reach_the_owner(self):
+        self.write(NOTE, "## Now\nGoal: g\n- [ ] a\nNext step: a\nWaiting on you: choose a colour\n")
+        self.assertIn("Next: a | Waiting on you: choose a colour", self.status()[1])
 
     def test_slow_git_is_given_up_with_time_to_spare(self):
         self.repo()

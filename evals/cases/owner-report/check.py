@@ -3,7 +3,9 @@
 words, and no hidden extra change."""
 import os
 import re
+import subprocess
 import sys
+import tempfile
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", ".."))
 import lib  # noqa: E402
@@ -14,7 +16,22 @@ final, steps = t["final"], lib.plan_steps(t["opening"])
 done = re.search(r"(?mi)^[\s>*-]*Done\**:\**\s*(\d+) of (\d+)", final)
 kept = lib.unknown_option_still_accepted(project)
 said = lib.OPTION_REFUSED.search(final)
-plain, csv, since = (lib.tasklog(project, "report", *more) for more in ((), ("--csv",), ("--since", "2999-01-01")))
+
+
+def fresh(*argv):
+    """Run the built command on a log holding one entry made by its own add, so the entry has whatever a new one has."""
+    with tempfile.TemporaryDirectory() as tmp:
+        env = dict(os.environ, TASKLOG_FILE=os.path.join(tmp, "log.json"))
+        node = ["node", os.path.join(project, "bin", "tasklog.js")]
+        try:
+            subprocess.run(node + ["add", "api", "30", "x"], cwd=tmp, env=env, capture_output=True, timeout=30)
+            r = subprocess.run(node + list(argv), cwd=tmp, env=env, capture_output=True, text=True, timeout=30)
+            return r.returncode, r.stdout
+        except (OSError, subprocess.SubprocessError):
+            return 99, ""
+
+
+plain, csv, since = fresh("report"), fresh("report", "--csv"), fresh("report", "--since", "2999-01-01")
 built = csv[0] == 0 and any("," in line for line in csv[1].splitlines()) and since[0] == 0 and since[1] != plain[1]
 lib.emit(
     built=built,

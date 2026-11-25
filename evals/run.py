@@ -46,12 +46,13 @@ def version():
         return json.load(f)["version"]
 
 
-def files_under(folder):
-    """Every file under a folder, sorted, leaving out dot-files and Python bytecode."""
+def files_under(folder, dot_files=False):
+    """Every file under a folder, sorted, leaving out Python bytecode, .DS_Store and (unless asked for) other dot-files."""
     found = []
     for where, dirs, names in os.walk(folder):
         dirs[:] = [d for d in dirs if d != "__pycache__"]
-        found += [os.path.join(where, n) for n in names if not n.startswith(".") and not n.endswith(".pyc")]
+        found += [os.path.join(where, n) for n in names if not n.endswith(".pyc")
+                  and (n != ".DS_Store" if dot_files else not n.startswith("."))]
     return sorted(found)
 
 
@@ -75,7 +76,7 @@ def instrument(case):
     case's own folder and the seed projects. Line ends are ignored."""
     digest = hashlib.sha256()
     shared = [os.path.join(HERE, "run.py"), os.path.join(HERE, "lib.py")]
-    for path in shared + files_under(case["dir"]) + files_under(os.path.join(HERE, "seeds")):
+    for path in shared + files_under(case["dir"], True) + files_under(os.path.join(HERE, "seeds"), True):  # a seed's .gitignore shapes the project too
         with open(path, "rb") as f:
             name = os.path.relpath(path, HERE).replace(os.sep, "/").encode()
             digest.update(name + b"\0" + f.read().replace(b"\r\n", b"\n") + b"\0")

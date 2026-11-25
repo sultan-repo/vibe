@@ -7,8 +7,9 @@ in, then at the top of the Git repository. Only when neither has one does it tak
 newest note saved on another branch, and then it says so. Whatever it shortens, it marks.
 Read-only: never writes and never follows a link out of the project. Its Git commands
 only read saved history and settings, share six seconds, and never fetch (in a partial
-clone it does not look on other branches) or run a program the repository's settings name.
-Prints nothing when there is nothing to say, and always exits 0.
+clone it reads no history at all) or run a program the repository's settings name. A Git
+command that runs out of time counts as no answer, never as a "no". Prints nothing when
+there is nothing to say, and always exits 0.
 """
 import json
 import os
@@ -21,11 +22,12 @@ NOTE = "docs/STATUS.md"
 MAX_LINES, MAX_COLS, MAX_BANNER, MAX_BYTES = 30, 200, 600, 200000
 CUT = " [cut: read the file]"
 DEADLINE = time.monotonic() + 6  # for all git calls together
+STALLED = []  # git calls that ran out of time or did not start: their silence is not an answer
 BOX = r"\s*(?:[-*]|\d+[.)])\s*\[%s\]"
 LABEL = r"\s*[-*]?\s*\**(?:%s)\**\s*:"
 GOAL, STEPS, NEXT, WAITING = "Goal", "Steps", r"Next(?: task| step)?", r"Waiting on (?:the )?(?:owner|you)"
 QUIET = re.compile(r"(?!.*\?)(?:(?:nothing|none|n/a)\b.*|no|-)?\W*$", re.I)  # nothing to do; a question never is
-UNSAFE = re.compile("[\x00-\x08\x0b-\x1f\x7f-\x9f\u202a-\u202e\u2066-\u2069]")  # control and text-direction characters
+UNSAFE = re.compile("[\x00-\x08\x0b-\x1f\x7f-\x9f\u061c\u200e\u200f\u2028\u2029\u202a-\u202e\u2066-\u2069]")  # control and text-direction characters
 
 
 def git(*args):
@@ -36,6 +38,7 @@ def git(*args):
     try:
         r = subprocess.run(safe + args, capture_output=True, encoding="utf-8", errors="replace", timeout=left, env=env)
     except Exception:
+        STALLED.append(args[0])
         return None
     return r.stdout.rstrip("\n") if r.returncode == 0 else None
 
@@ -59,6 +62,8 @@ def cut(text, limit, mark):
 def where_saved(here):
     """Whether this folder's note is committed, how long ago, and how many commits were made after it."""
     head = git("show", "HEAD:./" + NOTE)
+    if STALLED:
+        return "this folder", []
     if head is None or here.strip() != head.lstrip("\ufeff").strip():  # read() drops a byte-order mark too
         return "this folder, not committed yet", []
     sha, _, age = (git("log", "-1", "--format=%H%x09%cr", "HEAD", "--", NOTE) or "").partition("\t")
@@ -69,11 +74,14 @@ def where_saved(here):
     return "saved " + age, [after] if later != "0" else []
 
 
+def partial_clone():
+    """Whether reading history could download missing objects (Git older than 2.44 ignores GIT_NO_LAZY_FETCH)."""
+    found = git("config", "--get-regexp", r"^(extensions\.partialclone|remote\..*\.(promisor|partialclonefilter))$") or ""
+    return bool(STALLED) or any(line.split()[-1].lower() not in ("false", "no", "off", "0") for line in found.splitlines())
+
+
 def note_on_another_branch():
     """(text, branch, age) of the newest recent note saved outside this folder's history, or None."""
-    partial = git("config", "--get-regexp", r"^(extensions\.partialclone|remote\..*\.(promisor|partialclonefilter))$") or ""
-    if any(line.split()[-1].lower() not in ("false", "no", "off", "0") for line in partial.splitlines()):
-        return None  # a partial clone would download the note, and Git older than 2.44 ignores GIT_NO_LAZY_FETCH
     newest = git("log", "--branches", "--remotes", "--source", "--since=6.months", "-1",
                  "--format=%H%x09%ct%x09%cr%x09%S", "--", NOTE)
     sha, when, age, ref = ((newest or "").split("\t") + ["", "", ""])[:4]
@@ -83,7 +91,8 @@ def note_on_another_branch():
     if not int(ours) <= int(when) <= time.time() + 300:
         return None  # an older note on an abandoned branch is not news, and a date in the future is not trusted
     branch = UNSAFE.sub("", re.sub(r"^refs/(heads|remotes)/", "", ref))
-    return git("show", "%s:./%s" % (sha, NOTE)), cut(branch, MAX_COLS, "..."), age
+    text = git("show", "%s:./%s" % (sha, NOTE))
+    return None if STALLED else (text, cut(branch, MAX_COLS, "..."), age)
 
 
 def now_block(text):
@@ -105,14 +114,15 @@ def now_block(text):
 
 
 def field(lines, label):
-    """Value after "Label:", or the plain list item on the next line when the label stands alone."""
+    """Value after "Label:", or the line under it when the label stands alone."""
     for i, line in enumerate(lines):
         m = re.match(LABEL % label + r"\**\s*(.*)", line, re.I)
         if m:
             value = m.group(1).strip()
             following = lines[i + 1] if i + 1 < len(lines) else ""
-            if not value and re.match(r"\s*[-*]\s+\S", following) and not re.match(BOX % "[ xX]", following):
-                value = re.sub(r"^\s*[-*]\s*", "", following).strip()
+            if not value and following.strip() and not re.match(BOX % "[ xX]", following) \
+                    and not re.match(LABEL % "|".join((GOAL, STEPS, NEXT, WAITING)), following, re.I):
+                value = re.sub(r"^\s*(?:[-*]|\d+[.)])?\s*", "", following).strip()
             return value
     return ""
 
@@ -131,8 +141,9 @@ def main():
         here = read(NOTE)
     text, where, branch, facts = here, "this folder", "", []
     if top and here is not None:
-        where, facts = where_saved(here)
-    elif top:
+        if not partial_clone():
+            where, facts = where_saved(here)
+    elif top and not partial_clone():
         found = note_on_another_branch()  # a fresh clone, or the work is on another branch
         if found:
             text, branch, age = found
