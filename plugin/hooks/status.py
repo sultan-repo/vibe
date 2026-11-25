@@ -2,53 +2,81 @@
 """Vibe status note reader (SessionStart hook).
 
 Shows Claude the "## Now" block of docs/STATUS.md and shows the owner a one-line
-"where things stand" banner. Reads the copy in this folder when it has unsaved
-edits, otherwise the newest committed copy on any branch. Read-only: never
-writes, never fetches, exits 0 and prints nothing when there is nothing to say.
+"where things stand" banner. Reads the note in this folder. Only when this folder
+has none does it look for the newest note on another branch, and then it says so.
+Read-only: never writes, never fetches, never follows a link out of the project.
+Prints nothing when there is nothing to say, and always exits 0.
 """
 import json
 import os
 import re
 import subprocess
 import sys
+import time
 
 NOTE = "docs/STATUS.md"
-MAX_LINES, MAX_COLS = 30, 200
+MAX_LINES, MAX_COLS, MAX_BYTES = 30, 200, 200000
+BOX = r"\s*(?:[-*]|\d+[.)])\s*\[%s\]"
+QUIET = re.compile(r"(nothing|none|no|n/a|-)?\W*$", re.I)
+UNSAFE = re.compile("[\x00-\x08\x0b-\x1f\x7f-\x9f‪-‮⁦-⁩]")
 
 
 def git(*args):
-    env = dict(os.environ, GIT_OPTIONAL_LOCKS="0", GIT_TERMINAL_PROMPT="0")
+    """Run one read-only git command; None on any failure. Never fetches or runs repo-configured programs."""
+    env = dict(os.environ, GIT_OPTIONAL_LOCKS="0", GIT_TERMINAL_PROMPT="0", GIT_NO_LAZY_FETCH="1")
+    safe = ("git", "-c", "core.fsmonitor=", "-c", "core.hooksPath=/dev/null", "-c", "log.showSignature=false")
     try:
-        r = subprocess.run(("git",) + args, capture_output=True, text=True, timeout=2, env=env)
+        r = subprocess.run(safe + args, capture_output=True, encoding="utf-8", errors="replace", timeout=2, env=env)
     except Exception:
         return None
     return r.stdout.rstrip("\n") if r.returncode == 0 else None
 
 
-def now_block(text, cap=True):
-    text = text or ""
-    m = re.search(r"(?ms)^## Now[^\n]*\n(.*?)(?=^## |\Z)", text)
-    if m:
-        body = m.group(1)
-    elif re.search(r"(?mi)^\s*(?:(?:[-*]|\d+[.)])\s*)?\**(?:goal\**\s*:|\[[ xX]\])", text):
-        body = "\n".join(l for l in text.splitlines() if not l.startswith("#"))  # no "## Now" heading
-    else:
+def read(path):
+    """Text of a regular file inside the project, or None. Links are not followed."""
+    if os.path.islink(path) or os.path.islink(os.path.dirname(path) or ".") or not os.path.isfile(path):
+        return None
+    try:
+        with open(path, encoding="utf-8-sig", errors="replace") as f:
+            return f.read(MAX_BYTES)
+    except OSError:
+        return None
+
+
+def now_block(text):
+    """The non-empty lines under "## Now" (or, with no such heading, from the Goal or first checkbox on)."""
+    lines = (text or "").lstrip("\ufeff").splitlines()
+    start = next((i + 1 for i, l in enumerate(lines) if re.match(r"## Now\b", l)), None)
+    if start is None:
+        start = next((i for i, l in enumerate(lines)
+                      if re.match(r"[ \t]*(?:(?:[-*]|\d+[.)])[ \t]*)?\**(?:goal\**[ \t]*:|\[[ xX]\])", l, re.I)), None)
+    if start is None:
         return []
-    lines = [l.rstrip()[:MAX_COLS] for l in body.splitlines() if l.strip()]
-    return lines[:MAX_LINES] if cap else lines
+    body = []
+    for line in lines[start:]:
+        if line.startswith("#"):
+            break
+        if line.strip():
+            body.append(UNSAFE.sub("", line.rstrip())[:MAX_COLS])
+    return body
 
 
 def field(lines, pattern):
-    for line in lines:
+    """Value after "Label:", or the plain list item on the next line when the label stands alone."""
+    for i, line in enumerate(lines):
         m = re.match(r"\s*[-*]?\s*\**(?:%s)\**\s*:\**\s*(.*)" % pattern, line, re.I)
         if m:
-            return m.group(1).strip()
+            value = m.group(1).strip()
+            following = lines[i + 1] if i + 1 < len(lines) else ""
+            if not value and re.match(r"\s*[-*]\s+\S", following) and not re.match(BOX % "[ xX]", following):
+                value = re.sub(r"^\s*[-*]\s*", "", following).strip()
+            return value
     return ""
 
 
 def main():
     try:
-        event = json.load(sys.stdin)
+        event = json.load(sys.stdin.buffer)
     except Exception:
         event = {}
     try:
@@ -58,71 +86,65 @@ def main():
     top = git("rev-parse", "--show-toplevel")
     if top:
         os.chdir(top)
-    here = None
-    if os.path.isfile(NOTE):
-        with open(NOTE, encoding="utf-8", errors="replace") as f:
-            here = f.read()
-    text, where, facts, n_dirty = here, "this folder", [], 0
-    if top:
+    here = read(NOTE)
+    text, where, branch, facts = here, "this folder", "", []
+    if top and here is not None:
         head = git("show", "HEAD:" + NOTE)
-        newest = git("log", "--branches", "--remotes", "--source", "-1", "--format=%H%x09%cr%x09%S", "--", NOTE)
-        if here is not None and (head is None or here.strip() != head.strip()):
+        last = git("log", "-1", "--format=%H%x09%cr", "HEAD", "--", NOTE)
+        if head is None or here.strip() != head.strip():
             where = "this folder, not committed yet"
-        elif newest:
-            sha, age, ref = (newest.split("\t") + ["", ""])[:3]
-            branch = re.sub(r"^refs/(heads|remotes)/", "", ref)
-            if git("merge-base", "--is-ancestor", sha, "HEAD") is None:
-                when = lambda rev: int(git("log", "-1", "--format=%ct", rev) or 0)
-                other = git("show", sha + ":" + NOTE) if when(sha) >= when("HEAD") else None
-                if other:
-                    text, where = other, "branch %s, saved %s; this folder is on another branch" % (branch, age)
-            else:
-                where = "saved " + age
-                later = git("rev-list", "--count", sha + "..HEAD")
-                if here is not None and later and later != "0":
-                    facts.append("%s commit%s made after this note was saved." % (later, " was" if later == "1" else "s were"))
+        elif last:
+            sha, age = (last.split("\t") + [""])[:2]
+            where = "saved " + age
+            later = git("rev-list", "--count", sha + "..HEAD")
+            if later and later != "0":
+                facts.append("%s commit%s made after this note was saved." % (later, " was" if later == "1" else "s were"))
         dirty = git("status", "--porcelain", "--untracked-files=no")
-        n_dirty = len(dirty.splitlines()) if dirty else 0
+        if dirty:
+            n = len(dirty.splitlines())
+            facts.append("%d file%s uncommitted changes." % (n, " has" if n == 1 else "s have"))
+    elif top:
+        # No note in this folder (a fresh clone, or the work is on another branch): newest recent one elsewhere.
+        newest = git("log", "--branches", "--remotes", "--source", "--since=6.months", "-1",
+                     "--format=%H%x09%ct%x09%cr%x09%S", "--", NOTE)
+        sha, when, age, ref = ((newest or "").split("\t") + ["", "", ""])[:4]
+        ours = git("log", "-1", "--format=%ct", "HEAD") or "0"  # an older note on an abandoned branch is not news
+        if sha and when.isdigit() and int(ours or 0) <= int(when) <= time.time() + 300:
+            text = git("show", sha + ":" + NOTE)
+            branch = re.sub(r"^refs/(heads|remotes)/", "", ref)
+            where = "branch %s, saved %s; this folder is on another branch and has no note" % (UNSAFE.sub("", branch), age)
+    lines = now_block(text)
     for name in ("AGENTS.md", "CLAUDE.md"):
-        try:
-            with open(name, encoding="utf-8", errors="replace") as f:
-                if "<!-- vibe:project:start -->" in f.read():
-                    facts.append("%s still holds a Vibe 4 managed block (between the vibe:project markers), which Vibe no longer uses." % name)
-        except OSError:
-            pass
-    lines, full = now_block(text), now_block(text, cap=False)
-    if lines and top and n_dirty:
-        facts.append("%d file%s uncommitted changes." % (n_dirty, " has" if n_dirty == 1 else "s have"))
-    if not lines and not facts:
-        return
-    done = sum(1 for l in full if re.match(r"\s*(?:[-*]|\d+[.)])\s*\[[xX]\]", l))
-    total = done + sum(1 for l in full if re.match(r"\s*(?:[-*]|\d+[.)])\s*\[ \]", l))
+        if "<!-- vibe:project:start -->" in (read(name) or ""):
+            facts.append("%s still holds a Vibe 4 managed block (between the vibe:project markers), which Vibe no longer uses." % name)
+    if not lines:
+        facts = [f for f in facts if "Vibe 4" in f]
+        if not facts:
+            return
+    done = sum(1 for l in lines if re.match(BOX % "[xX]", l))
+    total = done + sum(1 for l in lines if re.match(BOX % " ", l))
+    goal = field(lines, "Goal")
+    nxt = field(lines, r"Next(?: task| step)?")
+    waiting = field(lines, r"Waiting on (?:the )?(?:owner|you)")
+    open_work = bool(lines) and (total > done or not QUIET.match(nxt) or not QUIET.match(waiting))
+    shown = lines[:MAX_LINES]
     if total:
         facts.insert(0, "Counted from the note: done %d of %d steps." % (done, total))
-    goal = field(lines, "Goal")
-    nxt = field(lines, r"Next(?: task)?")
-    waiting = field(lines, r"Waiting on (?:owner|you)")
-    quiet = lambda value: not value or bool(re.match(r"(nothing|none|no\b|n/a|-)", value, re.I))
-    open_work = bool(lines) and (total > done or not quiet(nxt) or not quiet(waiting))
-    if lines and total and not open_work:
-        lines = ["The last plan in the note is finished: %s" % (goal or "all steps done")]
+        if not open_work:
+            shown = ["The last plan in the note is finished: %s" % (goal or "all steps done")]
     head = ["Status note for this project (%s; %s). It records where the work stood; the code is the truth if they differ:" % (NOTE, where)] if lines else []
-    context = "\n".join(head + lines + facts)
-    if "--plain" in sys.argv:
-        print(context)
-        return
-    out = {"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": context}}
+    out = {"hookSpecificOutput": {"hookEventName": "SessionStart", "additionalContext": "\n".join(head + shown + facts)}}
     if open_work and event.get("source", "startup") != "compact":
-        parts = [goal] if goal else []
+        parts = ["On branch %s" % branch] if branch else []
+        parts += [goal] if goal else []
         if total:
             parts.append("Done %d of %d" % (done, total))
-        if not quiet(nxt):
+        if not QUIET.match(nxt):
             parts.append("Next: %s" % nxt)
-        if not quiet(waiting):
+        if not QUIET.match(waiting):
             parts.append("Waiting on you: %s" % waiting)
         if parts:
-            line = " | ".join(part.strip().rstrip(".") for part in parts)
-            out["systemMessage"] = ("Where things stand: " + line)[:600]
+            out["systemMessage"] = ("Where things stand: " + " | ".join(p.strip().rstrip(".") for p in parts))[:600]
     sys.stdout.buffer.write(json.dumps(out, ensure_ascii=False).encode("utf-8") + b"\n")
 
 
