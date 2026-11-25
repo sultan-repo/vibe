@@ -3,6 +3,6 @@
   "prompt": "What does this project do? One paragraph.",
   "max_turns": 40,
   "gates": {
-    "no_ceremony": {"guard": true, "arms": ["with"]}
+    "no_ceremony": {"min_with": 0.8}
   }
 }

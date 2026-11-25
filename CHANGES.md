@@ -18,6 +18,7 @@ Vibe 5 is a rewrite. It keeps what was measured to help and removes everything e
 - **Vibe now reaches Claude in full.** Vibe 4 sent 15,368 characters at session start, and Claude Code cut that to a 2,000-character preview, so most rules and the saved status never arrived. Vibe 5 sends one page of about 3,800 characters, all of it delivered, and delivers it again after `/clear` and after compaction.
 - **A plan first, and a report you can read.** A request with three or more parts opens with a goal and numbered steps in your words. Each task ends with the same short lines: Done, Works now, Checked, Not checked, Live, Also changed, Noticed-not-changed, Next.
 - **Checked before "done".** Claude runs the nearest check, or tries the app, before it reports a change as working.
+- **A wrong test is not a reason to break working code.** When a failing test contradicts what the project says it does, Claude stops and asks instead of bending the code to the test (5 of 5 runs, against 2 of 5 without Vibe).
 - **One independent review for risky changes.** Sign-in, permissions, personal data, payments, migrating or bulk-deleting stored data, and production settings get one pass of the built-in `/code-review` before they are called done. Ordinary work does not.
 - **A status note that works.** When you stop with steps left, Claude writes `docs/STATUS.md`. The next session reads it, also when it was saved on another branch and nothing newer has been committed where you are, and shows you one line: where things stand, what is next, what is waiting on you.
 - **Smaller.** About 1,200 tokens per request, down from about 1,570, and nothing runs before each shell command any more.
@@ -47,12 +48,13 @@ Vibe 5 is a rewrite. It keeps what was measured to help and removes everything e
 
 What the measurements for this release showed Vibe does not do yet. Counts are in `evals/results/5.0.0.json` and `assessment/evidence/`.
 
-- **Unrequested tightening still happens on multi-part work, and is not reported.** On a single request Claude now leaves other behaviour alone (5 of 5 runs, against 1 of 5 without Vibe). On a four-part request it still made the program refuse input it used to accept in 5 of 5 release runs, and listed it under "Also changed" in none of them. Plain Claude Code made the same change every time and mentioned it. Two other batches of the same text were better (the change was made in 1 of 5 and 1 of 3 runs), so the rate is unstable; the reporting gap is not.
-- **The status note is not written every time.** A complete note was written in 3 of 5 sessions that ended with "I will come back tomorrow" (a fourth was written without its open steps), and none is written when a session is cut off. If the last message does not mention the note, say "save the status note".
+- **Unrequested changes are not always reported.** On a single request Claude now leaves other behaviour alone (5 of 5 runs, against 0 of 5 without Vibe). On a four-part request it still sometimes makes the program refuse input it used to accept. Across three batches of this text it kept the old behaviour or said so under "Also changed" in 20 of 25 runs, and the batches varied (5 of 5, 6 of 10, 9 of 10). The first 5.0.0 wording of that line managed 0 of 5.
+- **The status note is not written every time.** A complete note was written in 4 of 5 sessions that ended with "I will come back tomorrow", and none is written when a session is cut off. If the last message does not mention the note, say "save the status note".
 - **A resumed session sometimes decides for you.** When the note says something is waiting on the owner, the next session usually asks, but sometimes picks an answer and carries on.
-- **Reports run long.** The rule says about 100 words; measured reports were 110 to 210.
-- **The review costs money and is not a guarantee.** A sensitive change cost 1.8 times as much as the same change without the review in the release run on Sonnet (2.2 times in an earlier batch, 2.8 times in one run on a larger model). In 1 of 5 release runs the finished app still accepted a forged request from another website after the review.
+- **Reports run long.** The rule says about 100 words; reports on a four-part request were 160 to 220.
+- **The review costs money and is not a guarantee.** A sensitive change cost 1.8 times as much as the same change without the review on Sonnet (2.8 times in one run on a larger model). In 1 of 5 runs the finished app still accepted a forged request from another website after the review.
 - **No force-push guard.** Claude did not force-push in any measured run, with or without Vibe, so the guard was removed. A case in the eval suite fails the release if that ever changes.
+- **Two rules are not measured yet:** running every check once before anything reaches users, and stopping after two failed attempts. They are there on judgment and are the first candidates for deletion.
 - **Not tested:** sessions longer than a few minutes, automatic compaction in a long session, real-size projects, Windows, and any tool other than Claude Code.
 
 ## Earlier versions

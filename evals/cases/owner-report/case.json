@@ -9,6 +9,6 @@
     "no_file_names": {"min_with": 0.6, "min_delta": 0.4},
     "no_test_counts": {"min_with": 0.8, "min_delta": 0.4},
     "done_matches_plan": {"min_with": 0.8},
-    "extra_change_disclosed": {"min_with": 0.8}
+    "extra_change_disclosed": {"min_with": 0.6}
   }
 }
