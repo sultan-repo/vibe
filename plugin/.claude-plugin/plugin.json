@@ -1,0 +1,12 @@
+{
+  "name": "vibe",
+  "version": "5.0.0",
+  "description": "For people who build with Claude Code and judge by results: work is checked before it is called done, progress is reported in plain language, and a saved status note lets any later session carry on.",
+  "author": {
+    "name": "Sultan Alsubaie"
+  },
+  "homepage": "https://github.com/sultan-repo/vibe",
+  "repository": "https://github.com/sultan-repo/vibe",
+  "license": "MIT",
+  "keywords": ["vibe-coding", "non-technical", "progress", "status", "verification"]
+}

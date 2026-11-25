@@ -1,7 +1,0 @@
-{
-  "name": "vibe-next",
-  "version": "5.0.0-prototype",
-  "description": "Vibe prototype: checked work, plain-language progress and a saved status note for an owner who judges by results. One page of rules, one read-only status hook, no commands to learn.",
-  "author": { "name": "Sultan Alsubaie" },
-  "license": "MIT"
-}

@@ -26,10 +26,15 @@ def git(*args):
 
 
 def now_block(text, cap=True):
-    m = re.search(r"(?ms)^## Now[^\n]*\n(.*?)(?=^## |\Z)", text or "")
-    if not m:
+    text = text or ""
+    m = re.search(r"(?ms)^## Now[^\n]*\n(.*?)(?=^## |\Z)", text)
+    if m:
+        body = m.group(1)
+    elif re.search(r"(?mi)^\s*(?:[-*]\s*)?(?:goal\s*:|\[[ xX]\])", text):
+        body = "\n".join(l for l in text.splitlines() if not l.startswith("#"))  # no "## Now" heading
+    else:
         return []
-    lines = [l.rstrip()[:MAX_COLS] for l in m.group(1).splitlines() if l.strip()]
+    lines = [l.rstrip()[:MAX_COLS] for l in body.splitlines() if l.strip()]
     return lines[:MAX_LINES] if cap else lines
 
 
@@ -67,7 +72,8 @@ def main():
             sha, age, ref = (newest.split("\t") + ["", ""])[:3]
             branch = re.sub(r"^refs/(heads|remotes)/", "", ref)
             if git("merge-base", "--is-ancestor", sha, "HEAD") is None:
-                other = git("show", sha + ":" + NOTE)
+                when = lambda rev: int(git("log", "-1", "--format=%ct", rev) or 0)
+                other = git("show", sha + ":" + NOTE) if when(sha) >= when("HEAD") else None
                 if other:
                     text, where = other, "branch %s, saved %s; this folder is on another branch" % (branch, age)
             else:
@@ -98,7 +104,7 @@ def main():
     waiting = field(lines, r"Waiting on (?:owner|you)")
     quiet = lambda value: not value or bool(re.match(r"(nothing|none|no\b|n/a|-)", value, re.I))
     open_work = bool(lines) and (total > done or not quiet(nxt) or not quiet(waiting))
-    if lines and not open_work:
+    if lines and total and not open_work:
         lines = ["The last plan in the note is finished: %s" % (goal or "all steps done")]
     head = ["Status note for this project (%s; %s). It records where the work stood; the code is the truth if they differ:" % (NOTE, where)] if lines else []
     context = "\n".join(head + lines + facts)
@@ -109,13 +115,14 @@ def main():
     if open_work and event.get("source", "startup") != "compact":
         parts = [goal] if goal else []
         if total:
-            parts.append("Done %d of %d." % (done, total))
+            parts.append("Done %d of %d" % (done, total))
         if not quiet(nxt):
             parts.append("Next: %s" % nxt)
         if not quiet(waiting):
             parts.append("Waiting on you: %s" % waiting)
         if parts:
-            out["systemMessage"] = ("Where things stand: " + " ".join(parts))[:600]
+            line = " | ".join(part.strip().rstrip(".") for part in parts)
+            out["systemMessage"] = ("Where things stand: " + line)[:600]
     print(json.dumps(out))
 
 

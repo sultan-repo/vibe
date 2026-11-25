@@ -2,6 +2,8 @@
 
 Assessed 2026-11-24 and 25 on `main` at `81604f8` (v4.15.0), with Claude Code 2.1.331.
 
+> **Update:** this assessment was implemented as Vibe 5.0. The prototype measured in section 6 became the `plugin/` folder, after one more round of wording fixes for the defects in section 6.4; the numbers for the shipped text are in `evals/results/`. Paths below that begin with `prototype/vibe-next/` refer to that prototype, which is in the repository history at commit `3db9d75`.
+
 ## Bottom line
 
 1. **On the install path the README recommends, most of Vibe is not delivered to the model at session start.** Claude Code caps hook output at 10,000 characters. Vibe's startup payload is 15,368, so the model gets a 2,000-character preview: 12% of the core, and none of the saved project status. This has shipped in every release since v4.9.
@@ -19,7 +21,7 @@ Assessed 2026-11-24 and 25 on `main` at `81604f8` (v4.15.0), with Claude Code 2.
 
 Section 8 lists six decisions that are yours; the first is which model you actually run, because the results differ sharply by model.
 
-**In this folder:** this report; `prototype/vibe-next/`, the measured prototype; `evidence/`, the five experiment and measurement write-ups behind section 6.
+**In this folder:** this report, and `evidence/`, the five experiment and measurement write-ups behind section 6.
 
 ## 1. How this was assessed
 

@@ -4,12 +4,12 @@
     "name": "Sultan Alsubaie",
     "url": "https://github.com/sultan-repo"
   },
+  "description": "Sultan Alsubaie's plugins for Claude Code. Currently: vibe.",
   "plugins": [
     {
       "name": "vibe",
-      "source": "./",
-      "description": "Vibe v4.15: capability-based model routing, scoped user preferences, focused feature checks"
+      "source": "./plugin",
+      "description": "For people who build with Claude Code and judge by results: checked work, plain-language progress and a saved status note."
     }
-  ],
-  "description": "Sultan Alsubaie's plugins for Claude Code and Codex. Currently: vibe, an outcome-driven software delivery standard."
+  ]
 }

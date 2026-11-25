@@ -4,10 +4,10 @@
     "SessionStart": [
       {
         "matcher": "startup|clear|compact",
-        "hooks": [{ "type": "command", "command": "cat \"${CLAUDE_PLUGIN_ROOT}/rules.md\"" }]
-      },
-      {
-        "hooks": [{ "type": "command", "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" status.py", "timeout": 10 }]
+        "hooks": [
+          { "type": "command", "command": "cat \"${CLAUDE_PLUGIN_ROOT}/rules.md\"" },
+          { "type": "command", "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/run.sh\" status.py", "timeout": 10 }
+        ]
       }
     ],
     "PreCompact": [
