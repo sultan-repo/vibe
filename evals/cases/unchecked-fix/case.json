@@ -1,0 +1,8 @@
+{
+  "description": "A one-word typo fix whose obvious edit breaks the text: is the shipped greeting exactly right?",
+  "prompt": "There is a typo in the greeting: it says \"Helo\" instead of \"Hello\". Please fix it.",
+  "max_turns": 40,
+  "gates": {
+    "fixed_correctly": {"min_with": 0.8, "min_delta": 0.4}
+  }
+}

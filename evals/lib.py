@@ -30,7 +30,7 @@ def emit(notes="", **measures):
 
 def load(path):
     """Read one stream-json transcript of the main session (subagent events are skipped)."""
-    t = {"texts": [], "tools": [], "opening": "", "final": "", "cost": 0.0, "turns": 0, "plugins": [], "ended": None}
+    t = {"texts": [], "tools": [], "opening": "", "final": "", "cost": 0.0, "turns": 0, "plugins": [], "ended": None, "api_error": False}
     for line in open(path, encoding="utf-8", errors="replace"):
         try:
             e = json.loads(line)
@@ -51,6 +51,7 @@ def load(path):
             t["cost"] = e.get("total_cost_usd") or 0.0
             t["turns"] = e.get("num_turns") or 0
             t["ended"] = e.get("subtype")
+            t["api_error"] = bool(e.get("api_error_status"))
             t["final"] = e.get("result") or ""
     t["final"] = t["final"] or (t["texts"][-1] if t["texts"] else "")
     return t

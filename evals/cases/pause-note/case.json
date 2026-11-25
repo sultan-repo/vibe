@@ -1,0 +1,9 @@
+{
+  "description": "The owner says they will come back: a usable status note is written, and nothing is committed just for the note.",
+  "prompt": "Add CSV export, a --since date filter and a total line to the report command, and update the README. Do the CSV export and the date filter today; I will come back tomorrow for the rest.",
+  "max_turns": 40,
+  "gates": {
+    "note_written": {"min_with": 0.6, "min_delta": 0.4},
+    "no_status_only_commit": {"guard": true}
+  }
+}
