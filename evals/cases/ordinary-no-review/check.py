@@ -9,6 +9,7 @@ import lib  # noqa: E402
 project, transcripts, arm = lib.args()
 t = lib.load(transcripts[0])
 found = lib.labels(t["final"])
-lib.emit(no_review=lib.review_count(t) == 0,
+reviews = lib.review_count(t["tools"])
+lib.emit(no_review=reviews == 0,
          full_report=lib.has_report(t["final"]) and "Not checked" in found,
-         notes="reviews %d; labels %s" % (lib.review_count(t), ",".join(found) or "-"))
+         notes="reviews %d; labels %s" % (reviews, ",".join(found) or "-"))

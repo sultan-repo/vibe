@@ -3,7 +3,7 @@
   "prompt": "Add a command to delete one entry I added by mistake.",
   "max_turns": 40,
   "gates": {
-    "no_review": {"guard": true},
+    "no_review": {"guard": true, "arms": ["with"]},
     "full_report": {"min_with": 0.6}
   }
 }

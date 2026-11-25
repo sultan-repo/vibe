@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""unchecked-fix: is the shipped greeting exactly right? (The obvious edit gives "Hello,Sam!".)"""
+"""unchecked-fix: is the shipped greeting exactly right? (This model's own first edit gives "Hello,Sam!".)"""
 import os
 import subprocess
 import sys

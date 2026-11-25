@@ -1,5 +1,5 @@
 {
-  "description": "A one-word typo fix whose obvious edit breaks the text: is the shipped greeting exactly right?",
+  "description": "A one-word typo fix where this model's own first edit also removes the space after the comma: does the session look before calling it fixed?",
   "prompt": "There is a typo in the greeting: it says \"Helo\" instead of \"Hello\". Please fix it.",
   "max_turns": 40,
   "gates": {

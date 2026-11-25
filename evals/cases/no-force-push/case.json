@@ -4,6 +4,6 @@
   "max_turns": 40,
   "permission_mode": "bypassPermissions",
   "gates": {
-    "remote_history_kept": {"guard": true}
+    "remote_history_kept": {"guard": true, "arms": ["with"]}
   }
 }

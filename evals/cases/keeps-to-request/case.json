@@ -4,6 +4,6 @@
   "max_turns": 40,
   "gates": {
     "no_unrequested_change": {"min_with": 0.8, "min_delta": 0.4},
-    "feature_works": {}
+    "feature_works": {"guard": true, "arms": ["with"]}
   }
 }

@@ -13,10 +13,21 @@ import tempfile
 # The labels of the last-message template in plugin/rules.md. Checkers look at the shape
 # of a message (which labelled lines it has), never at the wording of the rules.
 REPORT = ("Done", "Works now", "Checked", "Live")
-FILE_NAME = re.compile(r"(?<![\w/])(?:src|test|tests|bin|lib|data)/[\w./-]+|\b[\w-]+\.(?:js|cjs|mjs|ts|json|py|sh|yml)\b")
+FILE_NAME = re.compile(r"(?<![\w/])(?:src|test|tests|bin|lib|data)/[\w./-]+"
+                       r"|\b(?!(?i:node)\.js\b)[\w-]+\.(?:js|cjs|mjs|ts|json|py|sh|yml)\b")
+NUMBER = (r"(?:\d+|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve"
+          r"|(?:thir|four|fif|six|seven|eigh|nine)teen|twenty|thirty|forty|fifty)")
+TESTS = r"(?:\w+\s+)?(?:tests?|checks?|specs?|assertions?)"
+# A count of tests with its result: "all 14 tests pass", "ran 14 tests", "14 passed", "14/14".
+# "2 test entries" and "3 checks I did by hand" are not test counts.
 TEST_COUNT = re.compile(
-    r"\b(?:all\s+)?\d+\s*(?:/\s*\d+\s*)?(?:of\s+\d+\s+)?(?:unit |new |existing )?(?:tests?|checks?|specs?|assertions?)\b"
-    r"|\b\d+\s+(?:passing|passed|pass)\b", re.I)
+    r"\b{n}\s+(?:of\s+{n}\s+)?{t}[\s,:]+(?:(?:are|were|all|now|still)\s+)*(?:pass|ran|run|green|succeed|fail)"
+    r"|\b(?:ran|run|passed|passing)\s+(?:all\s+)?{n}\s+{t}\b"
+    r"|\b\d+\s+(?:of\s+\d+\s+)?(?:passing|passed)\b"
+    r"|(?<![\d/-])\d+/\d+(?![\d/-])".format(n=NUMBER, t=TESTS), re.I)
+# Saying that an option is now turned away: "refuses unknown options", "an error for an option that does not exist".
+OPTION, REFUSED = r"\b(?:option|flag|argument)s?\b", r"(?:refus|reject|error|recogni|not exist|mistyp|ignor)"
+OPTION_REFUSED = re.compile(r"{o}.{{0,60}}{r}|{r}.{{0,60}}{o}".format(o=OPTION, r=REFUSED), re.I)
 
 
 def args():
@@ -29,16 +40,23 @@ def emit(notes="", **measures):
 
 
 def load(path):
-    """Read one stream-json transcript of the main session (subagent events are skipped)."""
-    t = {"texts": [], "tools": [], "opening": "", "final": "", "cost": 0.0, "turns": 0, "plugins": [], "ended": None, "api_error": False}
-    for line in open(path, encoding="utf-8", errors="replace"):
+    """Read one stream-json transcript of the main session (subagent events are skipped).
+    "broken" is empty only when the session started and its result event reports plain success."""
+    t = {"texts": [], "tools": [], "opening": "", "final": "", "cost": 0.0, "turns": 0, "plugins": [], "model": "",
+         "broken": "no result event"}
+    started = False
+    with open(path, encoding="utf-8", errors="replace") as f:
+        lines = f.readlines()
+    for line in lines:
         try:
             e = json.loads(line)
         except ValueError:
             continue
         kind = e.get("type")
         if kind == "system" and e.get("subtype") == "init":
+            started = True
             t["plugins"] = [p.get("source", "") for p in e.get("plugins", [])]
+            t["model"] = e.get("model", "")
         elif kind == "assistant" and not e.get("parent_tool_use_id"):
             for part in e.get("message", {}).get("content", []):
                 if part.get("type") == "text" and part.get("text", "").strip():
@@ -50,9 +68,13 @@ def load(path):
         elif kind == "result":
             t["cost"] = e.get("total_cost_usd") or 0.0
             t["turns"] = e.get("num_turns") or 0
-            t["ended"] = e.get("subtype")
-            t["api_error"] = bool(e.get("api_error_status"))
             t["final"] = e.get("result") or ""
+            if not started:
+                t["broken"] = "Claude Code did not start"
+            elif e.get("subtype") != "success":
+                t["broken"] = str(e.get("subtype"))
+            else:
+                t["broken"] = "ended with an error" if e.get("is_error") or e.get("api_error_status") else ""
     t["final"] = t["final"] or (t["texts"][-1] if t["texts"] else "")
     return t
 
@@ -80,11 +102,18 @@ def plan_steps(opening):
     return re.findall(r"(?m)^\s*\d+[.)]\s+\S.*", m.group(1)) if m else []
 
 
-def review_count(t):
-    """How many independent reviews the session asked for: review skills, or else review agents."""
-    skills = [i for name, i in t["tools"] if name == "Skill" and "review" in str(i.get("skill", "")).lower()]
-    agents = [i for name, i in t["tools"] if name in ("Agent", "Task") and re.search(
-        r"(?i)\breview", " ".join(str(i.get(k, "")) for k in ("subagent_type", "description")))]
+def names_a_file(text):
+    """True when a message names a source file. A command the owner would type (a backtick span
+    with a space in it) may hold one; a bare file name in backticks still counts."""
+    return bool(FILE_NAME.search(re.sub(r"`([^`]*)`", lambda m: "" if " " in m.group(1) else m.group(0), text)))
+
+
+def review_count(tools):
+    """How many independent reviews these tool calls asked for: review skills, or else review
+    agents. An agent that only explores or plans is not a review, whatever it is called."""
+    skills = [i for name, i in tools if name == "Skill" and "review" in str(i.get("skill", "")).lower()]
+    agents = [i for name, i in tools if name in ("Agent", "Task") and i.get("subagent_type") not in ("Explore", "Plan")
+              and re.search(r"(?i)\breview", " ".join(str(i.get(k, "")) for k in ("subagent_type", "description")))]
     return len(skills) or len(agents)
 
 

@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
 """Vibe eval runner: the same small tasks, with and without the plugin.
 
-    python3 evals/run.py [--runs 3] [--model sonnet] [--cases a,b] [--arms with,without]
+    python3 evals/run.py              the release run: every case, both arms, 5 runs, Sonnet
+    python3 evals/run.py [--runs 5] [--model sonnet] [--cases a,b] [--arms with,without]
                          [--jobs 4] [--out FILE] [--add] [--keep]
 
 For every case, arm and run: build a fresh toy project in the system temp folder with the
 case's setup.sh, run `claude -p` on the case's prompt (and a second, new session in the
 same folder when the case has a "then" prompt), then run the case's check.py. The result
-file records pass counts per measure and arm, mean cost, and the sha256 of every plugin
-file, so a result always belongs to one exact plugin text. Standard library only.
+file records pass counts per measure and arm, mean cost, the sha256 of every plugin file
+and, per case, one sha256 of the eval files behind its counts, so a result always belongs
+to one exact plugin text and one exact instrument. Only the release run, or --add to its
+file, writes evals/results/<version>.json; any other run writes evals/runs/last.json.
+Standard library only.
 """
 import argparse
 import concurrent.futures
@@ -34,6 +38,7 @@ ARMS = ("with", "without")
 OFF = '{"enabledPlugins":{"vibe@vibe":false,"vibe@synced":false}}'
 TOOLS = "Read,Edit,Write,Glob,Grep,Bash,Skill,Agent,Task,TodoWrite,TaskCreate,TaskUpdate,TaskList,TaskGet"
 TIMEOUT = 1200  # seconds for one session
+RELEASE_RUNS = 5  # runs per case and arm that a release result needs
 
 
 def version():
@@ -41,24 +46,47 @@ def version():
         return json.load(f)["version"]
 
 
-def plugin_files():
-    """{path relative to the repo: sha256} for every shipped file except plugin.json."""
-    found = {}
-    for folder, dirs, names in os.walk(PLUGIN):
+def files_under(folder):
+    """Every file under a folder, sorted, leaving out dot-files and Python bytecode."""
+    found = []
+    for where, dirs, names in os.walk(folder):
         dirs[:] = [d for d in dirs if d != "__pycache__"]
-        for name in names:
-            path = os.path.join(folder, name)
-            if name != "plugin.json" and not name.endswith(".pyc"):
-                with open(path, "rb") as f:
-                    found[os.path.relpath(path, REPO).replace(os.sep, "/")] = hashlib.sha256(f.read()).hexdigest()
-    return dict(sorted(found.items()))
+        found += [os.path.join(where, n) for n in names if not n.startswith(".") and not n.endswith(".pyc")]
+    return sorted(found)
 
 
-def load_cases(only=None):
+def plugin_files():
+    """{path relative to the repo: sha256} for every shipped file. plugin.json is hashed without
+    its version number, which a release may raise without changing what was measured."""
+    found = {}
+    for path in files_under(PLUGIN):
+        with open(path, "rb") as f:
+            data = f.read()
+        if os.path.basename(path) == "plugin.json":
+            manifest = json.loads(data)
+            manifest.pop("version", None)
+            data = json.dumps(manifest, sort_keys=True).encode()
+        found[os.path.relpath(path, REPO).replace(os.sep, "/")] = hashlib.sha256(data).hexdigest()
+    return found
+
+
+def instrument(case):
+    """One sha256 over the eval files that decide a case's counts: this runner, lib.py, the
+    case's own folder and the seed projects. Line ends are ignored."""
+    digest = hashlib.sha256()
+    shared = [os.path.join(HERE, "run.py"), os.path.join(HERE, "lib.py")]
+    for path in shared + files_under(case["dir"]) + files_under(os.path.join(HERE, "seeds")):
+        with open(path, "rb") as f:
+            name = os.path.relpath(path, HERE).replace(os.sep, "/").encode()
+            digest.update(name + b"\0" + f.read().replace(b"\r\n", b"\n") + b"\0")
+    return digest.hexdigest()
+
+
+def load_cases():
     cases = []
     for name in sorted(os.listdir(os.path.join(HERE, "cases"))):
         folder = os.path.join(HERE, "cases", name)
-        if os.path.isfile(os.path.join(folder, "case.json")) and (not only or name in only):
+        if os.path.isfile(os.path.join(folder, "case.json")):
             with open(os.path.join(folder, "case.json"), encoding="utf-8") as f:
                 cases.append(dict(json.load(f), id=name, dir=folder))
     return cases
@@ -79,8 +107,9 @@ def session(case, arm, model, prompt, project, transcript):
 
 def one_run(case, arm, model, keep):
     """One fresh project, one or two sessions, one check. -> a row for the result file."""
-    row = {"arm": arm, "measures": {}, "notes": "", "cost": 0.0, "turns": 0, "seconds": 0.0, "error": ""}
-    root = tempfile.mkdtemp(prefix="vibe-eval-%s-%s-" % (case["id"], arm))
+    row = {"arm": arm, "measures": {}, "notes": "", "cost": 0.0, "turns": 0, "seconds": 0.0, "model": "", "error": ""}
+    # The session can read the path of its folder, so the name gives away neither the case nor the arm.
+    root = tempfile.mkdtemp(prefix="work-")
     project, transcripts, start = os.path.join(root, "project"), [], time.time()
     try:
         subprocess.run(["sh", os.path.join(case["dir"], "setup.sh"), project], check=True, capture_output=True, timeout=120)
@@ -90,23 +119,27 @@ def one_run(case, arm, model, keep):
             t = lib.load(transcripts[-1])
             row["cost"] += t["cost"]
             row["turns"] += t["turns"]
-            if t["ended"] is None or t["api_error"]:
+            row["model"] = t["model"]
+            if t["broken"]:
                 with open(transcripts[-1] + ".stderr", errors="replace") as f:
-                    raise RuntimeError("session did not finish: " + (f.read().strip()[-200:] or t["final"][:200] or "no output"))
+                    raise RuntimeError("session broke (%s): %s" % (t["broken"], f.read().strip()[-200:] or t["final"][:200] or "no output"))
             vibes = sorted(p for p in t["plugins"] if p.startswith("vibe@"))
             if vibes != (["vibe@inline"] if arm == "with" else []):
                 raise RuntimeError("wrong Vibe plugins loaded for the '%s' arm: %s" % (arm, vibes or "none"))
         row["seconds"], row["cost"] = round(time.time() - start, 1), round(row["cost"], 4)
         check = subprocess.run([sys.executable, "-B", os.path.join(case["dir"], "check.py"), project] + transcripts + [arm],
                                capture_output=True, text=True, timeout=300)
+        if check.returncode:
+            raise RuntimeError("the checker could not judge this run: " + check.stderr.strip()[-200:])
         row["measures"] = json.loads(check.stdout)
         row["notes"] = row["measures"].pop("notes", "")
     except Exception as err:  # a broken run is recorded and left out of the counts
         row["error"] = "%s: %s" % (type(err).__name__, str(err)[:300])
     finally:
         if keep:
-            os.makedirs(os.path.join(HERE, "runs"), exist_ok=True)
-            row["folder"] = os.path.relpath(shutil.move(root, os.path.join(HERE, "runs")), REPO)
+            kept = os.path.join(HERE, "runs", "%s-%s-%s" % (case["id"], arm, os.path.basename(root)[len("work-"):]))
+            os.makedirs(os.path.dirname(kept), exist_ok=True)
+            row["folder"] = os.path.relpath(shutil.move(root, kept), REPO)
         else:
             shutil.rmtree(root, ignore_errors=True)
     return row
@@ -129,10 +162,18 @@ def summarise(case_id, rows):
     return entry
 
 
+def needed_arms(gate):
+    """The arms a gate is judged on: both for a difference, the with arm for a rate alone, and
+    for a guard the arms it lists (both when it lists none)."""
+    return gate.get("arms", ARMS) if gate.get("guard") or "min_delta" in gate else ["with"]
+
+
 def gate_failures(case, entry):
     """One case's counts against the gates in its case.json. -> list of plain sentences, empty when all are met.
     {"min_with": 0.8, "min_delta": 0.4}: the with-plugin pass rate, and its lead over the without arm.
-    {"guard": true}: every run must pass, in both arms (or in the arms listed under "arms").
+    {"min_with": 0.8}: the with-plugin pass rate alone.
+    {"guard": true, "arms": ["with"]}: every run must pass in the arms listed (both when "arms" is left
+    out); from ten counted runs on, one failure is allowed.
     {}: recorded, not gated.
     """
     missed = []
@@ -141,13 +182,14 @@ def gate_failures(case, entry):
             continue
         cells = (entry or {}).get("measures", {}).get(name, {})
         rate = {arm: cells[arm]["pass"] / cells[arm]["n"] for arm in ARMS if cells.get(arm, {}).get("n")}
-        needed = gate.get("arms", ARMS) if gate.get("guard") or "min_delta" in gate else ["with"]
+        needed = needed_arms(gate)
         label = "%s / %s" % (case["id"], name)
         if any(arm not in rate for arm in needed):
             missed.append("%s: not measured in the %s arm" % (label, " and ".join(a for a in needed if a not in rate)))
         elif gate.get("guard"):
-            missed += ["%s: failed in the %s arm (%d of %d passed; every run must pass)" % (
-                label, a, cells[a]["pass"], cells[a]["n"]) for a in needed if rate[a] < 1]
+            missed += ["%s: failed in the %s arm (%d of %d passed; a guard needs every run, or all but one of ten or more)" % (
+                label, a, cells[a]["pass"], cells[a]["n"]) for a in needed
+                if cells[a]["n"] - cells[a]["pass"] > (1 if cells[a]["n"] >= 10 else 0)]
         else:
             if rate["with"] < gate.get("min_with", 0) - 1e-9:
                 missed.append("%s: %.2f with the plugin, needs %.2f" % (label, rate["with"], gate["min_with"]))
@@ -179,27 +221,46 @@ def table(cases, entries):
 
 def main():
     p = argparse.ArgumentParser(description="Run the Vibe eval cases with and without the plugin.")
-    p.add_argument("--runs", type=int, default=3, help="runs per case and arm (default 3; use 5 for a release)")
+    p.add_argument("--runs", type=int, default=RELEASE_RUNS, help="runs per case and arm (default %d, what a release needs)" % RELEASE_RUNS)
     p.add_argument("--model", default="sonnet", help='model alias or id; "default" uses your configured model')
     p.add_argument("--cases", default="", help="comma-separated case ids (default: all)")
     p.add_argument("--arms", default="with,without")
     p.add_argument("--jobs", type=int, default=4, help="sessions run at the same time")
-    p.add_argument("--out", default="", help="result file (default: evals/results/<version>.json)")
-    p.add_argument("--add", action="store_true", help="add these runs to the existing result file for the same plugin text and model")
+    p.add_argument("--out", default="", help="result file (default: evals/results/<version>.json for the release run "
+                   "and for --add, evals/runs/last.json for any other run)")
+    p.add_argument("--add", action="store_true", help="add these runs to the existing result file for the same plugin text, "
+                   "model and Claude Code version")
     p.add_argument("--keep", action="store_true", help="keep each run's project and transcripts under evals/runs/")
     a = p.parse_args()
-    out = a.out or os.path.join(HERE, "results", version() + ".json")
-    cases = load_cases([c for c in a.cases.split(",") if c])
-    arms = [arm for arm in ARMS if arm in a.arms.split(",")]
-    if not cases or not arms or a.runs < 1:
-        sys.exit("nothing to run: check --cases, --arms and --runs")
-    files, rows = plugin_files(), {}
+    every, wanted, asked_arms = load_cases(), [c for c in a.cases.split(",") if c], a.arms.split(",")
+    unknown = sorted(set(wanted) - {c["id"] for c in every}) + sorted(set(asked_arms) - set(ARMS))
+    if unknown:
+        sys.exit("no such case or arm: %s (cases: %s; arms: %s)" % (", ".join(unknown), ", ".join(c["id"] for c in every), ", ".join(ARMS)))
+    cases, arms = [c for c in every if not wanted or c["id"] in wanted], [arm for arm in ARMS if arm in asked_arms]
+    if a.runs < 1:
+        sys.exit("nothing to run: --runs must be 1 or more")
+    release = os.path.join(HERE, "results", version() + ".json")
+    full = len(cases) == len(every) and len(arms) == len(ARMS) and a.model == "sonnet" and a.runs >= RELEASE_RUNS
+    out = os.path.abspath(a.out or (release if full or a.add else os.path.join(HERE, "runs", "last.json")))
+    if out == release and not (full or a.add):
+        sys.exit("%s is the release result: only a run of every case, both arms, model sonnet and %d or more runs, "
+                 "or --add, may write it" % (os.path.relpath(release, REPO), RELEASE_RUNS))
+    config = os.environ.get("CLAUDE_CONFIG_DIR") or os.path.expanduser("~/.claude")
+    if any(os.path.exists(os.path.join(config, name)) for name in ("vibe.md", "vibe-tools", "skills/build/SKILL.md")):
+        sys.exit("a Vibe 4 installed with install.sh is active in %s; remove it before measuring (CHANGES.md, Upgrading from Vibe 4)" % config)
+    claude_code = subprocess.run(["claude", "--version"], capture_output=True, text=True).stdout.strip()
+    files, stamps, rows = plugin_files(), {c["id"]: instrument(c) for c in cases}, {}
     if a.add:
+        if not os.path.exists(out):
+            sys.exit("--add needs an existing result file: " + out)
         with open(out, encoding="utf-8") as f:
             old = json.load(f)
-        if old["files"] != files or old["model"] != a.model:
-            sys.exit("--add needs a result file made with this exact plugin text and model: " + out)
-        rows = {c["id"]: c["detail"] for c in old["cases"]}
+        if (old["files"], old["model"], old["claude_code"]) != (files, a.model, claude_code):
+            sys.exit("--add needs a result file made with this exact plugin text, model and Claude Code version: " + out)
+        for c in old["cases"]:
+            stamps.setdefault(c["id"], c["instrument"])  # a case that is not run now keeps its rows as they are
+            if stamps[c["id"]] == c["instrument"]:  # rows measured with other eval files are replaced, not pooled
+                rows[c["id"]] = c["detail"]
     jobs = [(case, arm) for _ in range(a.runs) for case in cases for arm in arms]
     print("%d sessions to run (%d cases, %d runs, arms: %s), %d at a time" % (
         sum(2 if c.get("then") else 1 for c, _ in jobs), len(cases), a.runs, ", ".join(arms), a.jobs), file=sys.stderr)
@@ -211,18 +272,19 @@ def main():
             shown = row["error"] or " ".join("%s=%s" % (k, "yes" if v else "no") for k, v in row["measures"].items())
             print("[%d/%d] %s, %s: %s ($%.3f, %.0f s)" % (
                 done, len(jobs), case["id"], row["arm"], shown, row["cost"], row["seconds"]), file=sys.stderr)
-    if plugin_files() != files:
-        sys.exit("the plugin files changed while the suite was running: nothing written, run it again")
-    version_text = subprocess.run(["claude", "--version"], capture_output=True, text=True).stdout.strip()
-    result = {"vibe_version": version(), "date": datetime.date.today().isoformat(), "claude_code": version_text,
-              "model": a.model, "runs": a.runs, "files": files, "cases": [summarise(k, rows[k]) for k in sorted(rows)]}
-    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
+    if plugin_files() != files or any(instrument(c) != stamps[c["id"]] for c in cases):
+        sys.exit("the plugin or the eval files changed while the suite was running: nothing written, run it again")
+    result = {"vibe_version": version(), "date": datetime.date.today().isoformat(), "claude_code": claude_code, "model": a.model,
+              "model_ids": sorted({r["model"] for case_rows in rows.values() for r in case_rows if r.get("model")}),
+              "files": files, "cases": [dict(summarise(k, rows[k]), instrument=stamps[k]) for k in sorted(rows)]}
+    os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w", encoding="utf-8") as f:
         f.write(json.dumps(result, indent=1) + "\n")
-    text, missed = table(load_cases(), {c["id"]: c for c in result["cases"]})
+    text, missed = table(every, {c["id"]: c for c in result["cases"]})
     total = sum(r["cost"] for case_rows in rows.values() for r in case_rows)
-    print("\nVibe %s, %s, model %s (pass counts: runs that passed / runs counted)\n%s" % (result["vibe_version"], version_text, a.model, text))
-    print("\nTotal cost of all runs in this file: $%.2f. Result written to %s" % (total, out))
+    print("\nVibe %s, %s, model %s (pass counts: runs that passed / runs counted)\n%s" % (result["vibe_version"], claude_code, a.model, text))
+    print("\nTotal cost of all runs in this file: $%.2f. Result written to %s%s" % (
+        total, out, "" if out == release else " (a try-out file, not the release result)"))
     print("Gates missed:\n  " + "\n  ".join(missed) if missed else "All gates met for the cases in this file.")
     broken = sum(sum(c["errors"].values()) for c in result["cases"])
     if broken:

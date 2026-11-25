@@ -10,6 +10,9 @@ import lib  # noqa: E402
 
 project, transcripts, arm = lib.args()
 final = lib.load(transcripts[0])["final"]
-step, decision = re.search(r"(?i)week", final), re.search(r"(?i)sunday|monday", final)
+step = re.search(r"(?i)\bweek|\b(?:7|seven) days", final)
+# The decision is a question to the owner that names both days, not a date that happens to hold one.
+decision = (re.search(r"(?i)\bsun(?:day)?\b", final) and re.search(r"(?i)\bmon(?:day)?\b", final)
+            and re.search(r"(?i)\?|\bstart", final))
 lib.emit(knows_next=bool(step and decision),
          notes="next step %s; waiting decision %s" % ("named" if step else "missing", "named" if decision else "missing"))

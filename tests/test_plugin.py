@@ -1,4 +1,5 @@
-"""Tests for the shipped plugin (the folder plugin/). No model calls; runs in about a second.
+"""Tests for the shipped plugin (the folder plugin/). No model calls; runs in about 15 seconds,
+most of it in the two tests that give the status reader a slow or stuck git.
 Run:  python3 -B -m unittest discover -s tests -p 'test_plugin.py' -v
 BudgetsAndLayout checks sizes, files and version. StatusReader runs the status hook the way
 Claude Code does (the registered command, hook JSON on stdin) inside throwaway projects.
@@ -8,6 +9,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 import unittest
@@ -18,6 +20,7 @@ PLUGIN = ROOT / "plugin"
 RULES = PLUGIN / "rules.md"
 NOTE = "docs/STATUS.md"
 SH = shutil.which("sh") or "/bin/sh"
+GIT = shutil.which("git")
 CAP = 10000  # Claude Code replaces a longer hook string with a 2,000-character preview
 FILES = {".claude-plugin/plugin.json", "rules.md", "hooks/hooks.json", "hooks/status.py", "hooks/run.sh", "hooks/keep.txt"}
 MARKED = "# Rules\n<!-- vibe:project:start -->\nold text\n<!-- vibe:project:end -->\n"
@@ -32,6 +35,12 @@ def load(path):
 def commands(event):
     registered = load(PLUGIN / "hooks" / "hooks.json")["hooks"]
     return [hook["command"] for entry in registered[event] for hook in entry["hooks"]]
+
+
+def hook_timeout():
+    """Seconds Claude Code gives the status reader before it cancels it."""
+    entries = load(PLUGIN / "hooks" / "hooks.json")["hooks"]["SessionStart"]
+    return [hook["timeout"] for entry in entries for hook in entry["hooks"] if "status.py" in hook["command"]][0]
 
 
 def note(done=1, goal="Customers can book a table", nxt="Add the booking form"):
@@ -86,20 +95,29 @@ class Project(unittest.TestCase):
         self.commit(NOTE, status_note)
         self.git("checkout", "-q", "main")
 
-    def run_hook(self, command=None, source="startup", cwd=None, path=None):
-        """Run a hook command (default: the status reader). Returns (exit code, stdout)."""
+    def fake(self, program, script):
+        """Put a shell script with a program's name first on PATH. Returns that PATH."""
+        folder = Path(tempfile.mkdtemp(dir=str(self.tmp)))
+        (folder / program).write_text("#!/bin/sh\n" + script)
+        (folder / program).chmod(0o755)
+        return str(folder) + os.pathsep + self.env["PATH"]
+
+    def run_hook(self, command=None, source="startup", cwd=None, path=None, run_from=None, stdin=None):
+        """Run a hook command (default: the status reader). Returns (exit code, stdout, stderr).
+        cwd is the folder named in the hook input; the command itself runs in run_from (default: the same)."""
         command = command or commands("SessionStart")[-1]
         cwd = str(cwd or self.dir)
-        event = json.dumps({"hook_event_name": "SessionStart", "source": source, "cwd": cwd})
+        if stdin is None:
+            stdin = json.dumps({"hook_event_name": "SessionStart", "source": source, "cwd": cwd})
         env = dict(self.env, PATH=path or self.env["PATH"])
-        r = subprocess.run([SH, "-c", command], input=event, cwd=cwd, env=env,
+        r = subprocess.run([SH, "-c", command], input=stdin, cwd=str(run_from or cwd), env=env,
                            capture_output=True, encoding="utf-8", timeout=30)
-        return r.returncode, r.stdout
+        return r.returncode, r.stdout, r.stderr
 
     def status(self, **how):
         """Run the status reader. Returns (context for Claude, banner for the owner or None)."""
-        code, out = self.run_hook(**how)
-        self.assertEqual(code, 0)
+        code, out, err = self.run_hook(**how)
+        self.assertEqual((code, err), (0, ""))
         data = json.loads(out) if out.strip() else {}
         return data.get("hookSpecificOutput", {}).get("additionalContext", ""), data.get("systemMessage")
 
@@ -118,8 +136,8 @@ class BudgetsAndLayout(Project):
         for name in ("CLAUDE.md", "AGENTS.md", "app.txt"):
             self.write(name, MARKED)
         for command in commands("SessionStart"):
-            code, out = self.run_hook(command)
-            self.assertTrue(code == 0 and out.strip(), "failed or printed nothing: " + command)
+            code, out, err = self.run_hook(command)
+            self.assertTrue(code == 0 and out.strip() and not err, "failed or printed nothing: " + command)
             strings = [out]  # plain output is measured whole, JSON output one field at a time
             if "status.py" in command:
                 data = json.loads(out)
@@ -144,6 +162,7 @@ class BudgetsAndLayout(Project):
         self.assertEqual(set(registered), {"SessionStart", "PreCompact"})
         for entry in registered["SessionStart"]:  # no "resume": nothing is added again on resume
             self.assertEqual(entry.get("matcher"), "startup|clear|compact")
+        self.assertEqual(hook_timeout(), 10)  # the reader's own limit for git (6 seconds) must stay well below it
         for command in commands("SessionStart") + commands("PreCompact"):
             names = re.findall(r"[\w./-]+\.(?:py|sh|md|txt)\b", command)  # /hooks/run.sh, status.py, ...
             self.assertTrue(names, "no plugin file in: " + command)
@@ -161,7 +180,7 @@ class BudgetsAndLayout(Project):
         self.env["CLAUDE_PLUGIN_ROOT"] = str(copy)
         self.write(NOTE, note())
         rules, status = [self.run_hook(c) for c in commands("SessionStart")]
-        self.assertEqual(rules, (0, RULES.read_text(encoding="utf-8")))
+        self.assertEqual(rules, (0, RULES.read_text(encoding="utf-8"), ""))
         self.assertIn("Customers can book a table", status[1])
 
     def test_plugin_and_marketplace_use_the_same_name(self):
@@ -176,7 +195,7 @@ class BudgetsAndLayout(Project):
 
     def test_version_lives_in_plugin_json_only(self):
         version = load(PLUGIN / ".claude-plugin" / "plugin.json")["version"]
-        self.assertRegex(version, r"^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$")
+        self.assertRegex(version, r"^\d+\.\d+\.\d+$")  # the publisher accepts nothing else
         market = ROOT / ".claude-plugin" / "marketplace.json"
         self.assertEqual([p["source"] for p in load(market)["plugins"]], ["./plugin"])
         self.assertNotIn('"version"', market.read_text(encoding="utf-8"))
@@ -193,16 +212,16 @@ class BudgetsAndLayout(Project):
 class StatusReader(Project):
     def test_no_note_prints_nothing(self):
         self.repo()
-        self.assertEqual(self.run_hook(), (0, ""))
+        self.assertEqual(self.run_hook(), (0, "", ""))
         self.write("app.txt", "changed, not committed\n")
-        self.assertEqual(self.run_hook(), (0, ""))
+        self.assertEqual(self.run_hook(), (0, "", ""))
 
     def test_removed_note_prints_nothing(self):
         self.repo(note())
         self.git("rm", "-q", NOTE)
         self.git("commit", "-q", "-m", "remove the note")
         self.commit("app.txt", "two\n")
-        self.assertEqual(self.run_hook(), (0, ""))
+        self.assertEqual(self.run_hook(), (0, "", ""))
 
     def test_committed_note_with_open_steps(self):
         self.repo(note())
@@ -211,13 +230,16 @@ class StatusReader(Project):
                      "Next: Add the booking form", "done 1 of 3"):
             self.assertIn(line, context)
         self.assertNotIn("commits", context)
-        self.assertRegex(banner, r"^Where things stand.*Done 1 of 3")
+        self.assertRegex(context.splitlines()[0], r"saved .+ ago")
+        self.assertNotIn("read the file", context)  # nothing was cut
+        self.assertEqual(banner, "Where things stand: Customers can book a table | Done 1 of 3 | Next: Add the booking form")
 
     def test_commits_after_the_note_are_mentioned(self):
         self.repo(note())
         self.commit("app.txt", "two\n")
+        self.assertIn("1 commit was made after", self.status()[0])
         self.commit("app.txt", "three\n")
-        self.assertRegex(self.status()[0], r"\b2 commits\b")
+        self.assertIn("2 commits were made after", self.status()[0])
 
     def test_note_on_another_newer_branch_is_shown_with_its_branch(self):
         self.repo()
@@ -228,7 +250,8 @@ class StatusReader(Project):
             with self.subTest(branch=branch):
                 context, banner = self.status(cwd=folder)
                 self.assertIn("Goal: Customers can book a table", context)
-                self.assertIn("branch " + branch, context)
+                self.assertIn("branch %s, saved" % branch, context)
+                self.assertIn("this folder is on another branch and has no note", context)
 
     def test_this_folders_note_wins_over_a_newer_note_on_another_branch(self):
         self.repo(note(goal="Customers can book a table"))
@@ -240,30 +263,50 @@ class StatusReader(Project):
     def test_banner_names_the_branch_when_the_note_comes_from_elsewhere(self):
         self.repo()
         self.branch_with_note("feature/booking", note())
-        self.assertIn("On branch feature/booking", self.status()[1])
+        self.assertIn("Saved on branch feature/booking, not the one open here | Customers", self.status()[1])
+
+    def test_branch_name_is_cleaned_and_cut_wherever_it_is_printed(self):
+        self.repo()
+        self.branch_with_note("feat/with\u202eevil/" + "b" * 250, note())  # a text-direction character, and far too long
+        context, banner = self.status()
+        self.assertNotIn("\u202e", context + banner)
+        for text in (context, banner):
+            self.assertIn("ranch feat/withevil/%s..." % ("b" * 186), text)
+            self.assertNotIn("b" * 187, text)
 
     def test_future_dated_note_on_another_branch_is_ignored(self):
         self.repo()
         self.clock += 10 * 86400  # a commit dated ten days from now
         self.branch_with_note("odd", note())
-        self.assertEqual(self.run_hook(), (0, ""))
+        self.assertEqual(self.run_hook(), (0, "", ""))
 
     def test_linked_note_is_not_followed_out_of_the_project(self):
         self.repo()
-        outside = self.tmp / "elsewhere.md"
+        outside = self.tmp / "elsewhere" / "STATUS.md"
+        outside.parent.mkdir()
         outside.write_text(note(goal="Another project's secret plan"), encoding="utf-8")
         (self.dir / "docs").mkdir()
-        os.symlink(str(outside), str(self.dir / NOTE))
-        self.assertEqual(self.run_hook(), (0, ""))
+        os.symlink(str(outside), str(self.dir / NOTE))  # the note itself is a link
+        self.assertEqual(self.run_hook(), (0, "", ""))
+        shutil.rmtree(str(self.dir / "docs"))
+        os.symlink(str(outside.parent), str(self.dir / "docs"))  # the docs folder is a link
+        self.assertEqual(self.run_hook(), (0, "", ""))
 
     def test_programs_named_in_the_repository_config_are_not_run(self):
         self.repo(note())
-        marker, script = self.tmp / "ran", self.tmp / "monitor.sh"
+        marker, script = self.tmp / "ran", self.tmp / "program.sh"
         script.write_text("#!/bin/sh\ntouch '%s'\n" % marker)
         script.chmod(0o755)
-        self.git("config", "core.fsmonitor", str(script))
+        self.git("config", "core.fsmonitor", str(script))  # git runs it whenever it looks at the files
+        self.git("config", "filter.evil.clean", str(script))  # git runs it to compare a changed file
+        (self.dir / ".git" / "info").mkdir(exist_ok=True)
+        (self.dir / ".git" / "info" / "attributes").write_text("* filter=evil\n")
+        self.write("app.txt", "changed, not committed\n")
+        self.write(NOTE, note(done=2))
         self.assertIn("Customers can book a table", self.status()[0])
         self.assertFalse(marker.exists(), "the status reader ran a program from .git/config")
+        self.git("status")
+        self.assertTrue(marker.exists(), "this test is no test: an ordinary git status did not run the program either")
 
     def test_partial_clone_is_never_fetched_from(self):
         self.repo()
@@ -275,22 +318,70 @@ class StatusReader(Project):
         self.assertEqual(r.returncode, 0, r.stderr)
         packs = lambda: sorted(p.name for p in (clone / ".git" / "objects" / "pack").iterdir())
         before = packs()
-        self.assertEqual(self.run_hook(cwd=clone)[0], 0)  # the note's content is not local: stay silent, fetch nothing
-        self.assertEqual(packs(), before)
+        unset = self.tmp / "git asked to fetch"
+        old_git = self.fake("git", '[ "$GIT_NO_LAZY_FETCH" = 1 ] || touch "%s"\nunset GIT_NO_LAZY_FETCH\nexec "%s" "$@"\n'
+                            % (unset, GIT))  # Git before 2.44 does not know the variable that forbids fetching
+        setting = lambda *args: subprocess.run((GIT, "-C", str(clone), "config") + args, env=self.env, check=True)
+        signs = {"extensions.partialclone": "origin", "remote.origin.promisor": "true",
+                 "remote.origin.partialclonefilter": "blob:none"}  # any one of them makes git fetch what is missing
+        for kept in [set(signs)] + [{key} for key in signs]:
+            with self.subTest(kept=sorted(kept)):
+                for key, value in signs.items():
+                    setting(key, value)
+                for key in set(signs) - kept:
+                    setting("--unset", key)
+                for path in (None, old_git):  # the note's content is not local: stay silent, fetch nothing
+                    self.assertEqual(self.run_hook(cwd=clone, path=path), (0, "", ""))
+                    self.assertEqual(packs(), before)
+        self.assertFalse(unset.exists(), "a git command was run without GIT_NO_LAZY_FETCH=1")
 
     def test_open_question_keeps_a_finished_plan_in_view(self):
         ask = "## Now\nGoal: Email the weekly report\n- [x] Build it\n- [x] Send it\nNext: nothing\n%s"
         for waiting in ("Waiting on owner: No answer yet: Monday or Friday?\n",
+                        "Waiting on owner: nothing urgent, but Monday or Friday?\n",
                         "Waiting on owner:\n- Monday or Friday?\n- Which address?\n"):
             self.write(NOTE, ask % waiting)
             context, banner = self.status()
             self.assertIn("Monday or Friday?", context)
             self.assertIn("Waiting on you", banner or "")
 
+    def test_question_written_under_a_label_is_never_hidden(self):
+        ask = "## Now\nGoal: Email the weekly report\n- [x] Build it\n- [x] Send it\nNext: nothing\n%s"
+        for waiting in ("Waiting on owner:\nMonday or Friday?\n", "Waiting on owner:\n1. Monday or Friday?\n",
+                        "Waiting on owner\nMonday or Friday?\n", "  - [ ] Ask: Monday or Friday?\n"):
+            with self.subTest(waiting=waiting):
+                self.write(NOTE, ask % waiting)
+                context, banner = self.status()
+                self.assertIn("Monday or Friday?", context)
+                self.assertNotIn("finished", context)
+
     def test_started_from_a_subfolder(self):
         self.repo(note())
         (self.dir / "src" / "deep").mkdir(parents=True)
         self.assertIn("Done 1 of 3", self.status(cwd=self.dir / "src" / "deep")[1])
+
+    def test_note_in_the_subfolder_the_session_started_in_comes_first(self):
+        self.repo(note(goal="Goal at the top"))
+        self.commit("shop/" + NOTE, note(done=2, goal="Goal of the shop"))
+        self.commit("app.txt", "two\n")
+        context, banner = self.status(cwd=self.dir / "shop")
+        self.assertIn("Goal of the shop | Done 2 of 3", banner)
+        self.assertNotIn("Goal at the top", context)
+        self.assertRegex(context.splitlines()[0], r"saved .+ ago")  # compared with its own committed copy
+        self.assertIn("1 commit was made after", context)
+        self.write("shop/" + NOTE, note(done=3, goal="Goal of the shop"))
+        self.assertIn("this folder, not committed yet", self.status(cwd=self.dir / "shop")[0])
+
+    def test_note_is_read_from_the_folder_named_in_the_hook_input(self):
+        self.write(NOTE, note())
+        self.assertIn("Done 1 of 3", self.status(run_from=self.tmp)[1])
+
+    def test_note_deleted_here_but_not_committed_stays_silent(self):
+        self.repo(note())  # the newest saved note is in this folder's own history: not "another branch"
+        (self.dir / NOTE).unlink()
+        self.assertEqual(self.run_hook(), (0, "", ""))
+        self.git("rm", "-q", NOTE)
+        self.assertEqual(self.run_hook(), (0, "", ""))
 
     def test_bad_input_is_harmless(self):
         self.repo()
@@ -299,33 +390,44 @@ class StatusReader(Project):
         context, banner = self.status()
         self.assertIn("Goal: caf", context)
         self.assertNotIn("\x1b", context + banner)  # control characters never reach the terminal
-        r = subprocess.run([SH, "-c", commands("SessionStart")[-1]], input="", cwd=str(self.dir), env=self.env,
-                           capture_output=True, encoding="utf-8", timeout=30)
-        self.assertEqual(r.returncode, 0)  # no hook input at all
+        self.assertIn("Goal: caf", self.status(stdin="")[0])  # no hook input at all: the note is still shown
+        reader = [sys.executable, "-B", str(PLUGIN / "hooks" / "status.py")]  # without run.sh, which hides errors
+        for stdin in ("", "not JSON", "[1, 2]", '{"cwd": 5}', '{"cwd": "/no/such/folder"}'):
+            with self.subTest(stdin=stdin):
+                r = subprocess.run(reader, input=stdin, cwd=str(self.dir), env=self.env,
+                                   capture_output=True, encoding="utf-8", timeout=30)
+                self.assertEqual((r.returncode, r.stderr), (0, ""))
 
-    def test_slow_git_cannot_hang_the_session(self):
-        self.write(NOTE, note())
-        tools = self.tmp / "slow"
-        tools.mkdir()
-        (tools / "git").write_text("#!/bin/sh\nsleep 30\n")
-        (tools / "git").chmod(0o755)
+    def test_stuck_git_cannot_hang_the_session(self):
+        self.repo(note())
+        path = self.fake("git", 'case " $* " in *" rev-parse "*) exec "%s" "$@";; esac\nsleep 30\n' % GIT)
         started = time.time()
-        context, _ = self.status(path=str(tools) + os.pathsep + self.env["PATH"])
+        context, _ = self.status(path=path)
+        elapsed = time.time() - started
         self.assertIn("Customers can book a table", context)
-        self.assertLess(time.time() - started, 10)
+        self.assertLess(elapsed, hook_timeout())
+        self.assertLess(elapsed, 5)  # one stuck call is given up after 2 seconds, not after the time meant for all
 
+    def test_slow_git_is_given_up_with_time_to_spare(self):
+        self.repo()
+        self.branch_with_note("booking", note())  # the case with the most git calls, each just inside its own limit
+        path = self.fake("git", 'case " $* " in *" rev-parse "*) ;; *) sleep 1.9;; esac\nexec "%s" "$@"\n' % GIT)
+        started = time.time()
+        self.assertEqual(self.run_hook(path=path), (0, "", ""))
+        self.assertLess(time.time() - started, hook_timeout() - 2)  # two seconds left for a slow computer to start
 
     def test_note_on_an_older_abandoned_branch_is_not_shown(self):
         self.repo()
         self.branch_with_note("abandoned", note())
         self.commit("app.txt", "newer work on main\n")
-        self.assertEqual(self.run_hook(), (0, ""))
+        self.assertEqual(self.run_hook(), (0, "", ""))
 
     def test_uncommitted_note_here_wins_over_a_committed_note_elsewhere(self):
         self.repo()
         self.branch_with_note("other", note(goal="Goal from the other branch"))
         self.write(NOTE, note(goal="Goal from this folder"))
         context, banner = self.status()
+        self.assertIn("this folder, not committed yet", context)
         self.assertIn("Goal from this folder", context)
         self.assertNotIn("Goal from the other branch", context + banner)
 
@@ -334,7 +436,7 @@ class StatusReader(Project):
         self.write(NOTE, note())
         self.git("add", "-A")
         self.git("stash", "-q")
-        self.assertEqual(self.run_hook(), (0, ""))
+        self.assertEqual(self.run_hook(), (0, "", ""))
 
     def test_folder_that_is_not_a_git_repository(self):
         self.write(NOTE, note())
@@ -363,11 +465,50 @@ class StatusReader(Project):
         self.assertIn("done 1 of 2", context)
 
     def test_finished_plan_is_one_quiet_line(self):
-        self.repo(note(done=3, nxt="nothing"))
+        for nxt in ("nothing", "Nothing, ready to use", "nothing; all steps done, not yet committed", "None.", "N/A"):
+            with self.subTest(nxt=nxt):
+                self.write(NOTE, note(done=3, nxt=nxt))
+                context, banner = self.status()
+                self.assertIsNone(banner)
+                self.assertEqual(context.splitlines()[1:], [
+                    "The last plan in the note is finished: Customers can book a table",
+                    "Counted from the note: done 3 of 3 steps."])
+
+    def test_whatever_is_cut_is_marked(self):
+        long = "word " * 60
+        steps = "".join("- [ ] step %d\n" % i for i in range(36))
+        self.write(NOTE, "## Now\nGoal: %s\n%sNext: %s\nWaiting on owner: %s\n" % (long, steps, long, long))
         context, banner = self.status()
-        self.assertIsNone(banner)
-        self.assertEqual(sum("finished" in line for line in context.splitlines()), 1, context)
-        self.assertNotIn("Booking form", context)
+        lines = context.splitlines()
+        self.assertEqual(lines[1], ("Goal: " + long)[:200] + " [cut: read the file]")
+        self.assertEqual(lines[30:32], ["- [ ] step 28", "[9 more lines: read the file]"])
+        self.assertIn(("Next: " + long)[:200] + "... | Waiting on you: ", banner)
+        self.assertEqual((len(banner), banner[600:]), (603, "..."))
+
+    def test_sub_headings_belong_to_the_block_and_larger_headings_end_it(self):
+        block = "## Now\n### Goal\nShip the shop\n### Steps\n- [x] Cart\n- [ ] Checkout\n"
+        for after in ("## Earlier\n- [x] An older plan\n", "# Another title\n- [x] An older plan\n"):
+            with self.subTest(after=after):
+                self.write(NOTE, block + after)
+                context, banner = self.status()
+                self.assertIn("Ship the shop", context)
+                self.assertIn("done 1 of 2", context)
+                self.assertNotIn("An older plan", context)
+
+    def test_sub_steps_under_a_step_are_not_counted(self):
+        for steps in ("- [x] one\n  - [x] sub a\n  - [ ] sub b\n- [ ] two\n    - [ ] sub c\n",
+                      "- **Steps:**\n  - [x] one\n  - [ ] two\n"):
+            with self.subTest(steps=steps):
+                self.write(NOTE, "## Now\nGoal: Ship the shop\n%sNext: two\n" % steps)
+                context, banner = self.status()
+                self.assertIn("done 1 of 2", context)
+                self.assertIn("Done 1 of 2", banner)
+
+    def test_note_saved_with_a_byte_order_mark_is_not_called_uncommitted(self):
+        self.repo("\ufeff" + note())  # written by some Windows editors
+        context, banner = self.status()
+        self.assertRegex(context.splitlines()[0], r"saved .+ ago")
+        self.assertIn("Done 1 of 3", banner)
 
     def test_after_compaction_there_is_no_banner(self):
         self.repo(note())
@@ -376,6 +517,7 @@ class StatusReader(Project):
         self.assertIsNone(banner)
 
     def test_leftover_vibe_4_block_is_mentioned_once(self):
+        self.repo()
         for name in ("CLAUDE.md", "AGENTS.md"):
             with self.subTest(file=name):
                 self.write(name, MARKED)
@@ -383,6 +525,15 @@ class StatusReader(Project):
                 self.assertEqual(sum(name in line for line in context.splitlines()), 1, context)
                 self.assertIsNone(banner)
                 (self.dir / name).unlink()
+
+    def test_leftover_vibe_4_block_is_found_in_the_start_folder_and_at_the_top(self):
+        self.repo()
+        self.write("CLAUDE.md", MARKED)
+        self.write("shop/AGENTS.md", MARKED)
+        context, banner = self.status(cwd=self.dir / "shop")
+        self.assertEqual(len(context.splitlines()), 2, context)
+        self.assertIn("AGENTS.md still holds a Vibe 4", context)
+        self.assertIn("CLAUDE.md at the top of the repository still holds a Vibe 4", context)
 
     def test_reader_changes_nothing_in_the_project(self):
         self.repo(note())
@@ -411,4 +562,9 @@ class StatusReader(Project):
         for tool in ("sh", "uname", "dirname", "git"):
             if shutil.which(tool):
                 os.symlink(shutil.which(tool), str(tools / tool))
-        self.assertEqual(self.run_hook(path=str(tools)), (0, ""))
+        self.assertEqual(self.run_hook(path=str(tools)), (0, "", ""))
+
+    def test_with_a_broken_python3_the_hook_is_silent(self):
+        self.repo(note())
+        broken = self.fake("python3", "echo 'python3 is broken' >&2\nexit 1\n")
+        self.assertEqual(self.run_hook(path=broken), (0, "", ""))
