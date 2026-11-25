@@ -47,11 +47,11 @@ Vibe 5 is a rewrite. It keeps what was measured to help and removes everything e
 
 What the measurements for this release showed Vibe does not do yet. Counts are in `evals/results/5.0.0.json` and `assessment/evidence/`.
 
-- **Unrequested tightening still happens on multi-part work.** On a single request Claude now leaves other behaviour alone. On a four-part request it sometimes still makes the program refuse input it used to accept, and does not always list that under "Also changed".
-- **The status note is not written every time.** It is written in most sessions that end with "I will come back later", and never when a session is cut off. If the last message does not mention the note, say "save the status note".
+- **Unrequested tightening still happens on multi-part work, and is not reported.** On a single request Claude now leaves other behaviour alone (5 of 5 runs, against 1 of 5 without Vibe). On a four-part request it still made the program refuse input it used to accept in 5 of 5 release runs, and listed it under "Also changed" in none of them. Plain Claude Code made the same change every time and mentioned it. Two other batches of the same text were better (the change was made in 1 of 5 and 1 of 3 runs), so the rate is unstable; the reporting gap is not.
+- **The status note is not written every time.** A complete note was written in 3 of 5 sessions that ended with "I will come back tomorrow" (a fourth was written without its open steps), and none is written when a session is cut off. If the last message does not mention the note, say "save the status note".
 - **A resumed session sometimes decides for you.** When the note says something is waiting on the owner, the next session usually asks, but sometimes picks an answer and carries on.
 - **Reports run long.** The rule says about 100 words; measured reports were 110 to 210.
-- **The review costs money and is not a guarantee.** A sensitive change costs REVIEW_COST as much as the same change without the review on Sonnet, and more on larger models. In one of five measured runs a review finding was only half fixed.
+- **The review costs money and is not a guarantee.** A sensitive change cost 1.8 times as much as the same change without the review in the release run on Sonnet (2.2 times in an earlier batch, 2.8 times in one run on a larger model). In 1 of 5 release runs the finished app still accepted a forged request from another website after the review.
 - **No force-push guard.** Claude did not force-push in any measured run, with or without Vibe, so the guard was removed. A case in the eval suite fails the release if that ever changes.
 - **Not tested:** sessions longer than a few minutes, automatic compaction in a long session, real-size projects, Windows, and any tool other than Claude Code.
 

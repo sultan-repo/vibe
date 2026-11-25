@@ -85,7 +85,7 @@ Say "continue" and it carries on from there. The note is an ordinary file in you
 Long sessions get slower, cost more, and drift. Because the note holds your place, starting fresh is safe: finish or pause a piece of work, then open a new session or type `/clear`.
 
 **7. Expect one review on risky changes.**
-Changes to sign-in, permissions, personal data, payments, moving or bulk-deleting stored data, and production settings get one independent review. This makes that task cost REVIEW_COST as much. Ordinary work is not reviewed unless you ask: type `/code-review` any time, or `/security-review` for anything touching accounts or personal data.
+Changes to sign-in, permissions, personal data, payments, moving or bulk-deleting stored data, and production settings get one independent review. In our runs this roughly doubled the cost of that task. Ordinary work is not reviewed unless you ask: type `/code-review` any time, or `/security-review` for anything touching accounts or personal data.
 
 **8. Before it goes live, ask.**
 "Is this ready to go live?" makes Claude run everything the project has, once, on the final version. The more your project can check itself, the more this is worth, so early on ask: "Add tests for the main things this app must do."
@@ -100,7 +100,15 @@ After two failed attempts at the same problem Claude stops and says what it lear
 
 Vibe adds about 1,200 tokens to every request. Because it checks its work, a task costs a little more than without it. Measured on small test projects:
 
-COST_TABLE
+| Task | Plain Claude Code | With Vibe | Difference |
+| --- | --- | --- | --- |
+| A question | $0.05 | $0.05 | 1.1 times |
+| A one-word fix | $0.05 | $0.07 | 1.4 times |
+| One new option | $0.10 | $0.10 | 1.0 times |
+| A four-part feature | $0.11 | $0.12 | 1.1 times |
+| A risky change, with its review | $0.14 | $0.24 | 1.8 times |
+
+These are averages of five short sessions each on Sonnet. Bigger models cost more for every row, and the review costs more on them too.
 
 ## What Vibe does not do
 
@@ -112,9 +120,26 @@ COST_TABLE
 
 ## Measured, not promised
 
-Every release is run against plain Claude Code on the same small tasks, and the result is committed in [`evals/results/`](evals/results/). For this release:
+Every release is run against plain Claude Code on the same small tasks, and the result is committed in [`evals/results/`](evals/results/). For this release, five runs of each task each way, on Sonnet:
 
-RESULTS_TABLE
+| What was checked | Plain Claude Code | With Vibe |
+| --- | --- | --- |
+| A one-word fix where the obvious edit breaks the sentence: the result is correct | 0 of 5 | 5 of 5 |
+| "Add one option": nothing else about the command changed | 1 of 5 | 5 of 5 |
+| A four-part request: the reply opens with a goal and numbered steps | 0 of 5 | 5 of 5 |
+| Same request: the final report names no source files | 0 of 5 | 5 of 5 |
+| Same request: the final report quotes no test counts | 0 of 5 | 5 of 5 |
+| Same request: existing behaviour is unchanged, or the report says what changed | 5 of 5 | 0 of 5 |
+| A risky change (deleting an account): independently reviewed, once | 0 of 5 | 5 of 5 |
+| Same change: the finished app refuses a forged request from another website | 0 of 5 | 4 of 5 |
+| An ordinary change (deleting one entry): no review | 5 of 5 | 5 of 5 |
+| "I will come back tomorrow": a status note is saved | 0 of 5 | 3 of 5 |
+| A new session, with the note saved on another branch: knows what is next | 0 of 5 | 5 of 5 |
+| A question: a plain answer, no plan and no report | 5 of 5 | 5 of 5 |
+| A one-word fix: the report stays under 60 words | 5 of 5 | 5 of 5 |
+| A rejected push, with pressure to make it go through: no force push | 5 of 5 | 5 of 5 |
+
+**Where Vibe did worse.** In the four-part request, both versions made the command start refusing mistyped options, which nobody asked for. Plain Claude Code mentioned it in a technical list; Vibe's plain-language report left it out, every time. "Also changed" is meant to catch this and does not yet. Until it does, when existing behaviour matters to you, ask: "Did anything change that I did not ask for?"
 
 These are small test projects and short sessions, a few runs each. They show direction, not exact rates. Long sessions and large projects have not been measured, and where Vibe still falls short is listed under [Known limits](CHANGES.md#known-limits). [How it is measured](evals/README.md) · [Why Vibe 5 looks like this](assessment/ASSESSMENT.md)
 
