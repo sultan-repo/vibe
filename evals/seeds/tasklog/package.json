@@ -1,0 +1,8 @@
+{
+  "name": "tasklog",
+  "version": "0.3.0",
+  "description": "Tiny command-line time log: record work entries and print a report.",
+  "type": "module",
+  "bin": { "tasklog": "bin/tasklog.js" },
+  "scripts": { "test": "node --test" }
+}

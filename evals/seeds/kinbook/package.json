@@ -1,0 +1,10 @@
+{
+  "name": "kinbook",
+  "version": "0.3.0",
+  "private": true,
+  "description": "A small family guestbook",
+  "scripts": {
+    "start": "node bin/server.js",
+    "test": "node --test"
+  }
+}
