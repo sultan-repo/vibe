@@ -84,7 +84,7 @@ def review_count(t):
     """How many independent reviews the session asked for: review skills, or else review agents."""
     skills = [i for name, i in t["tools"] if name == "Skill" and "review" in str(i.get("skill", "")).lower()]
     agents = [i for name, i in t["tools"] if name in ("Agent", "Task") and re.search(
-        r"(?i)\breview", " ".join(str(i.get(k, "")) for k in ("subagent_type", "description", "prompt")))]
+        r"(?i)\breview", " ".join(str(i.get(k, "")) for k in ("subagent_type", "description")))]
     return len(skills) or len(agents)
 
 

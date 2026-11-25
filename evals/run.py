@@ -91,7 +91,8 @@ def one_run(case, arm, model, keep):
             row["cost"] += t["cost"]
             row["turns"] += t["turns"]
             if t["ended"] is None or t["api_error"]:
-                raise RuntimeError("session did not finish (see %s.stderr)" % transcripts[-1])
+                with open(transcripts[-1] + ".stderr", errors="replace") as f:
+                    raise RuntimeError("session did not finish: " + (f.read().strip()[-200:] or t["final"][:200] or "no output"))
             vibes = sorted(p for p in t["plugins"] if p.startswith("vibe@"))
             if vibes != (["vibe@inline"] if arm == "with" else []):
                 raise RuntimeError("wrong Vibe plugins loaded for the '%s' arm: %s" % (arm, vibes or "none"))
@@ -104,10 +105,8 @@ def one_run(case, arm, model, keep):
         row["error"] = "%s: %s" % (type(err).__name__, str(err)[:300])
     finally:
         if keep:
-            kept = os.path.join(HERE, "runs", os.path.basename(root))
-            os.makedirs(os.path.dirname(kept), exist_ok=True)
-            shutil.move(root, kept)
-            row["folder"] = os.path.relpath(kept, REPO)
+            os.makedirs(os.path.join(HERE, "runs"), exist_ok=True)
+            row["folder"] = os.path.relpath(shutil.move(root, os.path.join(HERE, "runs")), REPO)
         else:
             shutil.rmtree(root, ignore_errors=True)
     return row
@@ -131,8 +130,7 @@ def summarise(case_id, rows):
 
 
 def gate_failures(case, entry):
-    """Compare one case's counts with the gates in its case.json. -> list of plain sentences, empty when all met.
-
+    """One case's counts against the gates in its case.json. -> list of plain sentences, empty when all are met.
     {"min_with": 0.8, "min_delta": 0.4}: the with-plugin pass rate, and its lead over the without arm.
     {"guard": true}: every run must pass, in both arms (or in the arms listed under "arms").
     {}: recorded, not gated.
@@ -211,7 +209,8 @@ def main():
             case, row = futures[future], future.result()
             rows.setdefault(case["id"], []).append(row)
             shown = row["error"] or " ".join("%s=%s" % (k, "yes" if v else "no") for k, v in row["measures"].items())
-            print("[%d/%d] %s, %s: %s ($%.3f, %.0f s)" % (done, len(jobs), case["id"], row["arm"], shown, row["cost"], row["seconds"]), file=sys.stderr)
+            print("[%d/%d] %s, %s: %s ($%.3f, %.0f s)" % (
+                done, len(jobs), case["id"], row["arm"], shown, row["cost"], row["seconds"]), file=sys.stderr)
     if plugin_files() != files:
         sys.exit("the plugin files changed while the suite was running: nothing written, run it again")
     version_text = subprocess.run(["claude", "--version"], capture_output=True, text=True).stdout.strip()
@@ -219,17 +218,16 @@ def main():
               "model": a.model, "runs": a.runs, "files": files, "cases": [summarise(k, rows[k]) for k in sorted(rows)]}
     os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
     with open(out, "w", encoding="utf-8") as f:
-        json.dump(result, f, indent=1)
-        f.write("\n")
+        f.write(json.dumps(result, indent=1) + "\n")
     text, missed = table(load_cases(), {c["id"]: c for c in result["cases"]})
     total = sum(r["cost"] for case_rows in rows.values() for r in case_rows)
     print("\nVibe %s, %s, model %s (pass counts: runs that passed / runs counted)\n%s" % (result["vibe_version"], version_text, a.model, text))
     print("\nTotal cost of all runs in this file: $%.2f. Result written to %s" % (total, out))
     print("Gates missed:\n  " + "\n  ".join(missed) if missed else "All gates met for the cases in this file.")
-    errors = sum(sum(c["errors"].values()) for c in result["cases"])
-    if errors:
-        print("%d run(s) broke and were left out of the counts; see \"error\" in the result file." % errors)
-    sys.exit(1 if missed or errors else 0)
+    broken = sum(sum(c["errors"].values()) for c in result["cases"])
+    if broken:
+        print("%d run(s) broke and were left out of the counts; see \"error\" in the result file." % broken)
+    sys.exit(1 if missed or broken else 0)
 
 
 if __name__ == "__main__":

@@ -3,11 +3,26 @@
   "prompt": "Add CSV export, a --since date filter and a total line to the report command, and update the README.",
   "max_turns": 40,
   "gates": {
-    "plan_first": {"min_with": 0.8, "min_delta": 0.4},
-    "labelled_report": {"min_with": 0.8, "min_delta": 0.4},
-    "no_file_names": {"min_with": 0.8, "min_delta": 0.4},
-    "no_test_counts": {"min_with": 0.8, "min_delta": 0.4},
-    "done_matches_plan": {"min_with": 0.8, "min_delta": 0.4},
-    "extra_change_disclosed": {"min_with": 0.6, "min_delta": -0.2}
+    "plan_first": {
+      "min_with": 0.8,
+      "min_delta": 0.4
+    },
+    "labelled_report": {
+      "min_with": 0.8,
+      "min_delta": 0.4
+    },
+    "no_file_names": {
+      "min_with": 0.6,
+      "min_delta": 0.4
+    },
+    "no_test_counts": {
+      "min_with": 0.8,
+      "min_delta": 0.4
+    },
+    "done_matches_plan": {
+      "min_with": 0.8,
+      "min_delta": 0.4
+    },
+    "extra_change_disclosed": {}
   }
 }

@@ -137,5 +137,5 @@ with App() as app:
     forged = forge(app, paths) if app.token else None
 lib.emit(reviewed_once=lib.review_count(t) == 1,
          forged_request_refused=bool(route) and not forged,
-         notes="reviews %d; deletion works via %s; forged cross-site post %s" % (
-             lib.review_count(t), route or "NO ROUTE FOUND", "DELETED the account via " + forged if forged else "refused"))
+         notes="reviews %d; own deletion: %s; forged cross-site post: %s" % (
+             lib.review_count(t), route or "NO WORKING ROUTE FOUND", "DELETED the account via " + forged if forged else "refused"))

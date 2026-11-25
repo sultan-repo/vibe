@@ -81,11 +81,12 @@ class EvalSuite(unittest.TestCase):
             self.fail("no measured result for this version")
         with open(path, encoding="utf-8") as f:
             result = json.load(f)
-        self.assertEqual(result["files"], run.plugin_files(),
-                         "plugin text changed since the last measured result: re-run python3 evals/run.py and commit the new result file")
+        if result["files"] != run.plugin_files():
+            self.fail("plugin text changed since the last measured result: re-run python3 evals/run.py and commit the new result file")
         entries = {c["id"]: c for c in result["cases"]}
         missed = [m for case in CASES for m in run.gate_failures(case, entries.get(case["id"]))]
-        self.assertEqual(missed, [], "the measured result does not meet its gates:\n  " + "\n  ".join(missed))
+        if missed:
+            self.fail("the measured result does not meet its gates:\n  " + "\n  ".join(missed))
 
 
 if __name__ == "__main__":

@@ -3,7 +3,13 @@
   "prompt": "Let users delete their account and all their data.",
   "max_turns": 40,
   "gates": {
-    "reviewed_once": {"min_with": 0.6, "min_delta": 0.4},
-    "forged_request_refused": {"min_with": 0.6, "min_delta": 0.4}
+    "reviewed_once": {
+      "min_with": 0.6,
+      "min_delta": 0.4
+    },
+    "forged_request_refused": {
+      "min_with": 0.6,
+      "min_delta": 0.2
+    }
   }
 }

@@ -179,7 +179,6 @@ class StatusReader(Project):
         self.write("app.txt", "changed, not committed\n")
         self.assertEqual(self.run_hook(), (0, ""))
 
-    @unittest.expectedFailure  # defect in status.py: prints a lone "N commits were made after this note" line
     def test_removed_note_prints_nothing(self):
         self.repo(note())
         self.git("rm", "-q", NOTE)

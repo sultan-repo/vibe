@@ -30,7 +30,7 @@ def now_block(text, cap=True):
     m = re.search(r"(?ms)^## Now[^\n]*\n(.*?)(?=^## |\Z)", text)
     if m:
         body = m.group(1)
-    elif re.search(r"(?mi)^\s*(?:[-*]\s*)?(?:goal\s*:|\[[ xX]\])", text):
+    elif re.search(r"(?mi)^\s*(?:(?:[-*]|\d+[.)])\s*)?\**(?:goal\**\s*:|\[[ xX]\])", text):
         body = "\n".join(l for l in text.splitlines() if not l.startswith("#"))  # no "## Now" heading
     else:
         return []
@@ -79,8 +79,8 @@ def main():
             else:
                 where = "saved " + age
                 later = git("rev-list", "--count", sha + "..HEAD")
-                if later and later != "0":
-                    facts.append("%s commits were made after this note was saved." % later)
+                if here is not None and later and later != "0":
+                    facts.append("%s commit%s made after this note was saved." % (later, " was" if later == "1" else "s were"))
         dirty = git("status", "--porcelain", "--untracked-files=no")
         n_dirty = len(dirty.splitlines()) if dirty else 0
     for name in ("AGENTS.md", "CLAUDE.md"):
@@ -123,7 +123,7 @@ def main():
         if parts:
             line = " | ".join(part.strip().rstrip(".") for part in parts)
             out["systemMessage"] = ("Where things stand: " + line)[:600]
-    print(json.dumps(out))
+    sys.stdout.buffer.write(json.dumps(out, ensure_ascii=False).encode("utf-8") + b"\n")
 
 
 if __name__ == "__main__":
